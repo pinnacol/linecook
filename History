@@ -1,0 +1,8 @@
+== 0.1.1 2010/12/07
+
+* added nodoc to definition templates
+* added tap.yml for generator discover
+
+== 0.1.0 2010/12/07
+
+Initial release.

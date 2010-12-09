@@ -1,0 +1,19 @@
+# :stopdoc:
+<%= name.upcase %>_LINE = __LINE__ + 2
+<%= name.upcase %> = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
+<%= body %>
+
+END_OF_TEMPLATE
+# :startdoc:
+
+<% Lazydoc::Utils.wrap(desc).each do |line| %>
+# <%= line %>
+<% end %>
+def <%= method_name(name) %><%= signature %>
+  eval(<%= name.upcase %>, binding, __FILE__, <%= name.upcase %>_LINE)
+  nil
+end
+
+def _<%= method_name(name) %>(*args, &block) # :nodoc:
+  capture { <%= method_name(name) %>(*args, &block) }
+end

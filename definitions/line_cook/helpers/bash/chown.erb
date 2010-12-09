@@ -1,0 +1,6 @@
+(target, user=nil, group=nil)
+--
+<% if user || group %>
+chown <%= user %>:<%= group %> "<%= target %>"
+<% check_status %>
+<% end %>

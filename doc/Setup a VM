@@ -1,0 +1,96 @@
+= Setup a VM
+
+LineCook provides support to develop scripts using VirtualBox, an open-source
+product to setup and manage virtual machines. Nothing says you have to use
+VirtualBox during development and obviously you can take the shell scripts
+produced by LineCook and run them wherever.
+
+These are instructions for setting up a generic Ubuntu VM for development.
+
+== Download and Install VirtualBox
+
+http://www.virtualbox.org
+
+== Download a Ubuntu ISO
+
+http://www.ubuntu.com/server/get-ubuntu/download
+
+== Build the Box
+
+Use the VirtualBox wizard to get started.
+
+- name: vbox
+- Linux/Ubuntu
+- 512 MB memory
+- 8 GB dynamically resizing drive
+
+Under Settings:
+
+- add the ubuntu iso to the cd/dvd device (under storage)
+- disable audio
+- network set to NAT
+- disable usb (only the inner box would stay unchecked)
+- shared folder: map the 'vbox' directory in project root
+
+Start the server and install (default unless specified):
+
+- hostname: vbox-ubuntu
+- user/password: vbox
+- no packages
+- power off, remove ubuntu iso from the cd/dvd device 
+
+Setup Permissions (allows vbox to run sudo without password):
+
+  vm: sudo visudo
+
+  # insert line:
+  #
+  #   %vbox ALL=NOPASSWD: ALL
+  #
+  # then exit (write out changes as prompted)
+
+Setup guest additions (note they are in the application package on
+osx http://forums.virtualbox.org/viewtopic.php?f=8&t=10286) See also:
+http://forums.virtualbox.org/viewtopic.php?t=15868.
+
+  (cd/dvd device): add the VBoxGuestAdditions.iso
+  vm: sudo apt-get install linux-headers-$(uname -r) build-essential ssh openssh-server
+  vm: sudo mkdir /media/dvd
+  vm: sudo mount /dev/dvd /media/dvd/
+  vm: sudo sh /media/dvd/VBoxLinuxAdditions-x86.run
+  # there may be a warning about 'Window System drivers fail', ignore
+
+Add an init script to mount the share on boot:
+
+  vm: sudo mkdir /vbox
+  vm: sudo mount -t vboxsf -o uid=1000,gid=100 vbox /vbox
+  vm: sudo cp /vbox/setup/virtual_box /etc/init.d
+  vm: sudo chmod 0755 /etc/init.d/virtual_box
+  vm: sudo update-rc.d virtual_box defaults 80
+  
+Setup SSH:
+
+  vm: mkdir ~/.ssh
+  vm: chmod 0700 ~/.ssh
+  vm: cat /vbox/ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+  vm: chmod 0600 ~/.ssh/authorized_keys
+
+Now take a snapshot and setup port forwarding:
+
+  vm: exit
+  ht: VBoxManage snapshot vbox take BASE
+  ht: VBoxManage controlvm vbox poweroff
+  ht: VBoxManage modifyvm vbox --natpf1 'guestssh,tcp,,2222,,22'
+  ht: VBoxManage modifyvm vbox --natpf1 'http,tcp,,8888,,80'
+  ht: VBoxManage -q snapshot vbox restore BASE
+  ht: VBoxManage startvm vbox --type headless
+
+You can now ssh to the box (from the project dir):
+
+  ht: chmod 0600 vbox/ssh/id_rsa
+  ht: ssh -p 2222 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i vbox/ssh/id_rsa vbox@localhost
+
+To cleanup the port forwarding (run later):
+
+  ht: VBoxManage modifyvm vbox --natpf1 delete 'guestssh'
+  ht: VBoxManage modifyvm vbox --natpf1 delete 'http'

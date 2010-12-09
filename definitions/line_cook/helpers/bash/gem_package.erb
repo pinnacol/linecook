@@ -1,0 +1,9 @@
+Installs a package using RubyGems.
+(name, version=nil)
+  version_opt = blank?(version) ? nil : " -v #{version}"
+--
+<% not_if "gem list -i #{name}#{version_opt} > /dev/null" do %>
+gem install <%= name %><%= version_opt %> --no-rdoc --no-ri
+<% check_status %>
+
+<% end %>

@@ -1,0 +1,6 @@
+(name)
+--
+<% not_if _user?(name) do %>
+/usr/sbin/useradd <%= name %> -m
+<% check_status %>
+<% end %>

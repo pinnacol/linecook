@@ -1,0 +1,44 @@
+= Line-Cook
+
+Makes data-driven shell scripts using recipes.  Not Chef.
+
+== Description
+
+== Usage
+
+Generate a cookbook.
+
+  % tap generate cookbook demo
+  % cd demo
+
+Generate a recipe.
+
+  % tap generate recipe example
+  
+Generate scripts from the recipe.
+
+  % tap generate scripts
+
+Start the VM and run the scripts (see the docs for setting up a VM).
+
+  % tap vm/start
+  % tap vm/ssh 'sudo bash -v /vbox/scripts/example.sh'
+
+Take a snapshot to save where you're at and repeat.
+
+  % tap vm/snapshot take_1
+  # repeat...
+
+Restore a snapshot to go back.
+
+  % tap vm/reset take_1
+
+Stop the VM.
+
+  % tap vm/stop
+
+== Installation
+
+LineCook is available as an in-house gem.
+
+  % gem install line_cook

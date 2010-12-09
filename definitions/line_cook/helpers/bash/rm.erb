@@ -1,0 +1,5 @@
+(path, opts=nil)
+--
+<% only_if %Q{ls -l "#{path}"} do %>
+rm <% if opts %><%= opts %> <% end %>"<%= path %>"
+<% end %>

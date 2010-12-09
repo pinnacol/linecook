@@ -1,0 +1,6 @@
+(target, mode=nil)
+--
+<% if mode %>
+chmod <%= mode %> "<%= target %>"
+<% check_status %>
+<% end %>

@@ -1,0 +1,9 @@
+Exports a list of variables.
+(env=[])
+--
+<% env.to_a.each do |(key, value)| %>
+export <%= key %>=<%= value %>
+<% end %><% if block_given? %>
+<% indent { yield } %>
+<% unset(*env.collect {|(k,v)| k }) %>
+<% end %>

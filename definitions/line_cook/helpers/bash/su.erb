@@ -1,0 +1,5 @@
+Switches to a different user for the duration of a block.
+(user=nil, &block)
+--
+su <%= user %> "<%= script_path(user, &block) %>"
+<% check_status %>

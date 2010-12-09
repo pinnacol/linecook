@@ -1,0 +1,6 @@
+(name)
+--
+<% not_if _group?(name) do %>
+/usr/sbin/groupadd <%= name %>
+<% check_status %>
+<% end %>

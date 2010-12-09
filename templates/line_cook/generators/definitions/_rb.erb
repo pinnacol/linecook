@@ -1,0 +1,11 @@
+<% Lazydoc::Utils.wrap(desc).each do |line| %>
+# <%= line %>
+<% end %>
+def <%= method_name(name) %><%= signature %>
+<%= body.rstrip %>
+
+end
+
+def _<%= method_name(name) %>(*args, &block) # :nodoc:
+  capture { <%= method_name(name) %>(*args, &block) }
+end

@@ -1,0 +1,82 @@
+VMNAME  = 'vbox'
+VBASE   = 'BASE'
+VUSER   = 'vbox'
+KEYPATH = File.expand_path('../vbox/ssh/id_rsa', __FILE__)
+
+namespace :vm do
+  task :start, :type => 'headless' do |config, args|
+    unless `VBoxManage -q list runningvms`.include?(VMNAME)
+      sh "VBoxManage -q startvm #{VMNAME} --type #{config.type}"
+    end
+  end
+  
+  task :stop do
+    if `VBoxManage -q list runningvms`.include?(VMNAME)
+      sh "VBoxManage -q controlvm #{VMNAME} poweroff"
+    end
+  end
+  
+  task :reset, :type => 'headless', :force => true do |config, snapshot|
+    if `VBoxManage -q list runningvms`.include?(VMNAME)
+      sh "VBoxManage -q controlvm #{VMNAME} poweroff"
+    end
+    
+    sh "VBoxManage -q snapshot #{VMNAME} restore #{(snapshot || VBASE).upcase}"
+    sh "VBoxManage -q startvm #{VMNAME} --type #{config.type}"
+  end
+  
+  task :snapshot do |config, snapshot|
+    `VBoxManage -q snapshot #{VMNAME} delete #{snapshot.upcase} > /dev/null`
+    sh "VBoxManage -q snapshot #{VMNAME} take #{snapshot.upcase}"
+  end
+  
+  task :state do
+    if `VBoxManage -q list runningvms`.include?(VMNAME)
+      puts "running"
+    else
+      puts "stopped"
+    end
+  end
+  
+  task :ssh, :verbose => false do |config, *args|
+    # To prevent ssh errors, protect the private key (git checks out all files as 0644)
+    FileUtils.chmod(0600, KEYPATH)
+    
+    # Patterned after vagrant/ssh.rb (circa 0.6.6)
+    platform = RUBY_PLATFORM.to_s.downcase
+    cmd = args.empty? ? nil : " '#{args.join(' ')}'"
+    ssh = "ssh -p 2222 #{config.verbose ? '-v ' : ''}-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i #{KEYPATH} #{VUSER}@localhost#{cmd}"
+    log ssh
+    
+    # Some hackery going on here. On Mac OS X Leopard (10.5), exec fails
+    # (GH-51). As a workaround, we fork and wait. On all other platforms, we
+    # simply exec.
+    
+    pid = nil
+    pid = fork if platform.include?("darwin9") || platform.include?("darwin8")
+    Kernel.exec(ssh)  if pid.nil?
+    Process.wait(pid) if pid
+  end
+end
+
+namespace :line_cook do
+  work :prepare, %q{
+    -- generate definitions --force
+    -- generate script line_cook
+  } do |config| [] end
+  
+  work :run, %q{
+    -- vm/ssh 'sudo bash /vbox/scripts/line_cook -v | tee /vbox/log/line_cook.log 2> /vbox/log/line_cook.err'
+  } do |config| [] end
+    
+  work :cook, %q{
+    -- prepare
+    -- vm/stop
+    -- vm/reset
+    -- vm/start
+    -- run
+  } do |config| 
+    FileUtils.mkdir_p('log') unless File.exists?('log')
+    []
+  end
+end

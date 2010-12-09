@@ -1,0 +1,36 @@
+== Notes
+Use dev/null on set such that no options will not dump ENV into stdout.
+
+(bash_path=DEFAULT_BASH_PATH, env_path=DEFAULT_ENV_PATH)
+  @bash_path = bash_path
+  @env_path  = env_path
+--
+#! <%= bash_path %>
+
+<%= break_line %>
+<%= check_status_function %>
+
+export -f check_status
+export LINECOOK_DIR=$(dirname $0)
+export LINECOOK_BACKUP_DIR=/var/linecook/backup
+export LINECOOK_OPTIONS=
+
+while getopts bhvx opt
+do
+  case $opt in
+  b)  export LINECOOK_BACKUP_DIR="$OPTARG";;
+  v)  LINECOOK_OPTIONS="$LINECOOK_OPTIONS -v";;
+  x)  LINECOOK_OPTIONS="$LINECOOK_OPTIONS -x";;
+  h)  printf "Usage: %s: [-hvx]\n" $0
+      printf "  -h    prints this help\n"
+      printf "  -v    verbose (set -v)\n"
+      printf "  -x    xtrace  (set -x)\n"
+      exit 0;;
+  ?)  printf "Usage: %s: [-hvx]\n" $0
+      exit 2;;
+  esac
+done
+
+mkdir -p "$LINECOOK_BACKUP_DIR"
+set $LINECOOK_OPTIONS > /dev/null
+<%= break_line " #{target_name} " %>
