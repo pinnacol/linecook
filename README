@@ -14,10 +14,12 @@ The workflow is like this:
 * write a recipe using the helpers
 * generate a script from the recipe
 
-Out of the box LineCook provides very basic helpers for POSIX shells, and a
-command-line tool for generating scripts and running a test vm.
+LineCook provides very basic helpers for POSIX shells and a command-line tool
+for generating scripts and running them on a test vm.
 
 == Usage
+
+[Warning this is what WILL be available, not what is.]
 
 Generate a cookbook.
 
