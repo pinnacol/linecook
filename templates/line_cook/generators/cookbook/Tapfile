@@ -61,7 +61,7 @@ end
 
 namespace :line_cook do
   work :prepare, %q{
-    -- generate definitions --force
+    -- generate helpers --force
     -- generate script line_cook
   } do |config| [] end
   

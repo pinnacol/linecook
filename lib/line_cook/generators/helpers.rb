@@ -3,7 +3,7 @@ require 'tap/generator/base'
 module LineCook
   module Generators
     # :startdoc::generator 
-    class Definitions < Tap::Generator::Base
+    class Helpers < Tap::Generator::Base
       Constant = Tap::Env::Constant
     
       helper do
@@ -16,12 +16,12 @@ module LineCook
         end
       end
       
-      def manifest(m, base_path="", dir="definitions")
+      def manifest(m, dir='helpers', base_path='')
         dirs, paths = Dir.glob("#{dir}/*").partition {|path| File.directory?(path) }
       
         # Recursively generate modules
         dirs.each do |path|
-          manifest(m, File.join(base_path, File.basename(path)), path)
+          manifest(m, path, File.join(base_path, File.basename(path)))
         end
       
         # Generate the current module, if necessary
@@ -30,7 +30,7 @@ module LineCook
           sections, definitions = paths.partition {|path| File.basename(path)[0] == ?_ }
         
           m.directory "lib"
-          m.template File.join("lib", "#{const.path}.rb"), 'definitions.erb', {
+          m.template File.join("lib", "#{const.path}.rb"), 'helpers.erb', {
             :sections => load_sections(sections),
             :definitions => definitions.collect {|path| definition(path) },
             :const => const

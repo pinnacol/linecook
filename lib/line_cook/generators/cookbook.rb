@@ -13,7 +13,7 @@ module LineCook
         project_name = File.basename(r.path) if project_name == nil
         
         m.directory r.path('attributes')
-        m.directory r.path('definitions')
+        m.directory r.path('helpers')
         m.directory r.path('recipes')
         m.directory r.path('scripts')
         
