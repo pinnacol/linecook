@@ -1,44 +1,79 @@
-= Line-Cook
+= LineCook
 
-Makes data-driven shell scripts using recipes.  Not Chef.
+A shell script generator.
 
 == Description
+
+LineCook lets you generate shell scripts using an extensible set of tiny ERB
+helpers. The helpers output a shell script that you can use to (for example)
+provision a server.
+
+The workflow is like this:
+
+* define helpers
+* write a recipe using the helpers
+* generate a script from the recipe
+
+Out of the box LineCook provides very basic helpers for POSIX shells, and a
+command-line tool for generating scripts and running a test vm.
 
 == Usage
 
 Generate a cookbook.
 
-  % tap generate cookbook demo
-  % cd demo
+  % line_cook init
 
-Generate a recipe.
+Make some helpers.
 
-  % tap generate recipe example
+  [helpers/demo/_head.rb]
+  COLOR_CODES = Hash[*%W{
+    black       0;30   red         0;31
+    white       1;37   green       0;32
+    light_gray  0;37   blue        0;34
+  }]
   
-Generate scripts from the recipe.
+  [helpers/demo/color.erb]
+  Adds color to a string.
+  (color, str)
+  --
+  \033[<%= COLOR_CODES[color.to_s] %>m<%= str %>\033[0m
+  
+  [helpers/demo/echo_in_color.erb]
+  Echo a string in color
+  (color, str)
+  --
+  echo -e <%= _color(color, str) %>
 
-  % tap generate scripts
+Use in a recipe.
+
+  [recipes/demo.rb]
+  helpers "line_cook/shell"
+  helpers "demo"
+  
+  10.times {
+    echo_in_color "blue", "I will not manually configure my server"
+  }
+
+Generate a script from the helpers+recipe.
+
+  % line_cook generate
 
 Start the VM and run the scripts (see the docs for setting up a VM).
 
-  % tap vm/start
-  % tap vm/ssh 'sudo bash -v /vbox/scripts/example.sh'
-
-Take a snapshot to save where you're at and repeat.
-
-  % tap vm/snapshot take_1
-  # repeat...
-
-Restore a snapshot to go back.
-
-  % tap vm/reset take_1
+  % line_cook start
+  % line_cook ssh 'sudo bash -v /vbox/scripts/demo.sh'
 
 Stop the VM.
 
-  % tap vm/stop
+  % line_cook stop
 
 == Installation
 
-LineCook is available as an in-house gem.
+LineCook is available as a gem on {Gemcutter}[http://gemcutter.org/gems/line_cook]
 
   % gem install line_cook
+
+== Info 
+
+Developer:: {Simon Chiang}[http://bahuvrihi.wordpress.com]
+License:: {MIT-Style}[link:files/License_txt.html]

@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.version = LineCook::VERSION
   s.author  = 'Simon Chiang'
   s.email   = 'simon.chiang@pinnacol.com'
-  s.summary = 'Makes data-driven shell scripts using recipes.  Not Chef.'
+  s.summary = 'A shell script generator.'
   s.homepage = 'http://gems.pinnacol.com/line_cook'
   s.rubyforge_project = ''
   s.require_path = 'lib'
