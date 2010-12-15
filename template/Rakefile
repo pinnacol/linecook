@@ -74,14 +74,14 @@ task :ssh do
 end
 
 #
-# LineCook Tasks
+# LineCook Helpers
 #
 
-base = File.expand_path('../helpers', __FILE__)
-
+helpers_dir = File.expand_path('../helpers', __FILE__)
 require 'line_cook/helper'
-LineCook::Helper.each_helper(base) do |dir, helper|
-  const_path = dir[(base.length+1)..-1]
+
+LineCook::Helper.each_helper(helpers_dir) do |dir, helper|
+  const_path = dir[(helpers_dir.length+1)..-1]
   next if const_path.nil? || const_path.empty?
   
   const_name = const_path.gsub(/\/(.?)/) { "::" + $1.upcase }.gsub(/(^|_)(.)/) { $2.upcase }
@@ -102,8 +102,58 @@ LineCook::Helper.each_helper(base) do |dir, helper|
     File.open(target, 'w') {|io| io << content }
   end
 
-  task :helpers => target
+  namespace :helpers do
+    desc "generate #{const_name}"
+    task const_path => target
+  end
+  
+  task :helpers => "helpers:#{const_path}"
 end
 
 desc "generate all helpers"
 task :helpers
+
+#
+# LineCook Nodes
+#
+
+nodes_dir    = File.expand_path('../nodes', __FILE__)
+recipe_dir   = File.expand_path("../recipes", __FILE__)
+script_dir   = File.expand_path("../scripts", __FILE__)
+package_dir  = File.expand_path("../packages", __FILE__)
+
+require 'line_cook/node'
+require 'line_cook/recipe'
+
+LineCook::Node.each_node(nodes_dir) do |node_path, node|
+  node_name = node_path[(nodes_dir.length+1)..-1].chomp('.js')
+  
+  script_paths = node.recipes.collect do |recipe_name|
+    recipe_path = File.join(recipe_dir, "#{recipe_name}.rb")
+    script_path = File.join(script_dir, node_name, recipe_name)
+    
+    file script_path => ['helpers', node_path, recipe_path] do
+      FileUtils.rm_r(script_path) if File.exists?(script_path)
+      FileUtils.mkdir_p(script_path)
+      
+      recipe = LineCook::Recipe.new(recipe_name, :attrs => node.attrs)
+      recipe.evaluate(recipe_name)
+      recipe.close
+      recipe.registry.each_pair do |source, target|
+        FileUtils.cp source, File.join(script_path, target)
+      end
+    end
+    
+    script_path
+  end
+  
+  namespace :nodes do
+    desc "generate #{node_name}"
+    task node_name => script_paths
+  end
+  
+  task :nodes => "nodes:#{node_name}"
+end
+
+desc "generate all nodes"
+task :nodes
