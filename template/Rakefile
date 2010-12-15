@@ -1,0 +1,109 @@
+require 'rake'
+
+#
+# VirtualBox Tasks
+#
+
+VMNAME  = ENV['LINE_COOK_VM_NAME'] || 'vbox'
+VUSER   = ENV['LINE_COOK_VM_USER'] || 'vbox'
+KEYPATH = File.expand_path('../vbox/ssh/id_rsa', __FILE__)
+
+desc "start the #{VMNAME} vm"
+task :start do
+  type = ENV['TYPE'] || 'headless'
+  unless `VBoxManage -q list runningvms`.include?(VMNAME)
+    sh "VBoxManage -q startvm #{VMNAME} --type #{type}"
+  end
+end
+
+desc "stop the #{VMNAME} vm (poweroff)"
+task :stop do
+  if `VBoxManage -q list runningvms`.include?(VMNAME)
+    sh "VBoxManage -q controlvm #{VMNAME} poweroff"
+  end
+end
+
+desc "reset the vm to SNAPSHOT (default BASE)"
+task :reset do
+  type = ENV['TYPE'] || 'headless'
+  name = ENV['SNAPSHOT'] || 'BASE'
+  
+  if `VBoxManage -q list runningvms`.include?(VMNAME)
+    sh "VBoxManage -q controlvm #{VMNAME} poweroff"
+  end
+  
+  sh "VBoxManage -q snapshot #{VMNAME} restore #{name.upcase}"
+  sh "VBoxManage -q startvm #{VMNAME} --type #{type}"
+end
+
+desc "take the snapshop specified by SNAPSHOT"
+task :snapshot do
+  name = ENV['SNAPSHOT']
+  raise "no snapshot name specified in ENV['SNAPSHOT']" unless name
+  
+  `VBoxManage -q snapshot #{VMNAME} delete #{name.upcase} > /dev/null`
+  sh "VBoxManage -q snapshot #{VMNAME} take #{name.upcase}"
+end
+
+desc "print the state of the #{VMNAME} vm"
+task :state do
+  if `VBoxManage -q list runningvms`.include?(VMNAME)
+    puts "running"
+  else
+    puts "stopped"
+  end
+end
+
+desc "ssh to the #{VMNAME} vm (executes COMMAND)"
+task :ssh do
+  # To prevent ssh errors, protect the private key
+  FileUtils.chmod(0600, KEYPATH)
+  
+  # Patterned after vagrant/ssh.rb (circa 0.6.6)
+  platform = RUBY_PLATFORM.to_s.downcase
+  ssh = "ssh -p 2222 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i #{KEYPATH} #{VUSER}@localhost #{ENV['COMMAND']}"
+  
+  # Some hackery going on here. On Mac OS X Leopard (10.5), exec fails
+  # (GH-51). As a workaround, we fork and wait. On all other platforms, we
+  # simply exec.
+  
+  pid = nil
+  pid = fork if platform.include?("darwin9") || platform.include?("darwin8")
+  Kernel.exec(ssh)  if pid.nil?
+  Process.wait(pid) if pid
+end
+
+#
+# LineCook Tasks
+#
+
+base = File.expand_path('../helpers', __FILE__)
+
+require 'line_cook/helper'
+LineCook::Helper.each_helper(base) do |dir, helper|
+  const_path = dir[(base.length+1)..-1]
+  next if const_path.nil? || const_path.empty?
+  
+  const_name = const_path.gsub(/\/(.?)/) { "::" + $1.upcase }.gsub(/(^|_)(.)/) { $2.upcase }
+  target     = File.expand_path("../lib/#{const_path}.rb", __FILE__)
+  
+  if ENV['FORCE'] == 'true' && File.exists?(target)
+    FileUtils.rm(target)
+  end
+  
+  file target => helper.sources do
+    content = helper.build(const_name)
+    
+    target_dir = File.dirname(target)
+    unless File.exists?(target_dir)
+      FileUtils.mkdir_p(target_dir) 
+    end
+    
+    File.open(target, 'w') {|io| io << content }
+  end
+
+  task :helpers => target
+end
+
+desc "generate all helpers"
+task :helpers

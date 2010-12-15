@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'fileutils'
+
+ARGV << '-h' if ARGV.empty?
+OptionParser.new do |opts|
+  opts.banner = "Usage: line_cook [options] PATH"
+  
+  opts.on("-h", "--help", "Print this help") do |v|
+    puts opts
+    exit
+  end
+end.parse!
+
+template_dir = File.expand_path('../../template', __FILE__)
+target_dir   = File.expand_path(ARGV[0])
+project_name = File.basename(target_dir)
+
+if File.exists?(target_dir)
+  puts "already exists: #{target_dir}"
+  exit 1
+end
+
+Dir.glob("#{template_dir}/**/*").each do |source|
+  relative_path = source[(template_dir.length + 1)..-1]
+  relative_path = relative_path.sub('project_name', project_name).sub(/^_/, '.')
+  target = File.join(target_dir, relative_path)
+  
+  if File.directory?(source)
+    FileUtils.mkdir_p(target)
+  else
+    puts "      create  #{relative_path}"
+    File.open(target, 'w') do |io|
+      io << File.read(source).gsub('%project_name%', project_name)
+    end
+  end
+end
