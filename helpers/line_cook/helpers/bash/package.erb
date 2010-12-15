@@ -1,5 +1,0 @@
-Installs a package using zypper.
-(name, version=nil)
---
-zypper -n --no-gpg-checks install -l <%= name %><%= blank?(version) ? nil : "=#{version}" %>
-<%= check_status %>

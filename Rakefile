@@ -94,15 +94,6 @@ task :bundle => :submodules do
 end
 
 #
-# Compilation tasks
-#
-
-desc 'Compile helpers'
-task :compile do
-  stdout_sh 'tap generate helpers --force'
-end
-
-#
 # Test tasks
 #
 
@@ -110,7 +101,7 @@ desc 'Default: Run tests.'
 task :default => :test
 
 desc 'Run the tests'
-task :test => [:bundle, :compile] do
+task :test => :bundle do
   tests = Dir.glob('test/**/*_test.rb')
   
   if ENV['RCOV'] == 'true'

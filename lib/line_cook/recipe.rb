@@ -4,8 +4,6 @@ require 'tap/templater'
 require 'tempfile'
 require 'stringio'
 
-require 'line_cook/patches/templater'
-
 module LineCook
   class Recipe
     

@@ -1,9 +1,0 @@
-(name, options={})
-  users = options[:users] || []
---
-<% users.each do |user| %>
-<% not_if "id #{user} | grep -w #{name}" do %>
-/usr/sbin/groupmod <%= name %> -A <%= user %>
-<% check_status %>
-<% end %>
-<% end %>

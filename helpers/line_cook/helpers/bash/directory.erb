@@ -1,8 +1,0 @@
-(target, options={})
---
-<% not_if _directory?(target) do %>
-mkdir -p "<%= target %>"
-<% check_status %>
-<% end %>
-<% chmod(target, options[:mode]) %>
-<% chown(target, options[:user], options[:group]) %>
