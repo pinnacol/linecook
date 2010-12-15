@@ -1,8 +1,15 @@
+require 'ostruct'
 require 'stringio'
 require 'erb'
 
 module LineCook
   class Templater
+    class << self
+      def build(template, locals, template_path=nil)
+        ERB.new(template).result(OpenStruct.new(locals).send(:binding))
+      end
+    end
+    
     attr_reader :target
     
     def initialize
@@ -89,6 +96,18 @@ module LineCook
       target.truncate start
       
       tail.length == 0 && start > 0 ? rstrip(n * 2) : concat(tail)
+    end
+    
+    def camelize(str)
+      str.to_s.gsub(/\/(.?)/) { "::" + $1.upcase }.gsub(/(^|_)(.)/) { $2.upcase }
+    end
+    
+    def underscore(str)
+      str.gsub(/::/, '/').
+      gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+      gsub(/([a-z\d])([A-Z])/,'\1_\2').
+      tr("-", "_").
+      downcase
     end
   end
 end

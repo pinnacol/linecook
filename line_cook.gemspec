@@ -16,9 +16,7 @@ Gem::Specification.new do |s|
   s.rdoc_options.concat %W{--main README -S -N --title Line-Cook}
   
   # add dependencies
-  s.add_dependency('tap', '~> 1.3')
   s.add_dependency('json', '~> 1.4')
-  s.add_development_dependency('tap-test', '~> 0.6.1')
   
   # list extra rdoc files here.
   s.extra_rdoc_files = %W{

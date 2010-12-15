@@ -4,21 +4,37 @@ require 'stringio'
 
 class RecipeTest < Test::Unit::TestCase
   Recipe = LineCook::Recipe
-  acts_as_file_test
   
   attr_reader :recipe
   
   def setup
     super
     @current_dir = Dir.pwd
-    method_root.chdir(method_root.path, true)
+    @tempdir = Tempfile.new(method_name)
+    @tempdir.close
+    
+    FileUtils.rm(@tempdir.path)
+    FileUtils.mkdir_p(@tempdir.path)
+    Dir.chdir(@tempdir.path)
     
     @recipe = Recipe.new('recipe')
   end
   
   def teardown
-    method_root.chdir @current_dir
+    Dir.chdir(@current_dir)
     super
+  end
+  
+  def prepare(relative_path, &block)
+    path = File.join(@tempdir.path, relative_path)
+    
+    if block
+      dir = File.dirname(path)
+      FileUtils.mkdir_p(dir) unless File.exists?(dir)
+      File.open(path, 'w', &block)
+    end
+    
+    path
   end
   
   #
@@ -42,19 +58,18 @@ class RecipeTest < Test::Unit::TestCase
     assert_equal 'content', File.read(source_path)
   end
   
-
   #
-# attrs test
-#
+  # attrs test
+  #
 
-def test_attrs_returns_attributes_attrs
-  recipe.attributes do
-    default[:a] = 'A'
-    default[:b] = '-'
-    normal[:b] = 'B'
-  end
+  def test_attrs_returns_attributes_attrs
+    recipe.attributes do
+      default[:a] = 'A'
+      default[:b] = '-'
+      normal[:b] = 'B'
+    end
 
-  assert_equal({
+    assert_equal({
     :a => 'A',
     :b => 'B'
     }, recipe.attrs)
@@ -65,7 +80,7 @@ def test_attrs_returns_attributes_attrs
   #
 
   def test_attributes_evals_the_attributes_file_in_the_context_of_attributes
-    method_root.prepare('attributes/example.rb') {|io| io << "default[:key] = 'value'"}
+    prepare('attributes/example.rb') {|io| io << "default[:key] = 'value'"}
     assert_equal nil, recipe.attrs[:key]
 
     recipe.attributes('example')
@@ -98,7 +113,7 @@ def test_attrs_returns_attributes_attrs
   #
 
   def test_file_path_registers_file_from_files_dir
-    method_root.prepare('files/example.txt') {|io| io << 'content'}
+    prepare('files/example.txt') {|io| io << 'content'}
 
     path = recipe.file_path('example.txt')
     assert_equal 'recipe.d/0-example.txt', path
@@ -112,7 +127,7 @@ def test_attrs_returns_attributes_attrs
   #
 
   def test_recipe_path_evals_the_recipe_file_in_the_context_of_a_new_recipe
-    method_root.prepare('recipes/example.rb') {|io| io << "target.puts 'content'"}
+    prepare('recipes/example.rb') {|io| io << "target.puts 'content'"}
     assert_equal 'example', recipe.recipe_path('example')
 
     recipe.close
@@ -142,7 +157,7 @@ def test_attrs_returns_attributes_attrs
   #
   
   def test_script_path_concats_script_file_if_it_exists
-    method_root.prepare('scripts/example.sh') {|io| io << "content" }
+    prepare('scripts/example.sh') {|io| io << "content" }
     
     path = recipe.script_path('example.sh')
     assert_equal 'recipe.d/0-example.sh', path
@@ -164,7 +179,7 @@ def test_attrs_returns_attributes_attrs
   #
 
   def test_template_path_templates_and_registers_file_from_templates_dir
-    method_root.prepare('templates/example.txt.erb') do |io|
+    prepare('templates/example.txt.erb') do |io|
       io << "got <%= key %>"
     end
 

@@ -1,14 +1,11 @@
 require 'line_cook/attributes'
-require 'tap/env/constant'
-require 'tap/templater'
+require 'line_cook/templater'
 require 'tempfile'
-require 'stringio'
 
 module LineCook
-  class Recipe
+  class Recipe < Templater
     
     attr_reader :target_name
-    attr_reader :target
     attr_reader :sources
     attr_reader :registry
     attr_reader :current_count
@@ -91,8 +88,18 @@ module LineCook
     end
     
     def helpers(name)
-      const = Tap::Env::Constant.new(name.camelize, name.underscore)
-      extend const.constantize
+      const = Object
+      constants = camelize(name).split(/::/)
+      
+      while const_name = constants.shift
+        unless const.const_defined?(const_name)
+          require underscore(name)
+        end
+        
+        const = const.const_get(const_name)
+      end
+      
+      extend const
     end
     
     def evaluate(name=nil, &block)
@@ -171,7 +178,7 @@ module LineCook
       end
       
       template = File.read(template_path)
-      target_file name, Tap::Templater.build(template, locals, template_path)
+      target_file name, Templater.build(template, locals, template_path)
     end
     
     def close
@@ -185,59 +192,6 @@ module LineCook
     
     def closed?
       @target.closed?
-    end
-    
-    # Returns self (not the underlying erbout storage that actually receives
-    # the output lines).  In the ERB context, this method directs erb outputs
-    # to Templater#concat and into the redirect mechanism.
-    def _erbout
-      self
-    end
-    
-    # Sets the underlying erbout storage to input.
-    def _erbout=(input)
-    end
-    
-    # Concatenates the specified input to the underlying erbout storage.
-    def concat(input)
-      target << input
-      self
-    end
-    
-    def capture
-      current, redirect = @target, StringIO.new
-      
-      begin
-        @target = redirect
-        yield
-      ensure
-        @target = current
-      end
-      
-      redirect.string.strip!
-    end
-    
-    def indent(indent='  ', &block)
-      capture(&block).split("\n").each do |line|
-        concat "#{indent}#{line}\n"
-      end
-      self
-    end
-    
-    def rstrip(n=10)
-      yield if block_given?
-      
-      pos = target.pos
-      n = pos if pos < n
-      start = pos - n
-      
-      target.pos = start
-      tail = target.read(n).rstrip
-      
-      target.pos = start
-      target.truncate start
-      
-      tail.length == 0 && start > 0 ? rstrip(n * 2) : concat(tail)
     end
     
     def next_count
