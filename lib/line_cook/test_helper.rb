@@ -5,32 +5,42 @@ module LineCook
 
     def setup
       super
+      @_tempfiles = []
       @previous_dir = Dir.pwd
-      @_tempfile = Tempfile.new(method_name)
-      @_tempfile.close
-      @current_dir = @_tempfile.path
+      @current_dir = tempdir
       
-      FileUtils.rm(current_dir)
-      FileUtils.mkdir_p(current_dir)
       Dir.chdir(current_dir)
     end
 
     def teardown
       Dir.chdir(previous_dir)
-      @_tempfile = nil
+      @_tempfiles = nil
       super
     end
+    
+    def tempdir(base=method_name)
+      tempfile = Tempfile.new(base)
+      tempfile.close
+      @_tempfiles << tempfile
+      
+      dir = tempfile.path
+      
+      FileUtils.rm(dir)
+      FileUtils.mkdir_p(dir)
+      
+      dir
+    end
 
-    def prepare(relative_path, &block)
-      path = File.join(current_dir, relative_path)
+    def prepare(relative_path, dir=current_dir, &block)
+      block ||= lambda {}
+      
+      target = File.join(dir, relative_path)
+      target_dir = File.dirname(target)
+      
+      FileUtils.mkdir_p(target_dir) unless File.exists?(target_dir)
+      File.open(target, 'w', &block)
 
-      if block
-        dir = File.dirname(path)
-        FileUtils.mkdir_p(dir) unless File.exists?(dir)
-        File.open(path, 'w', &block)
-      end
-
-      path
+      target
     end
   end
 end
