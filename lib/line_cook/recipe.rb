@@ -1,12 +1,13 @@
 require 'line_cook/attributes'
 require 'line_cook/templater'
+require 'line_cook/manifest'
 require 'tempfile'
 
 module LineCook
   class Recipe < Templater
     
     attr_reader :target_name
-    attr_reader :sources
+    attr_reader :manifest
     attr_reader :registry
     attr_reader :current_count
     
@@ -14,7 +15,7 @@ module LineCook
       @target_name = target_name
       @target      = Tempfile.new(target_name)
       
-      @sources     = options[:sources] || [Dir.pwd]
+      @manifest    = options[:manifest] || Manifest.new(Dir.pwd)
       @registry    = options[:registry] || {}
       @attributes  = Attributes.new(options[:attrs] || {})
       
@@ -24,15 +25,9 @@ module LineCook
       @current_count = 0
     end
     
-    def source_path(*relative_path)
+    def source_path(type, *relative_path)
       relative_path = File.join(*relative_path)
-      
-      sources.each do |source|
-        full_path = File.expand_path(relative_path, source)
-        return full_path if File.exists?(full_path)
-      end
-      
-      nil
+      manifest[type][relative_path]
     end
     
     def target_path(source_path)
@@ -68,7 +63,7 @@ module LineCook
     end
     
     def attributes(name=nil, &block)
-      attrs_path = name ? source_path('attributes', "#{name.chomp('.rb')}.rb") : nil
+      attrs_path = name ? source_path(:attributes, "#{name.chomp('.rb')}.rb") : nil
       
       unless attrs_path || block
         raise "could not find attributes: #{"#{name.chomp('.rb')}.rb".inspect}"
@@ -103,7 +98,7 @@ module LineCook
     end
     
     def evaluate(name=nil, &block)
-      recipe_path = name ? source_path('recipes', "#{name.chomp(File.extname(name))}.rb") : nil
+      recipe_path = name ? source_path(:recipes, "#{name.chomp(File.extname(name))}.rb") : nil
     
       unless recipe_path || block
         raise "could not find recipe: #{"#{name.chomp(File.extname(name))}.rb".inspect}"
@@ -116,7 +111,7 @@ module LineCook
     end
     
     def file_path(name)
-      unless file_path = source_path('files', name)
+      unless file_path = source_path(:files, name)
         raise "could not find file: #{name.inspect}"
       end
       
@@ -139,7 +134,7 @@ module LineCook
       
       target_path ||= begin
         recipe = Recipe.new(name, 
-          :sources  => sources,
+          :manifest => manifest,
           :registry => registry,
           :attrs    => @attributes.user_attrs
         )
@@ -152,7 +147,7 @@ module LineCook
     end
     
     def script_path(name, &block)
-      script_path = source_path('scripts', name)
+      script_path = source_path(:scripts, name)
       
       unless script_path || block
         raise "could not find script: #{name.inspect}"
@@ -173,7 +168,7 @@ module LineCook
     end
     
     def template_path(name, locals={})
-      unless template_path = source_path('templates', "#{name}.erb")
+      unless template_path = source_path(:templates, "#{name}.erb")
         raise "could not find template: #{"#{name}.erb".inspect}"
       end
       
