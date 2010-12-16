@@ -57,3 +57,5 @@ Dir.glob("#{template_dir}/**/*").each do |source|
     end
   end
 end
+
+FileUtils.ln_s File.join(project_dir, 'scripts'), File.join(project_dir, 'vbox/scripts')
