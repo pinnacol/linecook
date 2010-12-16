@@ -98,6 +98,14 @@ class RecipeTest < Test::Unit::TestCase
     assert_equal 'content', File.read(source_path)
   end
 
+  def test_file_path_creates_file_from_block_if_given
+    path = recipe.file_path('example.sh') { target << 'content'}
+    assert_equal 'recipe.d/0-example.sh', path
+    
+    source_path = recipe.registry.invert[path]
+    assert_equal 'content', File.read(source_path)
+  end
+  
   #
   # recipe_path test
   #
@@ -126,28 +134,6 @@ class RecipeTest < Test::Unit::TestCase
 
     source_path = recipe.registry.invert['example']
     assert_equal "content\n", File.read(source_path)
-  end
-  
-  #
-  # script_path test
-  #
-  
-  def test_script_path_concats_script_file_if_it_exists
-    prepare('scripts/example.sh') {|io| io << "content" }
-    
-    path = recipe.script_path('example.sh')
-    assert_equal 'recipe.d/0-example.sh', path
-    
-    source_path = recipe.registry.invert[path]
-    assert_equal 'content', File.read(source_path)
-  end
-  
-  def test_script_path_reassigns_script_to_tempfile_for_duration_of_block
-    path = recipe.script_path('example.sh') { target << 'content'}
-    assert_equal 'recipe.d/0-example.sh', path
-    
-    source_path = recipe.registry.invert[path]
-    assert_equal 'content', File.read(source_path)
   end
 
   #

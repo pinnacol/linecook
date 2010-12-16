@@ -110,12 +110,26 @@ module LineCook
       self
     end
     
-    def file_path(name)
-      unless file_path = source_path(:files, name)
+    def file_path(name, &block)
+      case
+      when block
+        target_file(name) do |tempfile|
+          current = @target
+          @target = tempfile
+
+          begin
+            instance_eval(&block) if block
+          ensure
+            @target = current
+          end
+        end
+        
+      when file_path = source_path(:files, name)
+        target_path file_path
+        
+      else
         raise "could not find file: #{name.inspect}"
       end
-      
-      target_path file_path
     end
     
     def recipe_path(name, &block)
@@ -144,27 +158,6 @@ module LineCook
       end
       
       target_path target_path
-    end
-    
-    def script_path(name, &block)
-      script_path = source_path(:scripts, name)
-      
-      unless script_path || block
-        raise "could not find script: #{name.inspect}"
-      end
-      
-      content = script_path ? File.read(script_path) : nil
-      
-      target_file(name, content) do |tempfile|
-        current = @target
-        @target = tempfile
-
-        begin
-          instance_eval(&block) if block
-        ensure
-          @target = current
-        end
-      end
     end
     
     def template_path(name, locals={})
