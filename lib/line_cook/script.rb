@@ -1,10 +1,10 @@
 require 'json'
 
 module LineCook
-  class Node
+  class Script
     class << self
-      def each_node(dir, &block)
-        Dir.glob("#{dir}/**/*").each do |path| 
+      def each_script(dir, &block)
+        Dir.glob("#{dir}/**/*.js").each do |path| 
           next unless File.file?(path)
           
           attrs = JSON.parse(File.read(path), :symbolize_names => true)
