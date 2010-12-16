@@ -3,38 +3,14 @@ require 'line_cook/recipe'
 require 'stringio'
 
 class RecipeTest < Test::Unit::TestCase
+  include LineCook::TestHelper
   Recipe = LineCook::Recipe
   
   attr_reader :recipe
   
   def setup
     super
-    @current_dir = Dir.pwd
-    @tempdir = Tempfile.new(method_name)
-    @tempdir.close
-    
-    FileUtils.rm(@tempdir.path)
-    FileUtils.mkdir_p(@tempdir.path)
-    Dir.chdir(@tempdir.path)
-    
     @recipe = Recipe.new('recipe')
-  end
-  
-  def teardown
-    Dir.chdir(@current_dir)
-    super
-  end
-  
-  def prepare(relative_path, &block)
-    path = File.join(@tempdir.path, relative_path)
-    
-    if block
-      dir = File.dirname(path)
-      FileUtils.mkdir_p(dir) unless File.exists?(dir)
-      File.open(path, 'w', &block)
-    end
-    
-    path
   end
   
   #
