@@ -43,15 +43,10 @@ module LineCook
     
     def definitions
       @definitions ||= @definition_paths.collect do |path|
-        extname = File.extname(path)
-        name    = File.basename(path).chomp(extname)
+        name = File.basename(path).chomp File.extname(path)
         desc, signature, body = parse File.read(path)
         
-        case extname
-        when '.erb' then eval ERB_TEMPLATE, binding, __FILE__, ERB_TEMPLATE_LINE
-        when '.rb'  then eval RB_TEMPLATE,  binding, __FILE__, RB_TEMPLATE_LINE
-        else raise "invalid definition: #{path}"
-        end
+        eval ERB_TEMPLATE, binding, __FILE__, ERB_TEMPLATE_LINE
       end
     end
     
@@ -115,21 +110,6 @@ END_OF_TEMPLATE
 def <%= method_name(name) %><%= signature %>
   eval(<%= name.upcase %>, binding, __FILE__, <%= name.upcase %>_LINE)
   nil
-end
-
-def _<%= method_name(name) %>(*args, &block) # :nodoc:
-  capture { <%= method_name(name) %>(*args, &block) }
-end
-DOC
-    
-    RB_TEMPLATE_LINE = __LINE__ + 2
-    RB_TEMPLATE = ERB.new(<<-DOC, nil, '<>').src
-<% desc.each do |line| %>
-# <%= line %>
-<% end %>
-def <%= method_name(name) %><%= signature %>
-<%= body.rstrip %>
-
 end
 
 def _<%= method_name(name) %>(*args, &block) # :nodoc:
