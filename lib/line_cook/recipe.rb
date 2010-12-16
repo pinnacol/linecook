@@ -1,10 +1,12 @@
 require 'line_cook/attributes'
 require 'line_cook/templater'
 require 'line_cook/manifest'
+require 'line_cook/utils'
 require 'tempfile'
 
 module LineCook
   class Recipe < Templater
+    include Utils
     
     attr_reader :target_name
     attr_reader :manifest
