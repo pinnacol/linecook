@@ -1,4 +1,4 @@
-= Setup a VM
+= README
 
 LineCook provides support to develop scripts using VirtualBox, an open-source
 product to setup and manage virtual machines. Nothing says you have to use
@@ -7,15 +7,9 @@ produced by LineCook and run them wherever.
 
 These are instructions for setting up a generic Ubuntu VM for development.
 
-== Download and Install VirtualBox
-
-http://www.virtualbox.org
-
-== Download a Ubuntu ISO
-
-http://www.ubuntu.com/server/get-ubuntu/download
-
-== Build the Box
+1. Download and Install VirtualBox (http://www.virtualbox.org)
+2. Download a Ubuntu ISO (http://www.ubuntu.com/server/get-ubuntu/download)
+3. Build the Box
 
 Use the VirtualBox wizard to get started.
 
