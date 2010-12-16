@@ -76,12 +76,6 @@ module LineCook
       self
     end
     
-    def shell(shell_name, *args)
-      helpers File.join("line_cook/helpers", shell_name)
-      shebang(*args)
-      nil
-    end
-    
     def helpers(name)
       const = Object
       constants = camelize(name).split(/::/)
