@@ -5,7 +5,7 @@ module LineCook
       :files      => [File.join('**', '*')],
       :helpers    => [File.join('**', '*.erb'), File.join('**', '_*.rb')],
       :recipes    => [File.join('**', '*.rb')],
-      :scripts    => [File.join('*.js')],
+      :scripts    => [File.join('*.yml')],
       :templates  => [File.join('**', '*.erb')]
     }
     

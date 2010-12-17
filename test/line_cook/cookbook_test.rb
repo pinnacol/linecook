@@ -19,7 +19,7 @@ class CookbookTest < Test::Unit::TestCase
   def test_AGET_attributes_returns_cookbook_matching_rb_attribute_files
     a = prepare('attributes/a.rb')
     b = prepare('attributes/b/b.rb')
-    c = prepare('attributes/c.js')
+    c = prepare('attributes/c.yml')
     d = prepare('tmp/d.rb')
     
     assert_equal({
@@ -31,13 +31,13 @@ class CookbookTest < Test::Unit::TestCase
   def test_AGET_files_returns_cookbook_matching_all_file_files
     a = prepare('files/a.txt')
     b = prepare('files/b/b.rb')
-    c = prepare('files/c.js')
+    c = prepare('files/c.yml')
     d = prepare('tmp/d.txt')
     
     assert_equal({
       'a.txt' => a,
       'b/b.rb' => b,
-      'c.js' => c
+      'c.yml' => c
     }, cookbook[:files])
   end
   
@@ -69,14 +69,14 @@ class CookbookTest < Test::Unit::TestCase
     }, cookbook[:recipes])
   end
   
-  def test_AGET_scripts_returns_cookbook_of_non_nested_js_scripts
-    a = prepare('scripts/a.js')
-    b = prepare('scripts/b/b.js')
+  def test_AGET_scripts_returns_cookbook_of_non_nested_yml_scripts
+    a = prepare('scripts/a.yml')
+    b = prepare('scripts/b/b.yml')
     c = prepare('scripts/c.txt')
-    d = prepare('tmp/d.js')
+    d = prepare('tmp/d.yml')
     
     assert_equal({
-      'a.js' => a
+      'a.yml' => a
     }, cookbook[:scripts])
   end
   
@@ -99,7 +99,7 @@ class CookbookTest < Test::Unit::TestCase
   def test_glob_returns_cookbook_of_files_matching_patterns
     a = prepare('type/a.rb')
     b = prepare('type/b.rb')
-    c = prepare('type/c.js')
+    c = prepare('type/c.yml')
     
     assert_equal({
       'a.rb' => a,

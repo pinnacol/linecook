@@ -1,4 +1,4 @@
-require 'json'
+require 'yaml'
 
 module LineCook
   class Script
@@ -7,7 +7,7 @@ module LineCook
         Dir.glob("#{dir}/**/*.js").each do |path| 
           next unless File.file?(path)
           
-          attrs = JSON.parse(File.read(path), :symbolize_names => true)
+          attrs = YAML.load_file(path)
           yield path, new(attrs)
         end
       end
@@ -20,11 +20,11 @@ module LineCook
     end
     
     def attrs
-      data[:attrs] || {}
+      data['attrs'] || {}
     end
     
     def recipes
-      data[:recipes] || []
+      data['recipes'] || []
     end
   end
 end

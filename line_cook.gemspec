@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.rdoc_options.concat %W{--main README -S -N --title Line-Cook}
   
   # add dependencies
-  s.add_dependency('json', '~> 1.4')
+  #s.add_dependency('json', '~> 1.4')
   
   # list extra rdoc files here.
   s.extra_rdoc_files = %W{
