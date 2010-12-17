@@ -6,45 +6,68 @@ require 'tempfile'
 
 module LineCook
   class Recipe < Templater
+    class << self
+      def path_hash(dir='.')
+        dir = File.expand_path(dir)
+        
+        Hash.new do |hash, relative_path|
+          path = File.join(dir, relative_path.to_s)
+          hash[relative_path] = File.exists?(path) ? path : nil
+        end
+      end
+    end
+    
     include Utils
     
-    attr_reader :target_name
-    attr_reader :cookbook
+    # A hash of (relative_path, source_path) pairs defining files available
+    # for use by the recipe.  See source_path.
+    attr_reader :manifest
+    
+    # A hash of (source_path, relative_path) pairs defining files created by
+    # the recipe.  See script_path.
     attr_reader :registry
+    
+    attr_reader :target_name
     attr_reader :current_count
     
-    def initialize(target_name, options={})
-      @target_name = target_name
-      @target      = Tempfile.new(target_name)
+    def initialize(options={})
+      @manifest   = options[:manifest] || self.class.path_hash
+      @registry   = options[:registry] || {}
       
-      @cookbook    = options[:cookbook] || Cookbook.new
-      @registry    = options[:registry] || {}
+      @target_name = options[:target_name] || 'script'
+      @target      = Tempfile.new(target_name)
       @attributes  = Attributes.new(options[:attrs] || {})
       
       @registry[target.path] = target_name
-      @cache         = [target]
-      @target_count  = 0
+      @cache = [target]
       @current_count = 0
     end
     
-    def source_path(type, *relative_path)
-      relative_path = File.join(*relative_path)
-      cookbook[type][relative_path]
+    def source_path(*relative_path)
+      manifest[File.join(*relative_path)]
     end
     
     def target_path(source_path)
       source_path = File.expand_path(source_path)
       
       registry[source_path] ||= begin
+        dirname = "#{target_name}.d"
         basename = File.basename(source_path)
-        
+
         # remove tempfile extension, if present
         if basename =~ /(.*?)[\.\d]+$/
           basename = $1
         end
-        
-        @target_count += 1
-        File.join("#{target_name}.d", "#{@target_count - 1}-#{basename}")
+
+        # generate a unique prefix for the basename
+        count = 0
+        registry.each_value do |path|
+          if path.index(dirname) == 0
+            count += 1
+          end
+        end
+
+        File.join(dirname, "#{count}-#{basename}")
       end
       
       registry[source_path]
@@ -65,7 +88,7 @@ module LineCook
     end
     
     def attributes(name=nil, &block)
-      attrs_path = name ? source_path(:attributes, "#{name.chomp('.rb')}.rb") : nil
+      attrs_path = name ? source_path('attributes', "#{name.chomp('.rb')}.rb") : nil
       
       unless attrs_path || block
         raise "could not find attributes: #{"#{name.chomp('.rb')}.rb".inspect}"
@@ -94,7 +117,7 @@ module LineCook
     end
     
     def evaluate(name=nil, &block)
-      recipe_path = name ? source_path(:recipes, "#{name.chomp(File.extname(name))}.rb") : nil
+      recipe_path = name ? source_path('recipes', "#{name.chomp(File.extname(name))}.rb") : nil
     
       unless recipe_path || block
         raise "could not find recipe: #{"#{name.chomp(File.extname(name))}.rb".inspect}"
@@ -120,7 +143,7 @@ module LineCook
           end
         end
         
-      when file_path = source_path(:files, name)
+      when file_path = source_path('files', name)
         target_path file_path
         
       else
@@ -143,8 +166,9 @@ module LineCook
       end
       
       target_path ||= begin
-        recipe = Recipe.new(name, 
-          :cookbook => cookbook,
+        recipe = Recipe.new(
+          :target_name => name, 
+          :manifest => manifest,
           :registry => registry,
           :attrs    => @attributes.user_attrs
         )
@@ -157,7 +181,7 @@ module LineCook
     end
     
     def template_path(name, locals={})
-      unless template_path = source_path(:templates, "#{name}.erb")
+      unless template_path = source_path('templates', "#{name}.erb")
         raise "could not find template: #{"#{name}.erb".inspect}"
       end
       

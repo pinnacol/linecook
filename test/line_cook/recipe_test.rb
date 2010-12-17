@@ -10,7 +10,33 @@ class RecipeTest < Test::Unit::TestCase
   
   def setup
     super
-    @recipe = Recipe.new('recipe')
+    @recipe = Recipe.new
+  end
+  
+  #
+  # initialize test
+  #
+
+  def test_initialize_sets_manifest
+    manifest = {}
+    recipe = Recipe.new :manifest => manifest
+    assert_equal manifest.object_id, recipe.manifest.object_id
+  end
+
+  def test_default_manifest_returns_full_path_for_existing_files
+    path = prepare('existing/file')
+    assert_equal path, recipe.manifest['existing/file']
+  end
+
+  def test_default_manifest_returns_nil_for_missing_files
+    assert_equal false, File.exists?(path('missing/file'))
+    assert_equal nil, recipe.manifest['missing/file']
+  end
+
+  def test_initialize_sets_registry
+    registry = {}
+    recipe = Recipe.new :registry => registry
+    assert_equal registry.object_id, recipe.registry.object_id
   end
   
   #
@@ -28,7 +54,7 @@ class RecipeTest < Test::Unit::TestCase
   
   def test_target_file_creates_and_registers_file_with_the_specified_name_and_content
     path = recipe.target_file('name.txt', 'content')
-    assert_equal 'recipe.d/0-name.txt', path
+    assert_equal 'script.d/0-name.txt', path
     
     source_path = recipe.registry.invert[path]
     assert_equal 'content', File.read(source_path)
@@ -92,7 +118,7 @@ class RecipeTest < Test::Unit::TestCase
     prepare('files/example.txt') {|io| io << 'content'}
 
     path = recipe.file_path('example.txt')
-    assert_equal 'recipe.d/0-example.txt', path
+    assert_equal 'script.d/0-example.txt', path
 
     source_path = recipe.registry.invert[path]
     assert_equal 'content', File.read(source_path)
@@ -100,7 +126,7 @@ class RecipeTest < Test::Unit::TestCase
 
   def test_file_path_creates_file_from_block_if_given
     path = recipe.file_path('example.sh') { target << 'content'}
-    assert_equal 'recipe.d/0-example.sh', path
+    assert_equal 'script.d/0-example.sh', path
     
     source_path = recipe.registry.invert[path]
     assert_equal 'content', File.read(source_path)
@@ -116,7 +142,7 @@ class RecipeTest < Test::Unit::TestCase
 
     recipe.close
 
-    source_path = recipe.registry.invert['recipe']
+    source_path = recipe.registry.invert['script']
     assert_equal "", File.read(source_path)
 
     source_path = recipe.registry.invert['example']
@@ -129,7 +155,7 @@ class RecipeTest < Test::Unit::TestCase
 
     recipe.close
 
-    source_path = recipe.registry.invert['recipe']
+    source_path = recipe.registry.invert['script']
     assert_equal "", File.read(source_path)
 
     source_path = recipe.registry.invert['example']
@@ -146,7 +172,7 @@ class RecipeTest < Test::Unit::TestCase
     end
 
     path = recipe.template_path('example.txt', :key => 'value')
-    assert_equal 'recipe.d/0-example.txt', path
+    assert_equal 'script.d/0-example.txt', path
 
     source_path = recipe.registry.invert[path]
     assert_equal 'got value', File.read(source_path)
@@ -178,7 +204,7 @@ class RecipeTest < Test::Unit::TestCase
   #
   # current/next count test
   #
-  
+
   def test_next_count_increments_and_returns_current_count
     assert_equal 0, recipe.current_count
     assert_equal 1, recipe.next_count
