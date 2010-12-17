@@ -97,5 +97,20 @@ module LineCook
       
       tail.length == 0 && start > 0 ? rstrip(n * 2) : concat(tail)
     end
+    
+    def close
+      target.close unless closed?
+      self
+    end
+    
+    def closed?
+      target.closed?
+    end
+    
+    def to_s
+      target.flush
+      target.rewind
+      target.read
+    end
   end
 end
