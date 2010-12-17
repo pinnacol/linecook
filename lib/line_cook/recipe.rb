@@ -1,6 +1,5 @@
 require 'line_cook/attributes'
 require 'line_cook/templater'
-require 'line_cook/cookbook'
 require 'line_cook/utils'
 require 'tempfile'
 

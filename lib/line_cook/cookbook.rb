@@ -43,18 +43,5 @@ module LineCook
     def manifest
       @manifest ||= glob(*FILE_PATTERNS)
     end
-    
-    def subset(type)
-      base = "#{type}/"
-      
-      files = {}
-      manifest.each_pair do |relative_path, full_path|
-        if relative_path.index(base) == 0
-          relative_path = relative_path[base.length..-1]
-          files[relative_path] = full_path
-        end
-      end
-      files
-    end
   end
 end
