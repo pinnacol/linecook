@@ -6,44 +6,54 @@ module LineCook
       end
     end
     
-    FILE_PATTERNS = {
-      :attributes => [File.join('**', '*.rb')],
-      :files      => [File.join('**', '*')],
-      :helpers    => [File.join('**', '*.erb'), File.join('**', '_*.rb')],
-      :recipes    => [File.join('**', '*.rb')],
-      :scripts    => [File.join('*.yml')],
-      :templates  => [File.join('**', '*.erb')]
-    }
+    FILE_PATTERNS = [
+      File.join('attributes', '**', '*.rb'),
+      File.join('files', '**', '*'),
+      File.join('helpers', '**', '*.erb'), File.join('helpers', '**', '_*.rb'),
+      File.join('recipes', '**', '*.rb'),
+      File.join('scripts', '*.yml'),
+      File.join('templates', '**', '*.erb')
+    ]
     
     attr_reader :path
-    attr_reader :manifest
     
     def initialize(config={})
       path  = self.class.split_path(config['path'] || ['.'])
       @path = path.collect {|dir| File.expand_path(dir) }
-      @manifest = Hash.new {|hash, key| hash[key] = glob(key, *FILE_PATTERNS[key]) }
+      @manifest = nil
     end
     
-    def [](key)
-      manifest[key]
-    end
-    
-    def glob(type, *patterns)
+    def glob(*patterns)
       files = {}
       
       path.each do |dir|
-        base = File.join(dir, type.to_s)
-        
         patterns.each do |pattern|
-          Dir.glob(File.join(base, pattern)).each do |path|
+          Dir.glob(File.join(dir, pattern)).each do |path|
             next unless File.file?(path)
             
-            relative_path = path[(base.length+1)..-1]
+            relative_path = path[(dir.length+1)..-1]
             files[relative_path] ||= path
           end
         end
       end
       
+      files
+    end
+    
+    def manifest
+      @manifest ||= glob(*FILE_PATTERNS)
+    end
+    
+    def subset(type)
+      base = "#{type}/"
+      
+      files = {}
+      manifest.each_pair do |relative_path, full_path|
+        if relative_path.index(base) == 0
+          relative_path = relative_path[base.length..-1]
+          files[relative_path] = full_path
+        end
+      end
       files
     end
   end
