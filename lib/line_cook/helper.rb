@@ -2,18 +2,6 @@ require 'line_cook/templater'
 
 module LineCook
   class Helper < Templater
-    class << self
-      def each_helper(dir, &block)
-        sources, dirs = Dir.glob("#{dir}/*").partition {|path| File.file?(path) }
-        
-        # recursively iterate for helpers
-        dirs.each {|path| each_helper(path, &block) }
-        
-        # generate and yield current helper
-        yield dir, new(sources)
-      end
-    end
-    
     attr_reader :sources
     
     def initialize(sources)

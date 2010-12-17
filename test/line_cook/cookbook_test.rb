@@ -159,4 +159,51 @@ class CookbookTest < Test::Unit::TestCase
       'c.rb' => c2
     }, cookbook.glob('*.rb'))
   end
+  
+  #
+  # each_helper test
+  #
+  
+  def test_each_helper_yields_the_sources_and_target_for_each_helper
+    a = prepare('helpers/one/a.erb')
+    b = prepare('helpers/one/b.erb')
+    
+    c = prepare('helpers/two/c.erb')
+    d = prepare('helpers/two/d.erb')
+    
+    expected = [
+      [[a,b].sort, 'helpers/one.rb'],
+      [[c,d].sort, 'helpers/two.rb']
+    ]
+    
+    results = []
+    cookbook.each_helper {|sources, target, builder| results << [sources.sort, target] }
+    
+    expected = expected.sort_by {|(sources, target)| target }
+    results = results.sort_by {|(sources, target)| target }
+    
+    assert_equal expected, results
+  end
+  
+  #
+  # each_script test
+  #
+  
+  def test_each_script_yields_the_sources_and_target_for_each_script
+    a = prepare('scripts/a.yml')
+    b = prepare('scripts/b.yml')
+    
+    expected = [
+      [[a], 'scripts/a'],
+      [[b], 'scripts/b']
+    ]
+    
+    results = []
+    cookbook.each_script {|sources, target, builder| results << [sources.sort, target] }
+    
+    expected = expected.sort_by {|(sources, target)| target }
+    results = results.sort_by {|(sources, target)| target }
+    
+    assert_equal expected, results
+  end
 end

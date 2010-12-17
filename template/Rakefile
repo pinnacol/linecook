@@ -76,87 +76,39 @@ namespace :vbox do
 end
 
 #
-# LineCook Helpers
+# LineCook
 #
 
-helpers_dir = File.expand_path('../helpers', __FILE__)
-require 'line_cook/helper'
+require 'line_cook'
+cookbook = LineCook::Cookbook.new
 
-LineCook::Helper.each_helper(helpers_dir) do |dir, helper|
-  const_path = dir[(helpers_dir.length+1)..-1]
-  next if const_path.nil? || const_path.empty? || helper.sources.empty?
+cookbook.each_helper do |sources, target, builder|
+  file target => sources, &builder
   
-  const_name = const_path.gsub(/\/(.?)/) { "::" + $1.upcase }.gsub(/(^|_)(.)/) { $2.upcase }
-  target     = File.expand_path("#{const_path}.rb", helpers_dir)
-  
-  if ENV['FORCE'] == 'true' && File.exists?(target)
-    FileUtils.rm(target)
-  end
-  
-  file target => helper.sources do
-    content = helper.build(const_name)
-    
-    target_dir = File.dirname(target)
-    unless File.exists?(target_dir)
-      FileUtils.mkdir_p(target_dir) 
-    end
-    
-    File.open(target, 'w') {|io| io << content }
-  end
-
+  name = (target =~ /helpers\/(.*).rb/ && $1)
   namespace :helpers do
-    desc "generate #{const_name}"
-    task const_path => target
+    desc "generate helper: #{name}"
+    task name => target
   end
   
-  task :helpers => "helpers:#{const_path}"
+  task :helpers => "helpers:#{name}"
 end
 
-desc "generate all helpers"
+desc "generate helpers"
 task :helpers
 
-#
-# LineCook Nodes
-#
-
-recipe_dir   = File.expand_path("../recipes", __FILE__)
-script_dir   = File.expand_path("../scripts", __FILE__)
-
-require 'line_cook/script'
-require 'line_cook/recipe'
-
-LineCook::Script.each_script(script_dir) do |script_path, script|
-  relative_path = script_path[(script_dir.length+1)..-1]
-  script_name   = relative_path.chomp('.js')
+cookbook.each_script do |sources, target, builder|
+  sources << :helpers
+  file target => sources, &builder
   
-  script.recipes.each do |recipe_name|
-    recipe_path = File.join(recipe_dir, "#{recipe_name}.rb")
-    target_dir  = File.join(script_dir, script_name)
-    
-    file target_dir => ['helpers', script_path, recipe_path] do
-      FileUtils.rm_r(target_dir) if File.exists?(target_dir)
-      FileUtils.mkdir_p(target_dir)
-      
-      recipe = LineCook::Recipe.new(recipe_name, :attrs => script.attrs)
-      recipe.evaluate(recipe_name)
-      recipe.close
-      recipe.registry.each_pair do |source, target|
-        FileUtils.cp source, File.join(target_dir, target)
-      end
-    end
-    
-    namespace :scripts do
-      task script_name => target_dir
-    end
-  end
-  
+  name = File.basename(target)
   namespace :scripts do
-    desc "generate #{script_name}"
-    task script_name
+    desc "generate script: #{name}"
+    task name => target
   end
   
-  task :scripts => "scripts:#{script_name}"
+  task :scripts => "scripts:#{name}"
 end
 
-desc "generate all scripts"
+desc "generate scripts"
 task :scripts

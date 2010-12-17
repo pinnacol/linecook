@@ -1,0 +1,7 @@
+# Configure LineCook
+line_cook:
+  recipe_name: %project_name%
+  script_name: %project_name%
+
+# Set attributes for the script
+key: value

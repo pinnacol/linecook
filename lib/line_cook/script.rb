@@ -4,17 +4,6 @@ require 'yaml'
 
 module LineCook
   class Script
-    class << self
-      def each_script(dir, &block)
-        Dir.glob("#{dir}/**/*.js").each do |path| 
-          next unless File.file?(path)
-          
-          attrs = YAML.load_file(path)
-          yield path, new(attrs)
-        end
-      end
-    end
-    
     attr_reader :cookbook
     attr_reader :attrs
     
@@ -49,6 +38,7 @@ module LineCook
     def build_to(dir)
       unless recipe.closed?
         recipe.evaluate(recipe_name)
+        recipe.close
       end
       
       recipe.registry.each_pair do |source, target|
