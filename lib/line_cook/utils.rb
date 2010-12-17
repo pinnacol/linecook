@@ -13,6 +13,16 @@ module LineCook
       downcase
     end
     
+    def constantize(const_name)
+      const = Object
+      constants = camelize(const_name).split(/::/)
+      
+      while name = constants.shift
+        const = const.const_get(name)
+      end
+      const
+    end
+    
     def blank?(obj)
       obj.to_s.strip.empty?
     end

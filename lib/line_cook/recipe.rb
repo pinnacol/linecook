@@ -104,12 +104,8 @@ module LineCook
       
       require path
       
-      const = Object
-      constants = camelize(helper_name).split(/::/)
-      
-      while const_name = constants.shift
-        const = const.const_get(const_name)
-      end
+      const_name = camelize(helper_name)
+      const = constantize(const_name)
       
       extend const
     end
