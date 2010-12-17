@@ -76,13 +76,17 @@ class RecipeTest < Test::Unit::TestCase
   # helpers test
   #
 
-  module HelpersModule
-    def help; end
-  end
-
-  def test_helpers_looks_up_module_and_extends_self
+  def test_helpers_looks_up_and_requires_helper_module_and_extends_self
+    prepare('helpers/recipe_test/helpers.rb') {|io| io << %q{
+      class RecipeTest
+        module Helpers
+          def help; end
+        end
+      end
+    }}
+    
     assert_equal false, recipe.respond_to?(:help)
-    recipe.helpers "recipe_test/helpers_module"
+    recipe.helpers "recipe_test/helpers"
     assert_equal true, recipe.respond_to?(:help)
   end
 

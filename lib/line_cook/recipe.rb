@@ -97,15 +97,17 @@ module LineCook
       self
     end
     
-    def helpers(name)
+    def helpers(helper_name)
+      unless path = source_path('helpers', "#{helper_name}.rb")
+        raise "could not find helper: #{helper_name.inspect}"
+      end
+      
+      require path
+      
       const = Object
-      constants = camelize(name).split(/::/)
+      constants = camelize(helper_name).split(/::/)
       
       while const_name = constants.shift
-        unless const.const_defined?(const_name)
-          require underscore(name)
-        end
-        
         const = const.const_get(const_name)
       end
       
@@ -118,7 +120,6 @@ module LineCook
       end
       
       instance_eval(File.read(path), path)
-      
       self
     end
     
