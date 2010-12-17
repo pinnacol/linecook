@@ -44,7 +44,8 @@ module LineCook
     end
     
     def source_path(*relative_path)
-      manifest[File.join(*relative_path)]
+      path = File.join(*relative_path)
+      manifest[path] or raise "no such file: #{path.inspect}"
     end
     
     def script_path(source_path)
@@ -88,9 +89,7 @@ module LineCook
     end
     
     def attributes(attributes_name)
-      unless path = source_path('attributes', "#{attributes_name}.rb")
-        raise "could not find attributes: #{attributes_name.inspect}"
-      end
+      path = source_path('attributes', "#{attributes_name}.rb")
       
       @attributes.instance_eval(File.read(path), path)
       @attributes.reset(false)
@@ -98,10 +97,7 @@ module LineCook
     end
     
     def helpers(helper_name)
-      unless path = source_path('helpers', "#{helper_name}.rb")
-        raise "could not find helper: #{helper_name.inspect}"
-      end
-      
+      path = source_path('helpers', "#{helper_name}.rb")
       require path
       
       const_name = camelize(helper_name)
@@ -111,19 +107,13 @@ module LineCook
     end
     
     def evaluate(recipe_name=nil)
-      unless path = source_path('recipes', "#{recipe_name}.rb")
-        raise "could not find recipe: #{recipe_name.inspect}"
-      end
-      
+      path = source_path('recipes', "#{recipe_name}.rb")
       instance_eval(File.read(path), path)
       self
     end
     
     def file_path(file_name)
-      unless path = source_path('files', file_name)
-        raise "could not find file: #{file_name.inspect}"
-      end
-      
+      path = source_path('files', file_name)
       script_path path
     end
     
@@ -152,10 +142,7 @@ module LineCook
     end
     
     def template_path(name, locals={})
-      unless path = source_path('templates', "#{name}.erb")
-        raise "could not find template: #{name.inspect}"
-      end
-      
+      path = source_path('templates', "#{name}.erb")
       script_file name, Templater.build(File.read(path), locals, path)
     end
     
