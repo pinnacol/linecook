@@ -7,15 +7,22 @@ module LineCook
       super
       @_tempfiles = []
       @previous_dir = Dir.pwd
-      @current_dir = tempdir
       
-      Dir.chdir(current_dir)
+      # assign current dir from pwd to resolve the full path having followed
+      # symlinks -- important because on OSX /var is a symlink to /private/var
+      
+      Dir.chdir(tempdir)
+      @current_dir = Dir.pwd
     end
 
     def teardown
       Dir.chdir(previous_dir)
       @_tempfiles = nil
       super
+    end
+    
+    def path(relative_path)
+      path = File.expand_path(relative_path, current_dir)
     end
     
     def tempdir(base=method_name)
