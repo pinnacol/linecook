@@ -13,6 +13,24 @@ class CookbookTest < Test::Unit::TestCase
   end
   
   #
+  # initialize test
+  #
+  
+  def test_initialize_sets_current_dir_into_path_by_default
+    assert_equal [current_dir], cookbook.path
+  end
+  
+  def test_initialize_expands_and_sets_path_as_specified
+    cookbook = Cookbook.new 'path' => ['/a', 'b']
+    assert_equal [File.expand_path('/a'), File.expand_path('b')], cookbook.path
+  end
+  
+  def test_initialize_splits_string_paths_along_colon
+    cookbook = Cookbook.new 'path' => '/a:b'
+    assert_equal [File.expand_path('/a'), File.expand_path('b')], cookbook.path
+  end
+  
+  #
   # AGET test
   #
   

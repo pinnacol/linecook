@@ -1,5 +1,11 @@
 module LineCook
   class Cookbook
+    class << self
+      def split_path(path)
+        path.kind_of?(String) ? path.split(':') : path
+      end
+    end
+    
     FILE_PATTERNS = {
       :attributes => [File.join('**', '*.rb')],
       :files      => [File.join('**', '*')],
@@ -12,7 +18,7 @@ module LineCook
     attr_reader :path
     
     def initialize(config={})
-      path = config['path'] || ['.']
+      path = self.class.split_path(config['path'] || ['.'])
 
       @path  = path.collect {|dir| File.expand_path(dir) }
       @store = Hash.new {|hash, key| hash[key] = glob(key, *FILE_PATTERNS[key]) }
@@ -40,6 +46,5 @@ module LineCook
       
       files
     end
-    
   end
 end
