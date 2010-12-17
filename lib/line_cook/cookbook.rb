@@ -16,16 +16,16 @@ module LineCook
     }
     
     attr_reader :path
+    attr_reader :manifest
     
     def initialize(config={})
-      path = self.class.split_path(config['path'] || ['.'])
-
-      @path  = path.collect {|dir| File.expand_path(dir) }
-      @store = Hash.new {|hash, key| hash[key] = glob(key, *FILE_PATTERNS[key]) }
+      path  = self.class.split_path(config['path'] || ['.'])
+      @path = path.collect {|dir| File.expand_path(dir) }
+      @manifest = Hash.new {|hash, key| hash[key] = glob(key, *FILE_PATTERNS[key]) }
     end
     
     def [](key)
-      @store[key]
+      manifest[key]
     end
     
     def glob(type, *patterns)
