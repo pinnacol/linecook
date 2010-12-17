@@ -1,6 +1,6 @@
 require 'line_cook/attributes'
 require 'line_cook/templater'
-require 'line_cook/manifest'
+require 'line_cook/cookbook'
 require 'line_cook/utils'
 require 'tempfile'
 
@@ -9,7 +9,7 @@ module LineCook
     include Utils
     
     attr_reader :target_name
-    attr_reader :manifest
+    attr_reader :cookbook
     attr_reader :registry
     attr_reader :current_count
     
@@ -17,7 +17,7 @@ module LineCook
       @target_name = target_name
       @target      = Tempfile.new(target_name)
       
-      @manifest    = options[:manifest] || Manifest.new(Dir.pwd)
+      @cookbook    = options[:cookbook] || Cookbook.new(Dir.pwd)
       @registry    = options[:registry] || {}
       @attributes  = Attributes.new(options[:attrs] || {})
       
@@ -29,7 +29,7 @@ module LineCook
     
     def source_path(type, *relative_path)
       relative_path = File.join(*relative_path)
-      manifest[type][relative_path]
+      cookbook[type][relative_path]
     end
     
     def target_path(source_path)
@@ -144,7 +144,7 @@ module LineCook
       
       target_path ||= begin
         recipe = Recipe.new(name, 
-          :manifest => manifest,
+          :cookbook => cookbook,
           :registry => registry,
           :attrs    => @attributes.user_attrs
         )

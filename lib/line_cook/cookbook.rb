@@ -1,5 +1,5 @@
 module LineCook
-  class Manifest
+  class Cookbook
     FILE_PATTERNS = {
       :attributes => [File.join('**', '*.rb')],
       :files      => [File.join('**', '*')],
