@@ -59,23 +59,6 @@ class RecipeTest < Test::Unit::TestCase
     source_path = recipe.registry.invert[path]
     assert_equal 'content', File.read(source_path)
   end
-  
-  #
-  # attrs test
-  #
-
-  def test_attrs_returns_attributes_attrs
-    recipe.attributes do
-      default[:a] = 'A'
-      default[:b] = '-'
-      normal[:b] = 'B'
-    end
-
-    assert_equal({
-    :a => 'A',
-    :b => 'B'
-    }, recipe.attrs)
-  end
 
   #
   # attributes test
@@ -88,14 +71,7 @@ class RecipeTest < Test::Unit::TestCase
     recipe.attributes('example')
     assert_equal 'value', recipe.attrs[:key]
   end
-
-  def test_attributes_evals_block_in_the_context_of_attributes
-    assert_equal nil, recipe.attrs[:key]
-
-    recipe.attributes { default[:key] = 'value' }
-    assert_equal 'value', recipe.attrs[:key]
-  end
-
+  
   #
   # helpers test
   #
@@ -123,9 +99,13 @@ class RecipeTest < Test::Unit::TestCase
     source_path = recipe.registry.invert[path]
     assert_equal 'content', File.read(source_path)
   end
-
-  def test_file_path_creates_file_from_block_if_given
-    path = recipe.file_path('example.sh') { script << 'content'}
+  
+  #
+  # capture_path test
+  #
+  
+  def test_capture_path_creates_file_from_block
+    path = recipe.capture_path('example.sh') { script << 'content'}
     assert_equal 'script.d/0-example.sh', path
     
     source_path = recipe.registry.invert[path]
@@ -148,20 +128,7 @@ class RecipeTest < Test::Unit::TestCase
     source_path = recipe.registry.invert['example']
     assert_equal "content\n", File.read(source_path)
   end
-
-  def test_recipe_path_evals_block_in_the_context_of_a_new_recipe
-    path = recipe.recipe_path('example') { script.puts "content" }
-    assert_equal 'example', path
-
-    recipe.close
-
-    source_path = recipe.registry.invert['script']
-    assert_equal "", File.read(source_path)
-
-    source_path = recipe.registry.invert['example']
-    assert_equal "content\n", File.read(source_path)
-  end
-
+  
   #
   # template_path test
   #

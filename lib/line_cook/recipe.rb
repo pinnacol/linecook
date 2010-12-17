@@ -87,17 +87,13 @@ module LineCook
       @attributes.attrs
     end
     
-    def attributes(name=nil, &block)
-      attrs_path = name ? source_path('attributes', "#{name.chomp('.rb')}.rb") : nil
-      
-      unless attrs_path || block
-        raise "could not find attributes: #{"#{name.chomp('.rb')}.rb".inspect}"
+    def attributes(attributes_name)
+      unless path = source_path('attributes', "#{attributes_name}.rb")
+        raise "could not find attributes: #{attributes_name.inspect}"
       end
       
-      @attributes.instance_eval(File.read(attrs_path), attrs_path) if attrs_path
-      @attributes.instance_eval(&block) if block
+      @attributes.instance_eval(File.read(path), path)
       @attributes.reset(false)
-      
       self
     end
     
@@ -116,77 +112,54 @@ module LineCook
       extend const
     end
     
-    def evaluate(name=nil, &block)
-      recipe_path = name ? source_path('recipes', "#{name.chomp(File.extname(name))}.rb") : nil
-    
-      unless recipe_path || block
-        raise "could not find recipe: #{"#{name.chomp(File.extname(name))}.rb".inspect}"
+    def evaluate(recipe_name=nil)
+      unless path = source_path('recipes', "#{recipe_name}.rb")
+        raise "could not find recipe: #{recipe_name.inspect}"
       end
       
-      instance_eval(File.read(recipe_path), recipe_path) if recipe_path
-      instance_eval(&block) if block
+      instance_eval(File.read(path), path)
       
       self
     end
     
-    def file_path(name, &block)
-      case
-      when block
-        script_file(name) do |tempfile|
-          current = @target
-          @target = tempfile
-
-          begin
-            instance_eval(&block) if block
-          ensure
-            @target = current
-          end
-        end
-        
-      when file_path = source_path('files', name)
-        script_path file_path
-        
-      else
-        raise "could not find file: #{name.inspect}"
+    def file_path(file_name)
+      unless path = source_path('files', file_name)
+        raise "could not find file: #{file_name.inspect}"
       end
+      
+      script_path path
     end
     
-    def recipe_path(name, &block)
-      recipe_path = nil
-      
+    def capture_path(name, &block)
+      content = capture { instance_eval(&block) }
+      script_file(name, content)
+    end
+    
+    def recipe_path(recipe_name)
       registry.each_pair do |key, value|
-        if value == name
-          recipe_path = key
-          break
+        if value == recipe_name
+          return script_path(key)
         end
       end
       
-      if recipe_path && block
-        raise "block syntax cannot be used with existing recipe: #{name}"
-      end
+      recipe = Recipe.new(
+        :script_name => recipe_name, 
+        :manifest => manifest,
+        :registry => registry,
+        :attrs    => @attributes.user_attrs
+      )
+      recipe.evaluate(recipe_name)
+      @cache << recipe
       
-      recipe_path ||= begin
-        recipe = Recipe.new(
-          :script_name => name, 
-          :manifest => manifest,
-          :registry => registry,
-          :attrs    => @attributes.user_attrs
-        )
-        recipe.evaluate(name, &block)
-        @cache << recipe
-        recipe.script.path
-      end
-      
-      script_path recipe_path
+      script_path recipe.script.path
     end
     
     def template_path(name, locals={})
-      unless template_path = source_path('templates', "#{name}.erb")
-        raise "could not find template: #{"#{name}.erb".inspect}"
+      unless path = source_path('templates', "#{name}.erb")
+        raise "could not find template: #{name.inspect}"
       end
       
-      template = File.read(template_path)
-      script_file name, Templater.build(template, locals, template_path)
+      script_file name, Templater.build(File.read(path), locals, path)
     end
     
     def close
