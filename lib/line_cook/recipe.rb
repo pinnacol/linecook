@@ -141,9 +141,9 @@ module LineCook
       script_path recipe.script.path
     end
     
-    def template_path(name, locals={})
-      path = source_path('templates', "#{name}.erb")
-      script_file name, Templater.build(File.read(path), locals, path)
+    def template_path(template_name, locals={})
+      path = source_path('templates', "#{template_name}.erb")
+      script_file template_name, Templater.build(File.read(path), locals, path)
     end
     
     def close
