@@ -40,20 +40,20 @@ class RecipeTest < Test::Unit::TestCase
   end
   
   #
-  # target test
+  # script test
   #
   
-  def test_target_allows_direct_writing
-    recipe.target.puts 'str'
+  def test_script_allows_direct_writing
+    recipe.script.puts 'str'
     assert_equal "str\n", recipe.to_s
   end
   
   #
-  # target_file test
+  # script_file test
   #
   
-  def test_target_file_creates_and_registers_file_with_the_specified_name_and_content
-    path = recipe.target_file('name.txt', 'content')
+  def test_script_file_creates_and_registers_file_with_the_specified_name_and_content
+    path = recipe.script_file('name.txt', 'content')
     assert_equal 'script.d/0-name.txt', path
     
     source_path = recipe.registry.invert[path]
@@ -125,7 +125,7 @@ class RecipeTest < Test::Unit::TestCase
   end
 
   def test_file_path_creates_file_from_block_if_given
-    path = recipe.file_path('example.sh') { target << 'content'}
+    path = recipe.file_path('example.sh') { script << 'content'}
     assert_equal 'script.d/0-example.sh', path
     
     source_path = recipe.registry.invert[path]
@@ -137,7 +137,7 @@ class RecipeTest < Test::Unit::TestCase
   #
 
   def test_recipe_path_evals_the_recipe_file_in_the_context_of_a_new_recipe
-    prepare('recipes/example.rb') {|io| io << "target.puts 'content'"}
+    prepare('recipes/example.rb') {|io| io << "script.puts 'content'"}
     assert_equal 'example', recipe.recipe_path('example')
 
     recipe.close
@@ -150,7 +150,7 @@ class RecipeTest < Test::Unit::TestCase
   end
 
   def test_recipe_path_evals_block_in_the_context_of_a_new_recipe
-    path = recipe.recipe_path('example') { target.puts "content" }
+    path = recipe.recipe_path('example') { script.puts "content" }
     assert_equal 'example', path
 
     recipe.close
@@ -176,28 +176,5 @@ class RecipeTest < Test::Unit::TestCase
 
     source_path = recipe.registry.invert[path]
     assert_equal 'got value', File.read(source_path)
-  end
-  
-  #
-  # rstrip test
-  #
-  
-  def test_rstrip_rstrips_target
-    recipe.target << " a b \n "
-    recipe.rstrip
-    assert_equal " a b", recipe.to_s
-  end
-  
-  def test_rstrip_removes_all_whitespace_up_to_start
-    recipe.target << "  \n "
-    recipe.rstrip
-    assert_equal "", recipe.to_s
-  end
-  
-  def test_rstrip_removes_lots_of_whitespace
-    recipe.target << "a b"
-    recipe.target << " " * 100
-    recipe.rstrip
-    assert_equal "a b", recipe.to_s
   end
 end

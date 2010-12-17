@@ -19,6 +19,10 @@ module LineCook
     
     include Utils
     
+    alias script target
+    
+    attr_reader :script_name
+    
     # A hash of (relative_path, source_path) pairs defining files available
     # for use by the recipe.  See source_path.
     attr_reader :manifest
@@ -27,18 +31,15 @@ module LineCook
     # the recipe.  See script_path.
     attr_reader :registry
     
-    attr_reader :target_name
-    attr_reader :current_count
-    
     def initialize(options={})
-      @manifest   = options[:manifest] || self.class.path_hash
-      @registry   = options[:registry] || {}
+      @script_name = options[:script_name] || 'script'
+      @manifest    = options[:manifest] || self.class.path_hash
+      @registry    = options[:registry] || {}
       
-      @target_name = options[:target_name] || 'script'
-      @target      = Tempfile.new(target_name)
+      @target      = Tempfile.new(script_name)
       @attributes  = Attributes.new(options[:attrs] || {})
       
-      @registry[target.path] = target_name
+      @registry[target.path] = script_name
       @cache = [target]
     end
     
@@ -46,11 +47,11 @@ module LineCook
       manifest[File.join(*relative_path)]
     end
     
-    def target_path(source_path)
+    def script_path(source_path)
       source_path = File.expand_path(source_path)
       
       registry[source_path] ||= begin
-        dirname = "#{target_name}.d"
+        dirname = "#{script_name}.d"
         basename = File.basename(source_path)
 
         # remove tempfile extension, if present
@@ -72,14 +73,14 @@ module LineCook
       registry[source_path]
     end
     
-    def target_file(name, content=nil)
+    def script_file(name, content=nil)
       tempfile = Tempfile.new(name)
       tempfile << content if content
       yield(tempfile) if block_given?
       
       tempfile.close
       @cache << tempfile
-      target_path(tempfile.path)
+      script_path(tempfile.path)
     end
     
     def attrs
@@ -131,7 +132,7 @@ module LineCook
     def file_path(name, &block)
       case
       when block
-        target_file(name) do |tempfile|
+        script_file(name) do |tempfile|
           current = @target
           @target = tempfile
 
@@ -143,7 +144,7 @@ module LineCook
         end
         
       when file_path = source_path('files', name)
-        target_path file_path
+        script_path file_path
         
       else
         raise "could not find file: #{name.inspect}"
@@ -151,32 +152,32 @@ module LineCook
     end
     
     def recipe_path(name, &block)
-      target_path = nil
+      recipe_path = nil
       
       registry.each_pair do |key, value|
         if value == name
-          target_path = key
+          recipe_path = key
           break
         end
       end
       
-      if target_path && block
+      if recipe_path && block
         raise "block syntax cannot be used with existing recipe: #{name}"
       end
       
-      target_path ||= begin
+      recipe_path ||= begin
         recipe = Recipe.new(
-          :target_name => name, 
+          :script_name => name, 
           :manifest => manifest,
           :registry => registry,
           :attrs    => @attributes.user_attrs
         )
         recipe.evaluate(name, &block)
         @cache << recipe
-        recipe.target.path
+        recipe.script.path
       end
       
-      target_path target_path
+      script_path recipe_path
     end
     
     def template_path(name, locals={})
@@ -185,7 +186,7 @@ module LineCook
       end
       
       template = File.read(template_path)
-      target_file name, Templater.build(template, locals, template_path)
+      script_file name, Templater.build(template, locals, template_path)
     end
     
     def close
@@ -195,16 +196,6 @@ module LineCook
       end
       
       self
-    end
-    
-    def closed?
-      @target.closed?
-    end
-    
-    def to_s
-      target.flush
-      target.rewind
-      target.read
     end
   end
 end
