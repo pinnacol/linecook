@@ -9,7 +9,7 @@ module LineCook
     FILE_PATTERNS = [
       File.join('attributes', '**', '*.rb'),
       File.join('files', '**', '*'),
-      File.join('helpers', '**', '*.erb'), File.join('helpers', '**', '_*.rb'),
+      File.join('helpers', '*', '**', '*.erb'), File.join('helpers', '*', '**', '_*.rb'),
       File.join('recipes', '**', '*.rb'),
       File.join('scripts', '*.yml'),
       File.join('templates', '**', '*.erb')

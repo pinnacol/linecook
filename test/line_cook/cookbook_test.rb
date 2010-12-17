@@ -60,18 +60,19 @@ class CookbookTest < Test::Unit::TestCase
   end
   
   def test_manifest_includes_helpers
-    a = prepare('helpers/a.erb')
-    b = prepare('helpers/b/b.erb')
-    c = prepare('helpers/_c.rb')
-    d = prepare('helpers/d/_d.rb')
-    e = prepare('helpers/e.rb')
-    f = prepare('tmp/f.erb')
+    a = prepare('helpers/a/a.erb')
+    b = prepare('helpers/b/b/b.erb')
+    c = prepare('helpers/c/_c.rb')
+    d = prepare('helpers/d/d/_d.rb')
+    e = prepare('helpers/e/e.rb')
+    f = prepare('helpers/f.erb')
+    g = prepare('tmp/g.erb')
     
     assert_equal({
-      'helpers/a.erb' => a,
-      'helpers/b/b.erb' => b,
-      'helpers/_c.rb' => c,
-      'helpers/d/_d.rb' => d,
+      'helpers/a/a.erb' => a,
+      'helpers/b/b/b.erb' => b,
+      'helpers/c/_c.rb' => c,
+      'helpers/d/d/_d.rb' => d
     }, cookbook.manifest)
   end
   
