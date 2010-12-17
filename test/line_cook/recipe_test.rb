@@ -200,14 +200,4 @@ class RecipeTest < Test::Unit::TestCase
     recipe.rstrip
     assert_equal "a b", recipe.to_s
   end
-  
-  #
-  # current/next count test
-  #
-
-  def test_next_count_increments_and_returns_current_count
-    assert_equal 0, recipe.current_count
-    assert_equal 1, recipe.next_count
-    assert_equal 1, recipe.current_count
-  end
 end

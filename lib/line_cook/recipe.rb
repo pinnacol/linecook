@@ -40,7 +40,6 @@ module LineCook
       
       @registry[target.path] = target_name
       @cache = [target]
-      @current_count = 0
     end
     
     def source_path(*relative_path)
@@ -200,10 +199,6 @@ module LineCook
     
     def closed?
       @target.closed?
-    end
-    
-    def next_count
-      @current_count += 1
     end
     
     def to_s
