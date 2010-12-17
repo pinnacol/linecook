@@ -9,10 +9,12 @@ module LineCook
       :templates  => [File.join('**', '*.erb')]
     }
     
-    attr_reader :dirs
+    attr_reader :path
     
-    def initialize(*dirs)
-      @dirs  = dirs.collect {|dir| File.expand_path(dir) }
+    def initialize(config={})
+      path = config['path'] || ['.']
+
+      @path  = path.collect {|dir| File.expand_path(dir) }
       @store = Hash.new {|hash, key| hash[key] = glob(key, *FILE_PATTERNS[key]) }
     end
     
@@ -23,7 +25,7 @@ module LineCook
     def glob(type, *patterns)
       files = {}
       
-      dirs.each do |dir|
+      path.each do |dir|
         base = File.join(dir, type.to_s)
         
         patterns.each do |pattern|

@@ -9,7 +9,7 @@ class CookbookTest < Test::Unit::TestCase
   
   def setup
     super
-    @cookbook = Cookbook.new current_dir
+    @cookbook = Cookbook.new
   end
   
   #
@@ -107,11 +107,11 @@ class CookbookTest < Test::Unit::TestCase
     }, cookbook.glob(:type, '*.rb'))
   end
   
-  def test_glob_searches_for_files_along_each_dir
+  def test_glob_searches_for_files_along_each_dir_in_path
     dir1 = tempdir
     dir2 = tempdir
     
-    cookbook = Cookbook.new(dir1, dir2)
+    cookbook = Cookbook.new('path' => [dir1, dir2] )
     
     a = prepare('type/a.rb', dir1)
     b = prepare('type/b.rb', dir2)
@@ -126,7 +126,7 @@ class CookbookTest < Test::Unit::TestCase
     dir1 = tempdir
     dir2 = tempdir
     
-    cookbook = Cookbook.new(dir1, dir2)
+    cookbook = Cookbook.new('path' => [dir1, dir2])
     
     a1 = prepare('type/a.rb', dir1)
     b1 = prepare('type/b.rb', dir1)

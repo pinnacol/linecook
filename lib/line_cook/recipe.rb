@@ -17,7 +17,7 @@ module LineCook
       @target_name = target_name
       @target      = Tempfile.new(target_name)
       
-      @cookbook    = options[:cookbook] || Cookbook.new(Dir.pwd)
+      @cookbook    = options[:cookbook] || Cookbook.new
       @registry    = options[:registry] || {}
       @attributes  = Attributes.new(options[:attrs] || {})
       
