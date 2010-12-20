@@ -4,4 +4,5 @@ line_cook:
   script_name: %project_name%
 
 # Set attributes for the script
-key: value
+%project_name%:
+  numbers: [7, 8, 9]

@@ -1,6 +1,9 @@
-# Configures the cookbook.
-# Add this file to a gem to mark it as a cookbook gem
-# (note that in gem form the contents of this file are ignored)
+# Configure the cookbook here.
+# Adding this file to a gem marks it as a cookbook gem
+# (note that in a gem the contents of this file are ignored)
 
-# path: ['.']   # directories searched for attributes/recipes/etc.
-# gems: []      # gems added to path - defaults to all marked gems
+# Define directories searched for attributes/recipes/etc.
+# path: ['.']
+
+# Name the gems added to path - defaults to all marked gems.
+# gems: []

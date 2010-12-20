@@ -20,7 +20,7 @@ class LineCookTest < Test::Unit::TestCase
       
       output = `sh scripts/example/example`
       assert_equal 0, $?.exitstatus, output
-      assert_equal "a b c\n", output
+      assert_equal "a b c\n7 8 9\n", output
     end
   end
   

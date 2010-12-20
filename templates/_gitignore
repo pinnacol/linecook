@@ -2,7 +2,4 @@
 .bundle
 *.gem
 /rdoc
-/coverage
-scripts
 vbox/log
-vbox/scripts
