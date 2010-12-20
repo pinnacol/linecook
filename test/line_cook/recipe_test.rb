@@ -65,7 +65,7 @@ class RecipeTest < Test::Unit::TestCase
   #
 
   def test_attributes_evals_the_attributes_file_in_the_context_of_attributes
-    prepare('attributes/example.rb') {|io| io << "default[:key] = 'value'"}
+    prepare('attributes/example.rb') {|io| io << "attrs[:key] = 'value'"}
     assert_equal nil, recipe.attrs[:key]
 
     recipe.attributes('example')

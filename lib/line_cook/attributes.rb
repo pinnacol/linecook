@@ -6,29 +6,21 @@ module LineCook
       end
     end
     
-    attr_reader :default
-    attr_reader :normal
-    attr_reader :override
+    attr_reader :attrs
     attr_reader :user_attrs
     
     def initialize(user_attrs={})
       @user_attrs = user_attrs
-      reset
+      reset(true)
     end
     
-    def attrs(recalculate=false)
-      @attrs   = nil if recalculate
-      @attrs ||= serial_merge(default, normal, override, user_attrs)
+    def current
+      @current ||= serial_merge(attrs, user_attrs)
     end
     
     def reset(full=true)
-      if full
-        @default  = self.class.nest_hash
-        @normal   = self.class.nest_hash
-        @override = self.class.nest_hash
-      end
-      
-      @attrs = nil
+      @attrs = self.class.nest_hash if full
+      @current = nil
     end
     
     private

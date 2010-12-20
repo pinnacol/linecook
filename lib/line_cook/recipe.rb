@@ -84,7 +84,7 @@ module LineCook
     end
     
     def attrs
-      @attributes.attrs
+      @attributes.current
     end
     
     def attributes(attributes_name)

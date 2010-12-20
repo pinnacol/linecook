@@ -27,37 +27,26 @@ class AttributesTest < Test::Unit::TestCase
   end
   
   #
-  # attrs test
+  # current test
   #
   
-  def test_attrs_merges_default_normal_override_and_user_attrs
-    attributes.default[:a]    = 'A'
-    attributes.default[:b]    = '-'
-    attributes.default[:c]    = '-'
-    attributes.default[:d]    = '-'
+  def test_current_merges_attrs_and_user_attrs
+    attributes.attrs[:a]    = 'A'
+    attributes.attrs[:b]    = '-'
     
-    attributes.normal[:b]     = 'B'
-    attributes.normal[:c]     = '-'
-    attributes.normal[:d]     = '-'
-    
-    attributes.override[:c]   = 'C'
-    attributes.override[:d]   = '-'
-    
-    attributes.user_attrs[:d] = 'D'
+    attributes.user_attrs[:b] = 'B'
     
     assert_equal({
       :a => 'A',
-      :b => 'B',
-      :c => 'C',
-      :d => 'D'
-    }, attributes.attrs)
+      :b => 'B'
+    }, attributes.current)
   end
   
-  def test_attrs_performs_deep_merge
-    attributes.default[:a] = 'A'
-    attributes.default[:b] = '-'
-    attributes.default[:one][:a] = 'a'
-    attributes.default[:one][:b] = '-'
+  def test_current_performs_deep_merge
+    attributes.attrs[:a] = 'A'
+    attributes.attrs[:b] = '-'
+    attributes.attrs[:one][:a] = 'a'
+    attributes.attrs[:one][:b] = '-'
     
     attributes.user_attrs[:b] = 'B'
     attributes.user_attrs[:one] = {:b => 'b'}
@@ -69,38 +58,30 @@ class AttributesTest < Test::Unit::TestCase
         :a => 'a',
         :b => 'b'
       }
-    }, attributes.attrs)
+    }, attributes.current)
   end
   
-  def test_attrs_are_cached
-    assert_equal attributes.attrs.object_id, attributes.attrs.object_id
-  end
-  
-  def test_attrs_are_recalculated_if_specified
-    assert attributes.attrs.object_id != attributes.attrs(true).object_id
+  def test_current_attrs_are_cached
+    assert_equal attributes.current.object_id, attributes.current.object_id
   end
   
   #
   # reset test
   #
   
-  def test_reset_clears_default_normal_and_override_attrs
-    attributes.default[:a] = 'A'
-    attributes.normal[:b] = 'B'
-    attributes.override[:c] = 'C'
-    attributes.user_attrs[:d] = 'D'
+  def test_reset_clears_attrs
+    attributes.attrs[:a] = 'A'
+    attributes.user_attrs[:b] = 'B'
     
     assert_equal({
       :a => 'A',
-      :b => 'B',
-      :c => 'C',
-      :d => 'D'
-    }, attributes.attrs)
+      :b => 'B'
+    }, attributes.current)
     
     attributes.reset
     
     assert_equal({
-      :d => 'D'
-    }, attributes.attrs)
+      :b => 'B'
+    }, attributes.current)
   end
 end
