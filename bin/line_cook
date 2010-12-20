@@ -4,8 +4,14 @@ require 'optparse'
 require 'fileutils'
 require 'erb'
 require 'ostruct'
+require 'line_cook/version'
+
+#
+# Parse options
+#
 
 ARGV << '-h' if ARGV.empty?
+
 options = {:force => false}
 OptionParser.new do |opts|
   opts.banner = "Usage: line_cook [options] PATH"
@@ -20,9 +26,12 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-template_dir = File.expand_path('../../templates', __FILE__)
 project_dir  = File.expand_path(ARGV[0])
 project_name = File.basename(project_dir)
+
+#
+# Setup the project dir
+#
 
 if File.exists?(project_dir)
   unless options[:force]
@@ -39,29 +48,37 @@ if File.exists?(project_dir)
   FileUtils.rm_rf(project_dir)
 end
 
-Dir.glob("#{template_dir}/**/*").each do |source|
-  relative_path = source[(template_dir.length + 1)..-1]
-  relative_path = relative_path.sub('project_name', project_name).sub(/^_/, '.')
-  target = File.join(project_dir, relative_path)
-  
+#
+# Copy template files into place
+#
+
+context = OpenStruct.new(:project_name => project_name).send(:binding)
+
+source_dir = File.expand_path('../../templates', __FILE__)
+Dir.glob("#{source_dir}/**/*").each do |source|
   if File.directory?(source)
-    FileUtils.mkdir_p(target)
-  else
-    puts "      create  #{relative_path}"
-    
-    target_dir = File.dirname(target)
-    unless File.exists?(target_dir)
-      FileUtils.mkdir_p(target_dir)
-    end
-    
-    File.open(target, 'w') do |io|
-      erb = ERB.new(File.read(source), nil, '<>')
-      erb.filename = source
-      context = OpenStruct.new(:project_name => project_name).send(:binding)
-      
-      io << erb.result(context)
-    end
+    next
+  end
+  
+  path = source[(source_dir.length + 1)..-1]
+  path = path.sub('project_name', project_name).sub(/^_/, '.')
+  target = File.join(project_dir, path)
+  
+  puts "      create  #{path}"
+  
+  target_dir = File.dirname(target)
+  unless File.exists?(target_dir)
+    FileUtils.mkdir_p(target_dir)
+  end
+  
+  File.open(target, 'w') do |io|
+    erb = ERB.new(File.read(source), nil, '<>')
+    erb.filename = source
+    io << erb.result(context)
   end
 end
 
-FileUtils.ln_s File.join(project_dir, 'scripts'), File.join(project_dir, 'vbox/scripts')
+# Link up scripts into vbox
+source = File.join(project_dir, 'scripts')
+target = File.join(project_dir, 'vbox/scripts')
+FileUtils.ln_s source, target
