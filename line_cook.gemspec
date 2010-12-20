@@ -33,7 +33,7 @@ Gem::Specification.new do |s|
     lib/line_cook/generators/helpers.rb
     lib/line_cook/generators/script.rb
     lib/line_cook/helpers/bash.rb
-    lib/line_cook/patches/templater.rb
+    lib/line_cook/patches/template.rb
     lib/line_cook/recipe.rb
     lib/line_cook/utils.rb
     lib/line_cook/version.rb

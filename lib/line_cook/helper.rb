@@ -1,7 +1,7 @@
-require 'line_cook/templater'
+require 'line_cook/template'
 
 module LineCook
-  class Helper < Templater
+  class Helper < Template
     attr_reader :const_name
     attr_reader :sources
     

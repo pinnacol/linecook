@@ -3,7 +3,7 @@ require 'stringio'
 require 'erb'
 
 module LineCook
-  class Templater
+  class Template
     class << self
       def build(template, locals, template_path=nil)
         ERB.new(template).result(OpenStruct.new(locals).send(:binding))
@@ -18,7 +18,7 @@ module LineCook
     
     # Returns self (not the underlying erbout storage that actually receives
     # the output lines).  In the ERB context, this method directs erb outputs
-    # to Templater#concat and into the redirect mechanism.
+    # to Template#concat and into the redirect mechanism.
     def _erbout
       self
     end

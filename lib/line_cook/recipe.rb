@@ -1,10 +1,10 @@
 require 'line_cook/attributes'
-require 'line_cook/templater'
+require 'line_cook/template'
 require 'line_cook/utils'
 require 'tempfile'
 
 module LineCook
-  class Recipe < Templater
+  class Recipe < Template
     class << self
       def path_hash(dir='.')
         dir = File.expand_path(dir)
@@ -142,7 +142,7 @@ module LineCook
     
     def template_path(template_name, locals={})
       path = source_path('templates', "#{template_name}.erb")
-      script_file template_name, Templater.build(File.read(path), locals, path)
+      script_file template_name, Template.build(File.read(path), locals, path)
     end
     
     def close

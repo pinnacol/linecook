@@ -18,7 +18,7 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-template_dir = File.expand_path('../../template', __FILE__)
+template_dir = File.expand_path('../../templates', __FILE__)
 project_dir  = File.expand_path(ARGV[0])
 project_name = File.basename(project_dir)
 
