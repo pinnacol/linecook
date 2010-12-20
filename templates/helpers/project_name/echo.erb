@@ -2,4 +2,4 @@ An example of a helper definition. This is the documentation, followed by the
 method signature and then the ERB template.
 (*args)
 --
-echo '<%= args.join(' ') %>'
+echo '<%= "<" + "%= args.join(' ') %"+ ">" %>'

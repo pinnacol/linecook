@@ -2,6 +2,8 @@
 
 require 'optparse'
 require 'fileutils'
+require 'erb'
+require 'ostruct'
 
 ARGV << '-h' if ARGV.empty?
 options = {:force => false}
@@ -53,7 +55,11 @@ Dir.glob("#{template_dir}/**/*").each do |source|
     end
     
     File.open(target, 'w') do |io|
-      io << File.read(source).gsub('%project_name%', project_name)
+      erb = ERB.new(File.read(source), nil, '<>')
+      erb.filename = source
+      context = OpenStruct.new(:project_name => project_name).send(:binding)
+      
+      io << erb.result(context)
     end
   end
 end
