@@ -10,10 +10,10 @@ module LineCook
       end
     end
     
-    attr_reader :target
+    attr_reader :erbout
     
     def initialize
-      @target = StringIO.new
+      @erbout = StringIO.new
     end
     
     # Returns self (not the underlying erbout storage that actually receives
@@ -29,18 +29,18 @@ module LineCook
     
     # Concatenates the specified input to the underlying erbout storage.
     def concat(input)
-      target << input
+      erbout << input
       self
     end
     
     def capture
-      current, redirect = target, StringIO.new
+      current, redirect = erbout, StringIO.new
       
       begin
-        @target = redirect
+        @erbout = redirect
         yield
       ensure
-        @target = current
+        @erbout = current
       end
       
       str = redirect.string
@@ -75,42 +75,35 @@ module LineCook
       concat lines.join(line_sep)
     end
     
-    def module_nest(const_name, indent="  ", line_sep="\n")
-      nestings = const_name.split(/::/).collect {|name| ["module #{name}", "end"]} 
-      nestings << {:indent => indent, :line_sep => line_sep}
-      
-      nest(*nestings) { yield }
-    end
-    
     def rstrip(n=10)
       yield if block_given?
       
-      pos = target.pos
+      pos = erbout.pos
       n = pos if pos < n
       start = pos - n
       
-      target.pos = start
-      tail = target.read(n).rstrip
+      erbout.pos = start
+      tail = erbout.read(n).rstrip
       
-      target.pos = start
-      target.truncate start
+      erbout.pos = start
+      erbout.truncate start
       
       tail.length == 0 && start > 0 ? rstrip(n * 2) : concat(tail)
     end
     
     def close
-      target.close unless closed?
+      erbout.close unless closed?
       self
     end
     
     def closed?
-      target.closed?
+      erbout.closed?
     end
     
-    def to_s
-      target.flush
-      target.rewind
-      target.read
+    def result
+      erbout.flush
+      erbout.rewind
+      erbout.read
     end
   end
 end

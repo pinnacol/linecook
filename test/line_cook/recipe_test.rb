@@ -45,7 +45,7 @@ class RecipeTest < Test::Unit::TestCase
   
   def test_script_allows_direct_writing
     recipe.script.puts 'str'
-    assert_equal "str\n", recipe.to_s
+    assert_equal "str\n", recipe.result
   end
   
   #

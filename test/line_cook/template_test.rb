@@ -14,22 +14,22 @@ class TemplateTest < Test::Unit::TestCase
   # rstrip test
   #
   
-  def test_rstrip_rstrips_target
-    template.target << " a b \n "
+  def test_rstrip_rstrips_erbout
+    template.erbout << " a b \n "
     template.rstrip
-    assert_equal " a b", template.to_s
+    assert_equal " a b", template.result
   end
   
   def test_rstrip_removes_all_whitespace_up_to_start
-    template.target << "  \n "
+    template.erbout << "  \n "
     template.rstrip
-    assert_equal "", template.to_s
+    assert_equal "", template.result
   end
   
   def test_rstrip_removes_lots_of_whitespace
-    template.target << "a b"
-    template.target << " " * 100
+    template.erbout << "a b"
+    template.erbout << " " * 100
     template.rstrip
-    assert_equal "a b", template.to_s
+    assert_equal "a b", template.result
   end
 end

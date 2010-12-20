@@ -14,7 +14,7 @@ module LineCook
     
     def build
       eval MODULE_TEMPLATE, binding, __FILE__, MODULE_TEMPLATE_LINE
-      target.string
+      result
     end
     
     def build_to(target, options={})
@@ -80,6 +80,13 @@ module LineCook
       when /_bang$/  then name.sub(/_bang$/, '!')
       else name
       end
+    end
+    
+    def module_nest(const_name, indent="  ", line_sep="\n")
+      nestings = const_name.split(/::/).collect {|name| ["module #{name}", "end"]} 
+      nestings << {:indent => indent, :line_sep => line_sep}
+      
+      nest(*nestings) { yield }
     end
     
     MODULE_TEMPLATE_LINE = __LINE__ + 2

@@ -18,7 +18,7 @@ module LineCook
     
     include Utils
     
-    alias script target
+    alias script erbout
     
     attr_reader :script_name
     
@@ -35,11 +35,11 @@ module LineCook
       @manifest    = options[:manifest] || self.class.path_hash
       @registry    = options[:registry] || {}
       
-      @target      = Tempfile.new(script_name)
+      @erbout      = Tempfile.new(script_name)
       @attributes  = Attributes.new(options[:attrs] || {})
       
-      @registry[target.path] = script_name
-      @cache = [target]
+      @registry[erbout.path] = script_name
+      @cache = [erbout]
     end
     
     def source_path(*relative_path)
