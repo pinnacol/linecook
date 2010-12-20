@@ -6,6 +6,31 @@ module LineCook
       def split_path(path)
         path.kind_of?(String) ? path.split(':') : path
       end
+      
+      def cookbook_file(dir)
+        File.expand_path('Cookbook', dir)
+      end
+      
+      def init_from(dir)
+        attrs = YAML.load_file(cookbook_file(pwd)) || {}
+        init(attrs)
+      end
+      
+      def init(attrs)
+        require 'rubygems' unless Object.const_defined?(:Gem)
+        
+        path = attrs['path'] || '.'
+        dirs = split_path(path)
+        
+        gems = attrs['gems'] || Gem.loaded_specs.keys
+        gems.each do |gem_name|
+          spec = Gem.source_index.find_name(gem_name).last
+          dir  = spec.full_gem_path
+          dirs << dir if File.exists?(cookbook_file(dir))
+        end
+        
+        new(*dirs)
+      end
     end
     include Utils
     

@@ -80,14 +80,15 @@ end
 #
 
 require 'line_cook'
-cookbook = LineCook::Cookbook.new '.'
+pwd = File.expand_path('..', __FILE__)
+cookbook = LineCook::Cookbook.init_from(pwd)
 
 #
 # LineCook Helper Tasks
 # (compiles helper modules from helper definitions, as needed)
 
 helpers = {}
-helpers_dir = File.expand_path('../helpers', __FILE__)
+helpers_dir = File.join(pwd, 'helpers')
 Dir.glob("#{helpers_dir}/*/**/*.erb").each do |definition|
   const_path = File.dirname(definition)[(helpers_dir.length+1)..-1]
   (helpers[const_path] ||= []) << definition
@@ -120,7 +121,7 @@ task :helpers
 # LineCook Script Tasks
 # (compiles scripts, as directed)
 
-scripts_dir = File.expand_path('../scripts', __FILE__)
+scripts_dir = File.join(pwd, 'scripts')
 Dir.glob("#{scripts_dir}/*.yml").each do |source|
   name = File.basename(source).chomp File.extname(source)
   target = File.join(scripts_dir, name)
