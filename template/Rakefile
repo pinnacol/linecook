@@ -1,4 +1,5 @@
 require 'rake'
+require 'line_cook'
 
 #
 # VirtualBox Tasks
@@ -28,11 +29,11 @@ namespace :vbox do
   task :reset do
     type = ENV['TYPE'] || 'headless'
     name = ENV['SNAPSHOT'] || 'BASE'
-  
+
     if `VBoxManage -q list runningvms`.include?(VMNAME)
       sh "VBoxManage -q controlvm #{VMNAME} poweroff"
     end
-  
+
     sh "VBoxManage -q snapshot #{VMNAME} restore #{name.upcase}"
     sh "VBoxManage -q startvm #{VMNAME} --type #{type}"
   end
@@ -41,7 +42,7 @@ namespace :vbox do
   task :snapshot do
     name = ENV['SNAPSHOT']
     raise "no snapshot name specified in ENV['SNAPSHOT']" unless name
-  
+
     `VBoxManage -q snapshot #{VMNAME} delete #{name.upcase} > /dev/null`
     sh "VBoxManage -q snapshot #{VMNAME} take #{name.upcase}"
   end
@@ -59,15 +60,15 @@ namespace :vbox do
   task :ssh do
     # To prevent ssh errors, protect the private key
     FileUtils.chmod(0600, KEYPATH)
-  
+
     # Patterned after vagrant/ssh.rb (circa 0.6.6)
     platform = RUBY_PLATFORM.to_s.downcase
     ssh = "ssh -p 2222 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i #{KEYPATH} #{VUSER}@localhost #{ENV['COMMAND']}"
-  
+
     # Some hackery going on here. On Mac OS X Leopard (10.5), exec fails
     # (GH-51). As a workaround, we fork and wait. On all other platforms, we
     # simply exec.
-  
+
     pid = nil
     pid = fork if platform.include?("darwin9") || platform.include?("darwin8")
     Kernel.exec(ssh)  if pid.nil?
@@ -79,36 +80,35 @@ end
 # LineCook
 #
 
-require 'line_cook'
-cookbook = LineCook::Cookbook.new
-
-cookbook.each_helper do |sources, target, builder|
-  file target => sources, &builder
+namespace :line_cook do
+  cookbook = LineCook::Cookbook.new '.'
   
-  name = (target =~ /helpers\/(.*).rb/ && $1)
-  namespace :helpers do
-    desc "generate helper: #{name}"
-    task name => target
+  # Helper Tasks
+  cookbook.each_helper do |sources, target, helper|
+    file target => sources do
+      puts "  helper: #{helper.const_name}" unless Rake.application.options.silent
+      helper.build_to(target, :force => true)
+      cookbook.reset(:helpers)
+    end
+
+    task :helpers => target
   end
-  
-  task :helpers => "helpers:#{name}"
-end
 
-desc "generate helpers"
-task :helpers
+  desc "generate helpers"
+  task :helpers
 
-cookbook.each_script do |sources, target, builder|
-  sources << :helpers
-  file target => sources, &builder
+  # Script Tasks
+  cookbook.each_script do |sources, target, script|
+    sources.unshift :helpers
   
-  name = File.basename(target)
-  namespace :scripts do
-    desc "generate script: #{name}"
-    task name => target
+    file target => sources do
+      puts "  script: #{File.basename(target)}" unless Rake.application.options.silent
+      script.build_to(target, :force => true)
+    end
+
+    task :scripts => target
   end
-  
-  task :scripts => "scripts:#{name}"
-end
 
-desc "generate scripts"
-task :scripts
+  desc "generate scripts"
+  task :scripts
+end

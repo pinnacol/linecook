@@ -1,5 +1,6 @@
 module LineCook
   module Utils
+    module_function
     
     def camelize(str)
       str.to_s.gsub(/\/(.?)/) { "::" + $1.upcase }.gsub(/(^|_)(.)/) { $2.upcase }

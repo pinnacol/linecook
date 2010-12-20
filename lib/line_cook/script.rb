@@ -35,7 +35,12 @@ module LineCook
       )
     end
     
-    def build_to(dir)
+    def build_to(dir, options={})
+      if File.exists?(dir)
+        raise "already exists: #{dir}" unless options[:force]
+        FileUtils.rm_r(dir)
+      end
+      
       unless recipe.closed?
         recipe.evaluate(recipe_name)
         recipe.close
@@ -43,7 +48,11 @@ module LineCook
       
       recipe.registry.each_pair do |source, target|
         target = File.join(dir, target)
-        yield source, target
+        
+        target_dir = File.dirname(target)
+        FileUtils.mkdir_p(target_dir) unless File.exists?(target_dir)
+        
+        FileUtils.cp(source, target)
       end
     end
   end

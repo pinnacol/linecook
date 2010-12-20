@@ -12,42 +12,36 @@ module LineCook
     FILE_PATTERNS = {
       :attributes  => File.join('attributes', '**', '*.rb'),
       :files       => File.join('files', '**', '*'),
-      :definitions => File.join('helpers', '*', '**', '*.erb'),
       :helpers     => File.join('helpers', '**', '*.rb'),
       :recipes     => File.join('recipes', '**', '*.rb'),
-      :scripts     => File.join('scripts', '*.yml'),
       :templates   => File.join('templates', '**', '*.erb')
     }
     
-    MANIFEST_TYPES = [
-      :attributes,
-      :files,
-      :helpers,
-      :recipes,
-      :scripts,
-      :templates
-    ] 
+    attr_reader :work_dir
+    attr_reader :source_dirs
+    attr_reader :source_files
     
-    attr_reader :dirs
-    attr_reader :files
-    
-    def initialize(*dirs)
-      @dirs = dirs.collect {|dir| File.expand_path(dir) }
-      @files = Hash.new do |hash, key| 
+    def initialize(work_dir, *source_dirs)
+      @work_dir    = File.expand_path(work_dir)
+      @source_dirs = source_dirs.collect {|dir| File.expand_path(dir) }
+      @source_dirs.unshift(work_dir)
+      
+      @source_files = Hash.new do |hash, key| 
         pattern = FILE_PATTERNS[key]
         hash[key] = pattern ? glob(pattern) : nil
       end
+      
       @manifest = nil
     end
     
     def [](type)
-      files[type]
+      source_files[type]
     end
     
     def glob(pattern)
       files = {}
       
-      dirs.each do |dir|
+      source_dirs.each do |dir|
         Dir.glob(File.join(dir, pattern)).each do |path|
           next unless File.file?(path)
           
@@ -59,13 +53,57 @@ module LineCook
       files
     end
     
+    def reset(type=nil)
+      @manifest = nil
+      @sources = nil
+      
+      if type
+        @source_files.delete(type)
+      else
+        @source_files.clear
+      end
+      
+      self
+    end
+    
     def manifest
       @manifest ||= begin
         manifest = {}
-        MANIFEST_TYPES.each do |type|
-          manifest.merge! files[type]
+        FILE_PATTERNS.each_key do |type|
+          manifest.merge! source_files[type]
         end
         manifest
+      end
+    end
+    
+    def each_helper
+      helpers = {}
+      
+      helpers_dir = File.join(work_dir, 'helpers')
+      Dir.glob("#{helpers_dir}/*/**/*.erb").each do |definition|
+        const_path = File.dirname(definition)[(helpers_dir.length+1)..-1]
+        (helpers[const_path] ||= []) << definition
+      end
+      
+      helpers.each_pair do |const_path, definitions|
+        sources = definitions + definitions.collect {|path| File.dirname(path) }
+        target  = File.join(work_dir, 'helpers', "#{const_path}.rb")
+        helper  = Helper.new(camelize(const_path), definitions)
+        
+        yield sources, target, helper
+      end
+    end
+    
+    def each_script
+      pattern = File.join(work_dir, 'scripts', '*.yml')
+      Dir.glob(pattern).each do |source|
+        name    = File.basename(source).chomp File.extname(source)
+        
+        sources = [source]
+        target  = File.join(work_dir, 'scripts', name)
+        script  = LineCook::Script.new(self, YAML.load_file(source))
+        
+        yield sources, target, script
       end
     end
   end

@@ -2,17 +2,35 @@ require 'line_cook/templater'
 
 module LineCook
   class Helper < Templater
+    attr_reader :const_name
     attr_reader :sources
     
-    def initialize(sources)
+    def initialize(const_name, sources)
+      @const_name = const_name
       @sources = sources
       @section_paths, @definition_paths = sources.partition {|path| File.basename(path)[0] == ?_ }
       super()
     end
     
-    def build(const_name)
+    def build
       eval MODULE_TEMPLATE, binding, __FILE__, MODULE_TEMPLATE_LINE
       target.string
+    end
+    
+    def build_to(target, options={})
+      if File.exists?(target)
+        raise "already exists: #{target}" unless options[:force]
+        FileUtils.rm(target)
+      end
+      
+      content = build
+      
+      target_dir = File.dirname(target)
+      unless File.exists?(target_dir)
+        FileUtils.mkdir_p(target_dir) 
+      end
+
+      File.open(target, 'w') {|io| io << content }
     end
     
     def sections

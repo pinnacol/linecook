@@ -41,19 +41,6 @@ class CookbookTest < Test::Unit::TestCase
     }, cookbook[:files])
   end
   
-  def test_AGET_returns_nested_helper_definitions_with_erb_extname
-    a = prepare('helpers/a/a.erb')
-    b = prepare('helpers/b/b/b.erb')
-    c = prepare('helpers/c.erb')
-    d = prepare('helpers/d.rb')
-    e = prepare('tmp/e/e.erb')
-    
-    assert_equal({
-      'helpers/a/a.erb' => a,
-      'helpers/b/b/b.erb' => b
-    }, cookbook[:definitions])
-  end
-  
   def test_AGET_returns_helpers_with_rb_extname
     a = prepare('helpers/a.rb')
     b = prepare('helpers/b/b.rb')
@@ -78,17 +65,6 @@ class CookbookTest < Test::Unit::TestCase
     }, cookbook[:recipes])
   end
   
-  def test_AGET_returns_non_nested_scripts_with_yml_extname
-    a = prepare('scripts/a.yml')
-    b = prepare('scripts/b/b.yml')
-    c = prepare('scripts/c.txt')
-    d = prepare('tmp/d.yml')
-    
-    assert_equal({
-      'scripts/a.yml' => a
-    }, cookbook[:scripts])
-  end
-  
   def test_AGET_returns_templates_with_erb_extname
     a = prepare('templates/a.erb')
     b = prepare('templates/b/b.erb')
@@ -111,7 +87,7 @@ class CookbookTest < Test::Unit::TestCase
     c = prepare('helpers/c/c.erb')
     d = prepare('helpers/d.rb')
     e = prepare('recipes/e.rb')
-    f = prepare('scripts/f.yml')
+    # f = prepare('scripts/f.yml')
     g = prepare('templates/g.erb')
     
     assert_equal({
@@ -119,7 +95,7 @@ class CookbookTest < Test::Unit::TestCase
       'files/b.txt'     => b,
       'helpers/d.rb'    => d,
       'recipes/e.rb'    => e,
-      'scripts/f.yml'   => f,
+      # 'scripts/f.yml'   => f,
       'templates/g.erb' => g
     }, cookbook.manifest)
   end
