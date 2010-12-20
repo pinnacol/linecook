@@ -23,9 +23,5 @@ module LineCook
       end
       const
     end
-    
-    def blank?(obj)
-      obj.to_s.strip.empty?
-    end
   end
 end
