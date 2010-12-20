@@ -47,17 +47,12 @@ module LineCook
       manifest[path] or raise "no such file: #{path.inspect}"
     end
     
-    def script_path(source_path)
+    def script_path(source_path, basename=nil)
       source_path = File.expand_path(source_path)
       
       registry[source_path] ||= begin
         dirname = "#{script_name}.d"
-        basename = File.basename(source_path)
-
-        # remove tempfile extension, if present
-        if basename =~ /(.*?)[\.\d]+$/
-          basename = $1
-        end
+        basename ||= File.basename(source_path)
 
         # generate a unique prefix for the basename
         count = 0
@@ -80,7 +75,7 @@ module LineCook
       
       tempfile.close
       @cache << tempfile
-      script_path(tempfile.path)
+      script_path(tempfile.path, name)
     end
     
     def attrs
