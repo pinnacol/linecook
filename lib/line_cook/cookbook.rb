@@ -12,8 +12,9 @@ module LineCook
       end
       
       def init_from(dir)
-        attrs = YAML.load_file(cookbook_file(pwd)) || {}
-        init(attrs)
+        file  = cookbook_file(pwd)
+        attrs = File.exists?(file) ? YAML.load_file(file) : nil
+        init(attrs || {})
       end
       
       def init(attrs)
@@ -24,9 +25,10 @@ module LineCook
         
         gems = attrs['gems'] || Gem.loaded_specs.keys
         gems.each do |gem_name|
-          spec = Gem.source_index.find_name(gem_name).last
-          dir  = spec.full_gem_path
-          dirs << dir if File.exists?(cookbook_file(dir))
+          if spec = Gem.source_index.find_name(gem_name).last
+            dir  = spec.full_gem_path
+            dirs << dir if File.exists?(cookbook_file(dir))
+          end
         end
         
         new(*dirs)
