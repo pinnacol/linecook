@@ -1,5 +1,4 @@
 require 'rake'
-require 'line_cook'
 
 #
 # VirtualBox Tasks
@@ -77,38 +76,69 @@ namespace :vbox do
 end
 
 #
-# LineCook
+# LineCook Setup
 #
 
-namespace :line_cook do
-  cookbook = LineCook::Cookbook.new '.'
-  
-  # Helper Tasks
-  cookbook.each_helper do |sources, target, helper|
-    file target => sources do
-      puts "  helper: #{helper.const_name}" unless Rake.application.options.silent
-      helper.build_to(target, :force => true)
-      cookbook.reset(:helpers)
-    end
+require 'line_cook'
+cookbook = LineCook::Cookbook.new '.'
 
-    task :helpers => target
-  end
+#
+# LineCook Helper Tasks
+# (compiles helper modules from helper definitions, as needed)
 
-  desc "generate helpers"
-  task :helpers
-
-  # Script Tasks
-  cookbook.each_script do |sources, target, script|
-    sources.unshift :helpers
-  
-    file target => sources do
-      puts "  script: #{File.basename(target)}" unless Rake.application.options.silent
-      script.build_to(target, :force => true)
-    end
-
-    task :scripts => target
-  end
-
-  desc "generate scripts"
-  task :scripts
+helpers = {}
+helpers_dir = File.expand_path('../helpers', __FILE__)
+Dir.glob("#{helpers_dir}/*/**/*.erb").each do |definition|
+  const_path = File.dirname(definition)[(helpers_dir.length+1)..-1]
+  (helpers[const_path] ||= []) << definition
 end
+
+helpers.each_pair do |const_path, definitions|
+  sources = definitions + [File.join(helpers_dir, const_path)]
+  target  = File.join(helpers_dir, "#{const_path}.rb")
+  
+  file target => sources do
+    puts "  helper: #{const_path}" unless Rake.application.options.silent
+    
+    const_name = LineCook::Utils.camelize(const_path)
+    helper = LineCook::Helper.new(const_name, definitions)
+    helper.build_to(target, :force => true)
+  end
+  
+  namespace :helpers do
+    desc "generate helper: #{const_path}"
+    task const_path => target
+  end
+  
+  task :helpers => "helpers:#{const_path}"
+end
+
+desc "generate helpers"
+task :helpers
+
+#
+# LineCook Script Tasks
+# (compiles scripts, as directed)
+
+scripts_dir = File.expand_path('../scripts', __FILE__)
+Dir.glob("#{scripts_dir}/*.yml").each do |source|
+  name = File.basename(source).chomp File.extname(source)
+  target = File.join(scripts_dir, name)
+  
+  task target => :helpers do
+    puts "  script: #{name}" unless Rake.application.options.silent
+    
+    script = LineCook::Script.new(cookbook, YAML.load_file(source))
+    script.build_to(target, :force => true)
+  end
+  
+  namespace :scripts do
+    desc "generate script: #{name}"
+    task name => target
+  end
+  
+  task :scripts => "scripts:#{name}"
+end
+
+desc "generate scripts"
+task :scripts
