@@ -9,32 +9,14 @@ class CookbookTest < Test::Unit::TestCase
   
   def setup
     super
-    @cookbook = Cookbook.new
+    @cookbook = Cookbook.new current_dir
   end
   
   #
-  # initialize test
+  # AGET test
   #
   
-  def test_initialize_sets_current_dir_into_path_by_default
-    assert_equal [current_dir], cookbook.path
-  end
-  
-  def test_initialize_expands_and_sets_path_as_specified
-    cookbook = Cookbook.new 'path' => ['/a', 'b']
-    assert_equal [File.expand_path('/a'), File.expand_path('b')], cookbook.path
-  end
-  
-  def test_initialize_splits_string_paths_along_colon
-    cookbook = Cookbook.new 'path' => '/a:b'
-    assert_equal [File.expand_path('/a'), File.expand_path('b')], cookbook.path
-  end
-  
-  #
-  # manifest test
-  #
-  
-  def test_manifest_includes_attributes
+  def test_AGET_returns_attributes_files_with_rb_extname
     a = prepare('attributes/a.rb')
     b = prepare('attributes/b/b.rb')
     c = prepare('attributes/c.yml')
@@ -43,10 +25,10 @@ class CookbookTest < Test::Unit::TestCase
     assert_equal({
       'attributes/a.rb' => a,
       'attributes/b/b.rb' => b
-    }, cookbook.manifest)
+    }, cookbook[:attributes])
   end
   
-  def test_manifest_includes_files
+  def test_AGET_returns_all_files
     a = prepare('files/a.txt')
     b = prepare('files/b/b.rb')
     c = prepare('files/c.yml')
@@ -56,27 +38,35 @@ class CookbookTest < Test::Unit::TestCase
       'files/a.txt' => a,
       'files/b/b.rb' => b,
       'files/c.yml' => c
-    }, cookbook.manifest)
+    }, cookbook[:files])
   end
   
-  def test_manifest_includes_helpers
+  def test_AGET_returns_nested_helper_definitions_with_erb_extname
     a = prepare('helpers/a/a.erb')
     b = prepare('helpers/b/b/b.erb')
-    c = prepare('helpers/c/_c.rb')
-    d = prepare('helpers/d/d/_d.rb')
-    e = prepare('helpers/e/e.rb')
-    f = prepare('helpers/f.erb')
-    g = prepare('tmp/g.erb')
+    c = prepare('helpers/c.erb')
+    d = prepare('helpers/d.rb')
+    e = prepare('tmp/e/e.erb')
     
     assert_equal({
       'helpers/a/a.erb' => a,
-      'helpers/b/b/b.erb' => b,
-      'helpers/c/_c.rb' => c,
-      'helpers/d/d/_d.rb' => d
-    }, cookbook.manifest)
+      'helpers/b/b/b.erb' => b
+    }, cookbook[:definitions])
   end
   
-  def test_manifest_includes_recipes
+  def test_AGET_returns_helpers_with_rb_extname
+    a = prepare('helpers/a.rb')
+    b = prepare('helpers/b/b.rb')
+    c = prepare('helpers/c.erb')
+    d = prepare('tmp/d.rb')
+    
+    assert_equal({
+      'helpers/a.rb' => a,
+      'helpers/b/b.rb' => b
+    }, cookbook[:helpers])
+  end
+  
+  def test_AGET_returns_recipes_with_rb_extname
     a = prepare('recipes/a.rb')
     b = prepare('recipes/b/b.rb')
     c = prepare('recipes/c.txt')
@@ -85,10 +75,10 @@ class CookbookTest < Test::Unit::TestCase
     assert_equal({
       'recipes/a.rb' => a,
       'recipes/b/b.rb' => b,
-    }, cookbook.manifest)
+    }, cookbook[:recipes])
   end
   
-  def test_manifest_includes_scripts
+  def test_AGET_returns_non_nested_scripts_with_yml_extname
     a = prepare('scripts/a.yml')
     b = prepare('scripts/b/b.yml')
     c = prepare('scripts/c.txt')
@@ -96,10 +86,10 @@ class CookbookTest < Test::Unit::TestCase
     
     assert_equal({
       'scripts/a.yml' => a
-    }, cookbook.manifest)
+    }, cookbook[:scripts])
   end
   
-  def test_manifest_includes_templates
+  def test_AGET_returns_templates_with_erb_extname
     a = prepare('templates/a.erb')
     b = prepare('templates/b/b.erb')
     c = prepare('templates/c.txt')
@@ -108,6 +98,29 @@ class CookbookTest < Test::Unit::TestCase
     assert_equal({
       'templates/a.erb' => a,
       'templates/b/b.erb' => b,
+    }, cookbook[:templates])
+  end
+  
+  #
+  # manifest test
+  #
+  
+  def test_manifest_merges_files_for_MANIFEST_TYPES
+    a = prepare('attributes/a.rb')
+    b = prepare('files/b.txt')
+    c = prepare('helpers/c/c.erb')
+    d = prepare('helpers/d.rb')
+    e = prepare('recipes/e.rb')
+    f = prepare('scripts/f.yml')
+    g = prepare('templates/g.erb')
+    
+    assert_equal({
+      'attributes/a.rb' => a,
+      'files/b.txt'     => b,
+      'helpers/d.rb'    => d,
+      'recipes/e.rb'    => e,
+      'scripts/f.yml'   => f,
+      'templates/g.erb' => g
     }, cookbook.manifest)
   end
   
@@ -130,7 +143,7 @@ class CookbookTest < Test::Unit::TestCase
     dir1 = tempdir
     dir2 = tempdir
     
-    cookbook = Cookbook.new('path' => [dir1, dir2] )
+    cookbook = Cookbook.new(dir1, dir2)
     
     a = prepare('a.rb', dir1)
     b = prepare('b.rb', dir2)
@@ -145,7 +158,7 @@ class CookbookTest < Test::Unit::TestCase
     dir1 = tempdir
     dir2 = tempdir
     
-    cookbook = Cookbook.new('path' => [dir1, dir2])
+    cookbook = Cookbook.new(dir1, dir2)
     
     a1 = prepare('a.rb', dir1)
     b1 = prepare('b.rb', dir1)
@@ -158,52 +171,5 @@ class CookbookTest < Test::Unit::TestCase
       'b.rb' => b1,
       'c.rb' => c2
     }, cookbook.glob('*.rb'))
-  end
-  
-  #
-  # each_helper test
-  #
-  
-  def test_each_helper_yields_the_sources_and_target_for_each_helper
-    a = prepare('helpers/one/a.erb')
-    b = prepare('helpers/one/b.erb')
-    
-    c = prepare('helpers/two/c.erb')
-    d = prepare('helpers/two/d.erb')
-    
-    expected = [
-      [[a,b].sort, 'helpers/one.rb'],
-      [[c,d].sort, 'helpers/two.rb']
-    ]
-    
-    results = []
-    cookbook.each_helper {|sources, target, builder| results << [sources.sort, target] }
-    
-    expected = expected.sort_by {|(sources, target)| target }
-    results = results.sort_by {|(sources, target)| target }
-    
-    assert_equal expected, results
-  end
-  
-  #
-  # each_script test
-  #
-  
-  def test_each_script_yields_the_sources_and_target_for_each_script
-    a = prepare('scripts/a.yml')
-    b = prepare('scripts/b.yml')
-    
-    expected = [
-      [[a], 'scripts/a'],
-      [[b], 'scripts/b']
-    ]
-    
-    results = []
-    cookbook.each_script {|sources, target, builder| results << [sources.sort, target] }
-    
-    expected = expected.sort_by {|(sources, target)| target }
-    results = results.sort_by {|(sources, target)| target }
-    
-    assert_equal expected, results
   end
 end
