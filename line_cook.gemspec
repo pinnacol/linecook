@@ -13,16 +13,15 @@ Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.platform = Gem::Platform::RUBY
   s.has_rdoc = true
-  s.rdoc_options.concat %W{--main README -S -N --title Line-Cook}
+  s.rdoc_options.concat %W{--main README -S -N --title LineCook}
   
   # add dependencies
-  #s.add_dependency('json', '~> 1.4')
+  s.add_dependency('rake', '~> 0.8.7')
   
   # list extra rdoc files here.
   s.extra_rdoc_files = %W{
     History
     README
-    doc/Setup\ a\ VM
   }
   
   # list the files you want to include here.

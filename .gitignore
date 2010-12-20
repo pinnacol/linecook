@@ -3,3 +3,4 @@
 *.gem
 /rdoc
 /coverage
+Gemfile.lock
