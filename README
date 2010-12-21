@@ -19,55 +19,72 @@ for generating scripts and running them on a test vm.
 
 == Usage
 
-[Warning this is what WILL be available, not what is.]
-
 Generate a cookbook.
 
-  % line_cook init
+  % line_cook example
+  % cd example
 
 Make some helpers.
 
-  [helpers/demo/_head.rb]
+  [helpers/example/_head.rb]
   COLOR_CODES = Hash[*%W{
     black       0;30   red         0;31
     white       1;37   green       0;32
     light_gray  0;37   blue        0;34
   }]
   
-  [helpers/demo/color.erb]
+  [helpers/example/color.erb]
   Adds color to a string.
   (color, str)
   --
   \033[<%= COLOR_CODES[color.to_s] %>m<%= str %>\033[0m
   
-  [helpers/demo/echo_in_color.erb]
+  [helpers/example/echo.erb]
   Echo a string in color
-  (color, str)
+  (str, options={})
+  color = options[:color]
   --
-  echo -e <%= _color(color, str) %>
+  echo -e '<%= color ? _color(color, str) : str %>'
 
-Use in a recipe.
+Define default attributes.
 
-  [recipes/demo.rb]
-  helpers "line_cook/shell"
-  helpers "demo"
+  [recipes/example.rb]
+  attrs['example']['n'] = 3
+  attrs['example']['color'] = 'blue'
+
+Use them in a recipe.
+
+  [recipes/example.rb]
+  helpers "example"
+  attributes "example"
   
-  10.times {
-    echo_in_color "blue", "I will not manually configure my server"
-  }
+  attrs['example']['n'].times do
+    echo "I will not manually configure my server", :color => attrs['example']['color']
+  end
 
-Generate a script from the helpers+recipe.
+Define a script using the recipe.
 
-  % line_cook generate
+  [scripts/example.yml]
+  line_cook:
+    recipe_name: example
+    script_name: example.sh
+  example:
+    n: 100
+
+Generate a script from the helpers, attributes, and recipe.
+
+  % rake scripts
 
 Start the VM and run the scripts (see the docs for setting up a VM).
 
-  % line_cook start
-  % line_cook ssh 'sudo bash -v /vbox/scripts/demo.sh'
+  % rake vbox:start
+  % rake vbox:ssh 
+  vm: bash /vbox/scripts/example.sh
+  vm: exit
 
 Stop the VM.
 
-  % line_cook stop
+  % rake vbox:stop
 
 == Installation
 
