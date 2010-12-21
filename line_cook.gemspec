@@ -10,10 +10,13 @@ Gem::Specification.new do |s|
   s.summary = 'A shell script generator.'
   s.homepage = 'http://gems.pinnacol.com/line_cook'
   s.rubyforge_project = ''
-  s.require_path = 'lib'
   s.platform = Gem::Platform::RUBY
   s.has_rdoc = true
   s.rdoc_options.concat %W{--main README -S -N --title LineCook}
+  
+  s.require_path = 'lib'
+  s.bindir = 'bin'
+  s.executables = 'line_cook'
   
   # add dependencies
   s.add_dependency('rake', '~> 0.8.7')
