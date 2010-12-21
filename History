@@ -1,3 +1,11 @@
+== 0.2.0 2010/12/20
+
+Complete overhaul.
+
+* reworked script generation using rake
+* sketched out functionality for use of gems
+* added line_cook executable to generate scaffold
+
 == 0.1.1 2010/12/07
 
 * added nodoc to definition templates
