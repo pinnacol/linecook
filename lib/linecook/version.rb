@@ -1,4 +1,4 @@
-module LineCook
+module Linecook
   MAJOR = 0
   MINOR = 2
   TINY  = 1

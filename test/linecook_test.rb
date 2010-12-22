@@ -1,12 +1,12 @@
 require File.expand_path('../test_helper', __FILE__)
 
-class LineCookTest < Test::Unit::TestCase
-  include LineCook::TestHelper
+class LinecookTest < Test::Unit::TestCase
+  include Linecook::TestHelper
   
-  LINE_COOK = File.expand_path('../../bin/line_cook', __FILE__)
+  LINE_COOK = File.expand_path('../../bin/linecook', __FILE__)
   LINE_COOK_LIB = File.expand_path('../../lib', __FILE__)
   
-  def test_line_cook_generates_a_cookbook_directory
+  def test_linecook_generates_a_cookbook_directory
     example_dir = path('example')
     assert_equal false, File.exists?(example_dir)
     
@@ -24,7 +24,7 @@ class LineCookTest < Test::Unit::TestCase
     end
   end
   
-  def test_line_cook_does_not_overwrite_existing_directory
+  def test_linecook_does_not_overwrite_existing_directory
     example_dir = path('example')
     FileUtils.mkdir_p(example_dir)
     
@@ -34,7 +34,7 @@ class LineCookTest < Test::Unit::TestCase
     assert_equal [], Dir.glob("#{example_dir}/*")
   end
   
-  def test_line_cook_regenerates_cookbook_on_force
+  def test_linecook_regenerates_cookbook_on_force
     example_readme = path('example/README')
     
     output = `ruby #{LINE_COOK} example`
@@ -49,7 +49,7 @@ class LineCookTest < Test::Unit::TestCase
     assert_equal true, File.exists?(example_readme)
   end
   
-  def test_line_cook_does_not_allow_force_for_parent_dirs_or_current_dir
+  def test_linecook_does_not_allow_force_for_parent_dirs_or_current_dir
     example_dir = path('parent/current')
     FileUtils.mkdir_p(example_dir)
     

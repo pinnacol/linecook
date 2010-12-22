@@ -1,9 +1,9 @@
 = README
 
-LineCook provides support to develop scripts using VirtualBox, an open-source
+Linecook provides support to develop scripts using VirtualBox, an open-source
 product to setup and manage virtual machines. Nothing says you have to use
 VirtualBox during development and obviously you can take the shell scripts
-produced by LineCook and run them wherever.
+produced by Linecook and run them wherever.
 
 These are instructions for setting up a generic Ubuntu VM for development.
 

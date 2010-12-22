@@ -1,8 +1,8 @@
 require File.expand_path('../../test_helper', __FILE__)
-require 'line_cook/attributes'
+require 'linecook/attributes'
 
 class AttributesTest < Test::Unit::TestCase
-  Attributes = LineCook::Attributes
+  Attributes = Linecook::Attributes
   
   attr_reader :attributes
   

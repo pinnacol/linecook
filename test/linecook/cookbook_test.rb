@@ -1,9 +1,9 @@
 require File.expand_path('../../test_helper', __FILE__)
-require 'line_cook/cookbook'
+require 'linecook/cookbook'
 
 class CookbookTest < Test::Unit::TestCase
-  include LineCook::TestHelper
-  Cookbook = LineCook::Cookbook
+  include Linecook::TestHelper
+  Cookbook = Linecook::Cookbook
   
   attr_reader :cookbook
   

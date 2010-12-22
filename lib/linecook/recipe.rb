@@ -1,9 +1,9 @@
-require 'line_cook/attributes'
-require 'line_cook/template'
-require 'line_cook/utils'
+require 'linecook/attributes'
+require 'linecook/template'
+require 'linecook/utils'
 require 'tempfile'
 
-module LineCook
+module Linecook
   class Recipe < Template
     class << self
       def path_hash(dir='.')

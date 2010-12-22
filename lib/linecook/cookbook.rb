@@ -1,6 +1,6 @@
-require 'line_cook/utils'
+require 'linecook/utils'
 
-module LineCook
+module Linecook
   class Cookbook
     class << self
       def split_path(path)

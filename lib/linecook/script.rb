@@ -1,8 +1,8 @@
-require 'line_cook/cookbook'
-require 'line_cook/recipe'
+require 'linecook/cookbook'
+require 'linecook/recipe'
 require 'yaml'
 
-module LineCook
+module Linecook
   class Script
     attr_reader :cookbook
     attr_reader :attrs
@@ -13,9 +13,9 @@ module LineCook
     end
     
     def config
-      attrs['line_cook'] ||= {
-        'script_name' => 'line_cook',
-        'recipe_name' => 'line_cook'
+      attrs['linecook'] ||= {
+        'script_name' => 'linecook',
+        'recipe_name' => 'linecook'
       }
     end
     

@@ -7,7 +7,7 @@ require 'rake/gempackagetask'
 #
 
 def gemspec
-  @gemspec ||= eval(File.read('line_cook.gemspec'), TOPLEVEL_BINDING)
+  @gemspec ||= eval(File.read('linecook.gemspec'), TOPLEVEL_BINDING)
 end
 
 Rake::GemPackageTask.new(gemspec) do |pkg|

@@ -1,5 +1,5 @@
-# Configure LineCook
-line_cook:
+# Configure Linecook
+linecook:
   recipe_name: <%= project_name %>
   script_name: <%= project_name %>
 

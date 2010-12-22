@@ -2,7 +2,7 @@ require 'ostruct'
 require 'stringio'
 require 'erb'
 
-module LineCook
+module Linecook
   class Template
     class << self
       def build(template, locals, template_path=nil)

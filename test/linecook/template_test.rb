@@ -1,8 +1,8 @@
 require File.expand_path('../../test_helper', __FILE__)
-require 'line_cook/template'
+require 'linecook/template'
 
 class TemplateTest < Test::Unit::TestCase
-  Template = LineCook::Template
+  Template = Linecook::Template
   
   attr_accessor :template
   

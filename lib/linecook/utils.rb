@@ -1,4 +1,4 @@
-module LineCook
+module Linecook
   module Utils
     module_function
     

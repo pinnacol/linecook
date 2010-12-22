@@ -1,4 +1,4 @@
-module LineCook
+module Linecook
   class Attributes
     class << self
       def nest_hash

@@ -76,15 +76,15 @@ namespace :vbox do
 end
 
 #
-# LineCook Setup
+# Linecook Setup
 #
 
-require 'line_cook'
+require 'linecook'
 pwd = File.expand_path('..', __FILE__)
-cookbook = LineCook::Cookbook.init_from(pwd)
+cookbook = Linecook::Cookbook.init_from(pwd)
 
 #
-# LineCook Helper Tasks
+# Linecook Helper Tasks
 # (compiles helper modules from helper definitions, as needed)
 
 helpers = {}
@@ -101,8 +101,8 @@ helpers.each_pair do |const_path, definitions|
   file target => sources do
     puts "  helper: #{const_path}" unless Rake.application.options.silent
     
-    const_name = LineCook::Utils.camelize(const_path)
-    helper = LineCook::Helper.new(const_name, definitions)
+    const_name = Linecook::Utils.camelize(const_path)
+    helper = Linecook::Helper.new(const_name, definitions)
     helper.build_to(target, :force => true)
   end
   
@@ -118,7 +118,7 @@ desc "generate helpers"
 task :helpers
 
 #
-# LineCook Script Tasks
+# Linecook Script Tasks
 # (compiles scripts, as directed)
 
 scripts_dir = File.join(pwd, 'scripts')
@@ -129,7 +129,7 @@ Dir.glob("#{scripts_dir}/*.yml").each do |source|
   task target => :helpers do
     puts "  script: #{name}" unless Rake.application.options.silent
     
-    script = LineCook::Script.new(cookbook, YAML.load_file(source))
+    script = Linecook::Script.new(cookbook, YAML.load_file(source))
     script.build_to(target, :force => true)
   end
   

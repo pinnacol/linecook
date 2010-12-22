@@ -1,4 +1,4 @@
-module LineCook
+module Linecook
   module TestHelper
     attr_reader :previous_dir
     attr_reader :current_dir

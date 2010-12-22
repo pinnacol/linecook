@@ -1,10 +1,10 @@
 require File.expand_path('../../test_helper', __FILE__)
-require 'line_cook/recipe'
+require 'linecook/recipe'
 require 'stringio'
 
 class RecipeTest < Test::Unit::TestCase
-  include LineCook::TestHelper
-  Recipe = LineCook::Recipe
+  include Linecook::TestHelper
+  Recipe = Linecook::Recipe
   
   attr_reader :recipe
   
