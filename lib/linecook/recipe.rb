@@ -91,11 +91,16 @@ module Linecook
     end
     
     def helpers(helper_name)
-      path = source_path('helpers', "#{helper_name}.rb")
-      require path
+      constants = camelize(helper_name).split(/::/)
       
-      const_name = camelize(helper_name)
-      const = constantize(const_name)
+      const = Object
+      while name = constants.shift
+        unless const.const_defined?(name)
+          require underscore(helper_name)
+        end
+        
+        const = const.const_get(name)
+      end
       
       extend const
     end

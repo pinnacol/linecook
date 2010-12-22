@@ -14,7 +14,7 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal 0, $?.exitstatus, output
     
     Dir.chdir(example_dir) do
-      output = `rake -I#{LINE_COOK_LIB} --silent scripts`
+      output = `rake -I#{LINE_COOK_LIB} -Ilib --silent scripts`
       assert_equal 0, $?.exitstatus, output
       assert_equal true, File.exists?('scripts/example/example')
       

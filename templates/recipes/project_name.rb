@@ -1,5 +1,5 @@
 # Include any helpers/attributes used by this recipe
-helpers '<%= project_name %>'
+helpers 'linebook/<%= project_name %>'
 attributes '<%= project_name %>'
 
 # Write to the script target using 'script'

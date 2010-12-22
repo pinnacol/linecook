@@ -89,20 +89,22 @@ cookbook = Linecook::Cookbook.init(pwd)
 
 helpers = {}
 helpers_dir = File.join(pwd, 'helpers')
-Dir.glob("#{helpers_dir}/*/**/*.erb").each do |definition|
-  const_path = File.dirname(definition)[(helpers_dir.length+1)..-1]
-  (helpers[const_path] ||= []) << definition
+lib_dir = File.join(pwd, 'lib')
+
+Dir.glob("#{helpers_dir}/**/*").each do |source|
+  base_path  = File.file?(source) ? File.dirname(source) : source
+  const_path = File.join('linebook', base_path[(helpers_dir.length+1)..-1])
+  (helpers[const_path] ||= []) << source
 end
 
-helpers.each_pair do |const_path, definitions|
-  sources = definitions + [File.join(helpers_dir, const_path)]
-  target  = File.join(helpers_dir, "#{const_path}.rb")
+helpers.each_pair do |const_path, sources|
+  target  = File.join(lib_dir, "#{const_path}.rb")
   
   file target => sources do
     puts "  helper: #{const_path}" unless Rake.application.options.silent
     
     const_name = Linecook::Utils.camelize(const_path)
-    helper = Linecook::Helper.new(const_name, definitions)
+    helper = Linecook::Helper.new(const_name, sources.select {|path| File.file?(path) })
     helper.build_to(target, :force => true)
   end
   

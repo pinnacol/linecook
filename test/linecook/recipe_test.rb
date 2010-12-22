@@ -75,19 +75,37 @@ class RecipeTest < Test::Unit::TestCase
   #
   # helpers test
   #
-
-  def test_helpers_looks_up_and_requires_helper_module_and_extends_self
-    prepare('helpers/recipe_test/helpers.rb') {|io| io << %q{
+  
+  module Helpers
+    def help; end
+  end
+  
+  def test_helpers_looks_up_helper_module_and_extends_self
+    assert_equal false, recipe.respond_to?(:help)
+    recipe.helpers "recipe_test/helpers"
+    assert_equal true, recipe.respond_to?(:help)
+  end
+  
+  def test_helpers_requires_helper_if_needed
+    prepare('lib/recipe_test/require_helper.rb') {|io| io << %q{
       class RecipeTest
-        module Helpers
+        module RequireHelper
           def help; end
         end
       end
     }}
     
-    assert_equal false, recipe.respond_to?(:help)
-    recipe.helpers "recipe_test/helpers"
-    assert_equal true, recipe.respond_to?(:help)
+    lib_path = path('lib')
+    begin
+      $:.unshift lib_path
+      
+      assert_equal false, recipe.respond_to?(:help)
+      recipe.helpers "recipe_test/require_helper"
+      assert_equal true, recipe.respond_to?(:help)
+      
+    ensure
+      $:.delete lib_path
+    end
   end
 
   #
