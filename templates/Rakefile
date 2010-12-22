@@ -81,7 +81,7 @@ end
 
 require 'linecook'
 pwd = File.expand_path('..', __FILE__)
-cookbook = Linecook::Cookbook.init_from(pwd)
+cookbook = Linecook::Cookbook.init(pwd)
 
 #
 # Linecook Helper Tasks

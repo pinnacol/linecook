@@ -3,7 +3,7 @@
 # (note that in a gem the contents of this file are ignored)
 
 # Define directories searched for attributes/recipes/etc.
-# path: ['.']
+# paths: ['.']
 
 # Name the gems added to path - defaults to all marked gems.
 # gems: []
