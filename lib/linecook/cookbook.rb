@@ -32,7 +32,6 @@ module Linecook
     PATTERNS = [
       ['', File.join('attributes', '**', '*.rb')],
       ['', File.join('files',      '**', '*')],
-      ['', File.join('helpers',    '**', '*.rb')],
       ['', File.join('recipes',    '**', '*.rb')],
       ['', File.join('templates',  '**', '*.erb')]
     ]
