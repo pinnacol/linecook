@@ -120,4 +120,67 @@ cookbook.each_script do |source, target, name|
 end
 
 desc "generate scripts"
-task :scripts
+task :scripts => :bundle
+
+#
+# Dependency tasks
+#
+
+desc 'Bundle dependencies'
+task :bundle do
+  output = `bundle check 2>&1`
+  
+  unless $?.to_i == 0
+    puts output
+    sh "bundle install 2>&1"
+    puts
+  end
+end
+
+#
+# Gem tasks
+#
+
+require 'rake/rdoctask'
+require 'rake/gempackagetask'
+
+def gemspec
+  @gemspec ||= eval(File.read('<%= project_name %>.gemspec'), TOPLEVEL_BINDING)
+end
+
+desc 'Prints the gemspec manifest.'
+task :print_manifest do
+  files = gemspec.files.inject({}) do |files, file|
+    files[File.expand_path(file)] = [File.exists?(file), file]
+    files
+  end
+  
+  cookbook_files = Dir.glob('{attributes,files,lib,recipes,templates}/**/*')
+  cookbook_file  = Dir.glob('{Cc}ookbook')
+  
+  (cookbook_files + cookbook_file).each do |file|
+    path = File.expand_path(file)
+    files[path] = ['', file] unless files.has_key?(path)
+  end
+  
+  # sort and output the results
+  files.values.sort_by {|exists, file| file }.each do |entry| 
+    puts '%-5s %s' % entry
+  end
+end
+
+#
+# Documentation tasks
+#
+
+desc 'Generate documentation.'
+Rake::RDocTask.new(:rdoc) do |rdoc|
+  spec = gemspec
+  
+  rdoc.rdoc_dir = 'rdoc'
+  rdoc.options.concat(spec.rdoc_options)
+  rdoc.rdoc_files.include(spec.extra_rdoc_files)
+  
+  files = spec.files.select {|file| file =~ /^lib.*\.rb$/}
+  rdoc.rdoc_files.include( files )
+end
