@@ -1,5 +1,4 @@
 require 'linebook'
-require 'linecook/helper'
 require 'linecook/utils'
 
 module Linecook
