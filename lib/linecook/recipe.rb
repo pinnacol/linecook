@@ -114,7 +114,7 @@ module Linecook
     end
     
     def capture_path(name, &block)
-      content = capture { instance_eval(&block) }
+      content = capture(false) { instance_eval(&block) }
       script_file(name, content)
     end
     

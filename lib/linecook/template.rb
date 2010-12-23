@@ -33,7 +33,7 @@ module Linecook
       self
     end
     
-    def capture
+    def capture(strip=true)
       current, redirect = erbout, StringIO.new
       
       begin
@@ -44,7 +44,7 @@ module Linecook
       end
       
       str = redirect.string
-      str.strip!
+      str.strip! if strip
       str
     end
     
