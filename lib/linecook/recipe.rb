@@ -91,14 +91,11 @@ module Linecook
     end
     
     def helpers(helper_name)
-      constants = camelize(helper_name).split(/::/)
+      require underscore(helper_name)
       
       const = Object
+      constants = camelize(helper_name).split(/::/)
       while name = constants.shift
-        unless const.const_defined?(name)
-          require underscore(helper_name)
-        end
-        
         const = const.const_get(name)
       end
       
