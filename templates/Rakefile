@@ -148,6 +148,10 @@ def gemspec
   @gemspec ||= eval(File.read('<%= project_name %>.gemspec'), TOPLEVEL_BINDING)
 end
 
+Rake::GemPackageTask.new(gemspec) do |pkg|
+  pkg.need_tar = true
+end
+
 desc 'Prints the gemspec manifest.'
 task :print_manifest do
   files = gemspec.files.inject({}) do |files, file|
