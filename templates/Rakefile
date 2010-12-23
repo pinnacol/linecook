@@ -87,10 +87,8 @@ cookbook = Linecook::Cookbook.init(pwd)
 # Linecook Helper Tasks
 # (compiles helper modules from helper definitions, as needed)
 
-cookbook.each_helper do |source, target, const_name|
-  sources = Dir.glob File.join(source, '*')
-  
-  file target => sources + [source] do
+cookbook.each_helper do |sources, target, const_name|
+  file target => sources do
     puts "  helper: #{const_name}" unless Rake.application.options.silent
     helper = Linecook::Helper.new(const_name, sources)
     helper.build_to(target, :force => true)
