@@ -1,3 +1,8 @@
+== 0.3.1 2010/12/23
+
+* prevent capture_path from stripping content
+* added test tasks to template
+
 == 0.3.0 2010/12/23
 
 * improved configuration of cookbook manifest
