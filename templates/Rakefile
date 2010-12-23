@@ -98,7 +98,7 @@ cookbook.each_helper do |sources, target, const_name|
 end
 
 desc "generate helpers"
-task :helpers
+task :helpers => :bundle
 
 #
 # Linecook Script Tasks
@@ -120,7 +120,7 @@ cookbook.each_script do |source, target, name|
 end
 
 desc "generate scripts"
-task :scripts => :bundle
+task :scripts
 
 #
 # Dependency tasks
@@ -156,9 +156,10 @@ task :print_manifest do
   end
   
   cookbook_files = Dir.glob('{attributes,files,lib,recipes,templates}/**/*')
-  cookbook_file  = Dir.glob('{Cc}ookbook')
+  cookbook_file  = Dir.glob('*')
   
   (cookbook_files + cookbook_file).each do |file|
+    next unless File.file?(file)
     path = File.expand_path(file)
     files[path] = ['', file] unless files.has_key?(path)
   end
@@ -183,4 +184,30 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
   
   files = spec.files.select {|file| file =~ /^lib.*\.rb$/}
   rdoc.rdoc_files.include( files )
+end
+
+
+#
+# Test tasks
+#
+
+desc 'Default: Run tests.'
+task :default => :test
+
+desc 'Run the tests'
+task :test => :helpers do
+  tests = Dir.glob('test/**/*_test.rb')
+  
+  if ENV['RCOV'] == 'true'
+    FileUtils.rm_rf File.expand_path('../coverage', __FILE__)
+    sh('rcov', '-w', '--text-report', '--exclude', '^/', *tests)
+  else
+    sh('ruby', '-w', '-e', 'ARGV.dup.each {|test| load test}', *tests)
+  end
+end
+
+desc 'Run rcov'
+task :rcov do
+  ENV['RCOV'] = 'true'
+  Rake::Task["test"].invoke
 end
