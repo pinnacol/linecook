@@ -26,12 +26,12 @@ module Linecook
     
     include Utils
     
-    DEFAULT_NAMESPACE = 'linebook'
-    DEFAULT_PATTERNS = [
-      ['', File.join('attributes', '**', '*.rb')],
-      ['', File.join('files',      '**', '*')],
-      ['', File.join('recipes',    '**', '*.rb')],
-      ['', File.join('templates',  '**', '*.erb')]
+    NAMESPACE = 'linebook'
+    PATTERNS  = [
+      File.join('attributes', '**', '*.rb'),
+      File.join('files',      '**', '*'),
+      File.join('recipes',    '**', '*.rb'),
+      File.join('templates',  '**', '*.erb')
     ]
     
     attr_reader :dir
@@ -40,10 +40,10 @@ module Linecook
     def initialize(dir = Dir.pwd, config = {})
       @dir = dir
       @config = {
-         'patterns' => DEFAULT_PATTERNS,
-         'paths' => ['.'],
-         'gems'  => self.class.gems,
-         'namespace' => DEFAULT_NAMESPACE
+         'manifest'  => {},
+         'paths'     => ['.'],
+         'gems'      => self.class.gems,
+         'namespace' => NAMESPACE
        }.merge(config)
     end
     
@@ -52,7 +52,31 @@ module Linecook
     end
     
     def manifest
-      @manifest ||= __manifest(config)
+      @manifest ||= begin
+        manifest  = {}
+        
+        paths = split config['paths']
+        gems  = split config['gems']
+        gems  = resolve gems
+        
+        (gems + paths).each do |path|
+          path  = File.expand_path(path, dir)
+          start = path.length + 1
+          
+          PATTERNS.each do |pattern|
+            Dir.glob(File.join(path, pattern)).each do |full_path|
+              next unless File.file?(full_path)
+              
+              rel_path = full_path[start, full_path.length - start]
+              manifest[rel_path] = full_path
+            end
+          end
+        end
+        
+        overrides = config['manifest']
+        manifest.merge!(overrides)
+        manifest
+      end
     end
     
     def each_helper
@@ -87,104 +111,23 @@ module Linecook
       end
     end
     
-    # Generate the manifest from a config.
-    def __manifest(config)
-      manifest  = {}
-      overrides = config['manifest'] || {}
-
-      __paths(config).each do |(dir, base, pattern)|
-        base_path = File.expand_path(File.join(dir, base))
-        start     = base_path.length + 1
-
-        Dir.glob(File.join(base_path, pattern)).each do |path|
-          rel_path = path[start, path.length - start]
-          manifest[rel_path] = path
-        end
-      end
-
-      manifest.merge!(overrides)
-      manifest
-    end
-
-    # Parses config to return an array of [dir, base, pattern] paths.
-    def __paths(config)
-      paths    = __parse_paths(config['paths'] || [])
-      gems     = __parse_gems(config['gems'] || [])
-      patterns = __parse_patterns(config['patterns'] || [])
-
-      __combine(patterns, gems + paths)
-    end
-
-    # Parses the 'paths' config by splitting strings into an array.
-    def __parse_paths(paths)
-      paths.kind_of?(String) ? __split(paths) : paths
-    end
-
-    # Parses the 'gems' config by splitting strings into an array, and resolving
-    # each name to the corresponding full_gem_path.
-    def __parse_gems(gems)
-      gems = gems.kind_of?(String) ? __split(gems) : gems
-
-      unless gems.empty?
-        specs = __latest_specs
-        gems  = gems.collect do |name| 
-          spec = specs[name] or raise "no such gem: #{name.inspect}"
-          spec.full_gem_path
-        end
-      end
-
-      gems
-    end
-
-    # Parses the 'patterns' config by splitting string patterns, flattening hash
-    # patterns, and then dividing each pattern into a [base, pattern] pair.
-    def __parse_patterns(patterns)
-      case patterns
-      when String then __split(patterns)
-      when Hash   then __flatten(patterns)
-      else patterns
-      end.collect {|pattern| __divide(pattern) }
-    end
-
-    # Splits the string into an array along colons.  Returns non-string inputs.
-    def __split(str)
+    private
+    
+    def split(str) # :nodoc:
       str.kind_of?(String) ? str.split(':') : str
     end
-
-    # Divides a string pattern into a [base, pattern] pair.  Returns non-string
-    # patterns.
-    def __divide(pattern)
-      pattern.kind_of?(String) ? pattern.split('/', 2) : pattern
-    end
-
-    # Flattens a patterns hash into an array of patterns.
-    def __flatten(hash)
-      patterns = []
-      hash.each_pair do |base, value|
-        __split(value).each do |pattern|
-          patterns << [base, pattern]
-        end
+    
+    def resolve(gems) # :nodoc:
+      return gems if gems.empty?
+      specs = latest_specs
+      
+      gems.collect do |name| 
+        spec = specs[name] or raise "no such gem: #{name.inspect}"
+        spec.full_gem_path
       end
-      patterns
     end
-
-    # Combines patterns and paths into [path, base, pattern] arrays.
-    def __combine(patterns, paths)
-      combinations = []
-      paths.each do |path|
-        if path.kind_of?(String)
-          patterns.each do |(base, pattern)|
-            combinations << [path, base, pattern]
-          end
-        else
-          combinations << path
-        end
-      end
-      combinations
-    end
-
-    # Returns a hash of the latest specs available in Gem.source_index.
-    def __latest_specs
+    
+    def latest_specs # :nodoc:
       latest = {}
       Gem.source_index.latest_specs.each do |spec|
         latest[spec.name] = spec
