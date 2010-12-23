@@ -1,5 +1,4 @@
 require 'linebook'
-require 'linecook/utils'
 
 module Linecook
   class Cookbook

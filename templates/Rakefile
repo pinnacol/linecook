@@ -131,7 +131,7 @@ Dir.glob("#{scripts_dir}/*.yml").each do |source|
   task target => :helpers do
     puts "  script: #{name}" unless Rake.application.options.silent
     
-    script = Linecook::Script.new(cookbook, YAML.load_file(source))
+    script = Linecook::Script.new(cookbook.manifest, YAML.load_file(source))
     script.build_to(target, :force => true)
   end
   

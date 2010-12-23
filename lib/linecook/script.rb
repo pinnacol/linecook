@@ -1,14 +1,13 @@
-require 'linecook/cookbook'
 require 'linecook/recipe'
 require 'yaml'
 
 module Linecook
   class Script
-    attr_reader :cookbook
+    attr_reader :manifest
     attr_reader :attrs
     
-    def initialize(cookbook = Cookbook.new, attrs = {})
-      @cookbook = cookbook
+    def initialize(manifest={}, attrs={})
+      @manifest = manifest
       @attrs = attrs
     end
     
@@ -30,7 +29,7 @@ module Linecook
     def recipe
       @recipe ||= Recipe.new(
         :script_name => script_name, 
-        :manifest => cookbook.manifest, 
+        :manifest => manifest, 
         :attrs => attrs
       )
     end
