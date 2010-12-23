@@ -1,3 +1,11 @@
+== 0.3.0 2010/12/23
+
+* improved configuration of cookbook manifest
+* helpers are now created in lib directory, by 
+  default under the Linebook namespace
+* added bundler support to template
+* renamed LineCook as Linecook
+
 == 0.2.1 2010/12/21
 
 * added missing line_cook executable

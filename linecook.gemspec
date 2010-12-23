@@ -42,12 +42,14 @@ Gem::Specification.new do |s|
     lib/linecook/test_helper.rb
     lib/linecook/utils.rb
     lib/linecook/version.rb
-    templates/Cookbook
+    templates/Gemfile
     templates/README
     templates/Rakefile
     templates/_gitignore
     templates/attributes/project_name.rb
+    templates/cookbook
     templates/helpers/project_name/echo.erb
+    templates/project_name.gemspec
     templates/recipes/project_name.rb
     templates/scripts/project_name.yml
     templates/vbox/setup/virtual_box
