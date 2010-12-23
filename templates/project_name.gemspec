@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name        = "project_name"
+  s.name        = "<%= project_name %>"
   s.version     = "0.0.1"
   s.platform    = Gem::Platform::RUBY
   s.authors     = "TODO: Write your name"
