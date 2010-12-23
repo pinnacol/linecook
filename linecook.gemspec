@@ -20,7 +20,6 @@ Gem::Specification.new do |s|
   
   # add dependencies
   s.add_dependency('rake', '~> 0.8.7')
-  s.add_dependency('linebook', '~> 0.1.0')
   s.add_development_dependency('bundler', '~> 1.0.7')
   
   # list extra rdoc files here.
