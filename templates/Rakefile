@@ -87,32 +87,16 @@ cookbook = Linecook::Cookbook.init(pwd)
 # Linecook Helper Tasks
 # (compiles helper modules from helper definitions, as needed)
 
-helpers = {}
-helpers_dir = File.join(pwd, 'helpers')
-
-Dir.glob("#{helpers_dir}/**/*").each do |source|
-  next if File.directory?(source)
-  (helpers[File.dirname(source)] ||= []) << source
-end
-
-helpers.each_pair do |dir, sources|
-  const_path = File.join('linebook', dir[(helpers_dir.length+1)..-1])
-  target = File.join(pwd, 'lib', "#{const_path}.rb")
+cookbook.each_helper do |source, target, const_name|
+  sources = Dir.glob File.join(source, '*')
   
-  file target => sources + [dir] do
-    puts "  helper: #{const_path}" unless Rake.application.options.silent
-    
-    const_name = Linecook::Utils.camelize(const_path)
+  file target => sources + [source] do
+    puts "  helper: #{const_name}" unless Rake.application.options.silent
     helper = Linecook::Helper.new(const_name, sources)
     helper.build_to(target, :force => true)
   end
   
-  namespace :helpers do
-    desc "generate helper: #{const_path}"
-    task const_path => target
-  end
-  
-  task :helpers => "helpers:#{const_path}"
+  task :helpers => target
 end
 
 desc "generate helpers"
@@ -122,14 +106,9 @@ task :helpers
 # Linecook Script Tasks
 # (compiles scripts, as directed)
 
-scripts_dir = File.join(pwd, 'scripts')
-Dir.glob("#{scripts_dir}/*.yml").each do |source|
-  name = File.basename(source).chomp File.extname(source)
-  target = File.join(scripts_dir, name)
-  
-  task target => :helpers do
+cookbook.each_script do |source, target, name|
+  task target => [:helpers, source] do
     puts "  script: #{name}" unless Rake.application.options.silent
-    
     script = Linecook::Script.new(cookbook.manifest, YAML.load_file(source))
     script.build_to(target, :force => true)
   end

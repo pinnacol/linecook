@@ -1,4 +1,6 @@
 require 'linebook'
+require 'linecook/helper'
+require 'linecook/utils'
 
 module Linecook
   class Cookbook
@@ -10,7 +12,7 @@ module Linecook
       def init(dir)
         path   = config_file(dir)
         config = path ? YAML.load_file(path) : nil
-        new(config || {})
+        new(dir, config || {})
       end
       
       def gems
@@ -25,6 +27,7 @@ module Linecook
     end
     
     include Linebook
+    include Utils
     
     PATTERNS = [
       ['', File.join('attributes', '**', '*.rb')],
@@ -34,9 +37,11 @@ module Linecook
       ['', File.join('templates',  '**', '*.erb')]
     ]
     
+    attr_reader :dir
     attr_reader :config
     
-    def initialize(config)
+    def initialize(dir = Dir.pwd, config = {})
+      @dir = dir
       @config = {
          'patterns' => PATTERNS,
          'paths' => ['.'],
@@ -46,6 +51,29 @@ module Linecook
     
     def manifest
       @manifest ||= __manifest(config)
+    end
+    
+    def each_helper
+      helpers_dir = File.expand_path('helpers', dir)
+      lib_dir = File.expand_path('lib', dir)
+      
+      Dir.glob("#{helpers_dir}/**/*/").each do |source|
+        const_path = File.join('linebook', source[(helpers_dir.length+1)..-2])
+        target     = File.join(lib_dir, "#{const_path}.rb")
+        
+        yield source.chomp('/'), target, camelize(const_path)
+      end
+    end
+    
+    def each_script
+      scripts_dir = File.expand_path('scripts', dir)
+      
+      Dir.glob("#{scripts_dir}/*.yml").each do |source|
+        name   = File.basename(source).chomp('.yml')
+        target = File.join(scripts_dir, name)
+        
+        yield source, target, name
+      end
     end
   end
 end

@@ -7,7 +7,8 @@ module Linecook
     
     def initialize(const_name, sources)
       @const_name = const_name
-      @sources = sources
+      @sources    = sources
+      
       @section_paths, @definition_paths = sources.partition {|path| File.basename(path)[0] == ?_ }
       super()
     end
