@@ -1,0 +1,3 @@
+UNIX Utilities: http://en.wikipedia.org/wiki/List_of_Unix_utilities
+POSIX Syntax: http://pubs.opengroup.org/onlinepubs/009695399/idx/sbi.html
+POSIX Utilities: http://pubs.opengroup.org/onlinepubs/009695399/utilities/xcu_chap02.html
