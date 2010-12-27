@@ -1,7 +1,10 @@
-# Include any helpers/attributes used by this recipe
+#############################################################################
 helpers 'linecook/shell'
 helpers 'linebook/<%= project_name %>'
 attributes '<%= project_name %>'
+#############################################################################
+
+shebang '/bin/bash'
 
 # Write to the script target using 'script'
 script.puts '# An example script.'

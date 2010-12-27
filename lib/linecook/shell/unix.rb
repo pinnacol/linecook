@@ -9,7 +9,7 @@ include Posix
 # :stopdoc:
 CAT_LINE = __LINE__ + 2
 CAT = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
-cat <%= sources.collect {|source| "'#{source}'" }.join(' ') %>
+cat<% sources.each do |source| %> "<%= source %>"<% end %>
 END_OF_TEMPLATE
 # :startdoc:
 

@@ -1,0 +1,32 @@
+== Notes
+Use dev/null on set such that no options will not dump ENV into stdout.
+
+(shell_path=DEFAULT_SHELL_PATH)
+  @shell_path = shell_path
+--
+#! <%= shell_path %>
+
+<%= break_line %>
+<%= check_status_function %>
+
+export -f check_status
+export LINECOOK_DIR=$(dirname $0)
+export LINECOOK_OPTIONS=
+
+while getopts bhvx opt
+do
+  case $opt in
+  v)  LINECOOK_OPTIONS="$LINECOOK_OPTIONS -v";;
+  x)  LINECOOK_OPTIONS="$LINECOOK_OPTIONS -x";;
+  h)  printf "Usage: %s: [-hvx]\n" $0
+      printf "  -h    prints this help\n"
+      printf "  -v    verbose (set -v)\n"
+      printf "  -x    xtrace  (set -x)\n"
+      exit 0;;
+  ?)  printf "Usage: %s: [-hvx]\n" $0
+      exit 2;;
+  esac
+done
+
+set $LINECOOK_OPTIONS > /dev/null
+<%= break_line " #{script_name} " %>

@@ -6,6 +6,27 @@ module Shell
 module Utils
 require 'linecook/shell/posix'
 include Posix
+
+DEFAULT_SHELL_PATH = '/bin/bash'
+SCRIPT_PATH = '$LINECOOK_DIR/%s'
+
+attr_writer :shell_path
+
+def shell_path
+  @shell_path ||= DEFAULT_SHELL_PATH
+end
+
+def script_path(source_path, basename=nil)
+  SCRIPT_PATH % super(source_path, basename=nil)
+end
+
+def close
+  unless closed?
+    break_line " (#{script_name}) "
+  end
+  
+  super
+end
 # :stopdoc:
 BREAK_LINE_LINE = __LINE__ + 2
 BREAK_LINE = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
@@ -56,6 +77,51 @@ end
 
 def _check_status_function(*args, &block) # :nodoc:
   capture { check_status_function(*args, &block) }
+end
+
+# :stopdoc:
+SHEBANG_LINE = __LINE__ + 2
+SHEBANG = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
+#! <%= shell_path %>
+
+<%= break_line %>
+<%= check_status_function %>
+
+export -f check_status
+export LINECOOK_DIR=$(dirname $0)
+export LINECOOK_OPTIONS=
+
+while getopts bhvx opt
+do
+  case $opt in
+  v)  LINECOOK_OPTIONS="$LINECOOK_OPTIONS -v";;
+  x)  LINECOOK_OPTIONS="$LINECOOK_OPTIONS -x";;
+  h)  printf "Usage: %s: [-hvx]\n" $0
+      printf "  -h    prints this help\n"
+      printf "  -v    verbose (set -v)\n"
+      printf "  -x    xtrace  (set -x)\n"
+      exit 0;;
+  ?)  printf "Usage: %s: [-hvx]\n" $0
+      exit 2;;
+  esac
+done
+
+set $LINECOOK_OPTIONS > /dev/null
+<%= break_line " #{script_name} " %>
+
+END_OF_TEMPLATE
+# :startdoc:
+
+# == Notes
+# Use dev/null on set such that no options will not dump ENV into stdout.
+# 
+def shebang(shell_path=DEFAULT_SHELL_PATH)  @shell_path = shell_path
+  eval(SHEBANG, binding, __FILE__, SHEBANG_LINE)
+  nil
+end
+
+def _shebang(*args, &block) # :nodoc:
+  capture { shebang(*args, &block) }
 end
 end
 end
