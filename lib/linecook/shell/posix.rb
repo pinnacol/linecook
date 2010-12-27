@@ -5,6 +5,23 @@ module Linecook
 module Shell
 module Posix
 # :stopdoc:
+COMMENT_LINE = __LINE__ + 2
+COMMENT = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
+# <%= str %>
+END_OF_TEMPLATE
+# :startdoc:
+
+# Writes a comment
+def comment(str)
+  eval(COMMENT, binding, __FILE__, COMMENT_LINE)
+  nil
+end
+
+def _comment(*args, &block) # :nodoc:
+  capture { comment(*args, &block) }
+end
+
+# :stopdoc:
 HEREDOC_LINE = __LINE__ + 2
 HEREDOC = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
 <% end_of_file = "END_OF_FILE_#{(@heredoc_count ||= 0) += 1}" %> << <%= end_of_file %>

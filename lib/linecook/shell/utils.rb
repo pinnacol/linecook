@@ -4,6 +4,8 @@ require 'erb'
 module Linecook
 module Shell
 module Utils
+require 'linecook/shell/posix'
+include Posix
 # :stopdoc:
 BREAK_LINE_LINE = __LINE__ + 2
 BREAK_LINE = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src

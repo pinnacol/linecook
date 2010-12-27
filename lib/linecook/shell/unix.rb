@@ -4,6 +4,8 @@ require 'erb'
 module Linecook
 module Shell
 module Unix
+require 'linecook/shell/posix'
+include Posix
 # :stopdoc:
 CHMOD_LINE = __LINE__ + 2
 CHMOD = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
