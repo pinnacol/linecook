@@ -1,3 +1,9 @@
+== 0.4.0 2010/12/27
+
+* enhanced linecook executable with commands
+* added sketches of default shell helpers
+* bug fixes
+
 == 0.3.1 2010/12/23
 
 * prevent capture_path from stripping content

@@ -21,7 +21,7 @@ for generating scripts and running them on a test vm.
 
 Generate a cookbook.
 
-  % linecook example
+  % linecook init example
   % cd example
 
 Make some helpers.
