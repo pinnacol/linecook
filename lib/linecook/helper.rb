@@ -63,7 +63,7 @@ module Linecook
       head, body = '', head if body.nil?
       signature, desc = parse_head(head)
       
-      [desc, signature, body]
+      [desc.join("\n"), signature.join("\n"), body]
     end
     
     def parse_head(head)

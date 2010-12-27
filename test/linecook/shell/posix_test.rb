@@ -20,4 +20,22 @@ class PosixTest < Test::Unit::TestCase
       comment 'string'
     end
   end
+  
+  #
+  # heredoc test
+  #
+  
+  def test_heredoc_creates_a_heredoc_statement_using_the_block
+    assert_recipe %q{
+      << EOF
+      line one  
+        line two
+      EOF
+    } do
+      heredoc 'EOF' do
+        script.puts 'line one  '
+        script.puts '  line two'
+      end
+    end
+  end
 end

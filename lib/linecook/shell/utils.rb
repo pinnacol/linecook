@@ -113,9 +113,11 @@ END_OF_TEMPLATE
 # :startdoc:
 
 # == Notes
+
 # Use dev/null on set such that no options will not dump ENV into stdout.
-# 
-def shebang(shell_path=DEFAULT_SHELL_PATH)  @shell_path = shell_path
+
+def shebang(shell_path=DEFAULT_SHELL_PATH)
+  @shell_path = shell_path
   eval(SHEBANG, binding, __FILE__, SHEBANG_LINE)
   nil
 end

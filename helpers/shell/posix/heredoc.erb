@@ -1,6 +1,10 @@
 Makes a heredoc statement surrounding the contents of the block.
+(delimiter=nil)
+  delimiter ||= begin
+    @heredoc_count ||= 0
+    "HEREDOC_#{@heredoc_count += 1}"
+  end
 --
-<% end_of_file = "END_OF_FILE_#{(@heredoc_count ||= 0) += 1}" %> << <%= end_of_file %>
+<< <%= delimiter %>
 <% yield %>
-
-<%= end_of_file %>
+<%= delimiter %>

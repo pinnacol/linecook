@@ -24,15 +24,19 @@ end
 # :stopdoc:
 HEREDOC_LINE = __LINE__ + 2
 HEREDOC = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
-<% end_of_file = "END_OF_FILE_#{(@heredoc_count ||= 0) += 1}" %> << <%= end_of_file %>
+<< <%= delimiter %>
 <% yield %>
+<%= delimiter %>
 
-<%= end_of_file %>
 END_OF_TEMPLATE
 # :startdoc:
 
 # Makes a heredoc statement surrounding the contents of the block.
-def heredoc
+def heredoc(delimiter=nil)
+  delimiter ||= begin
+    @heredoc_count ||= 0
+    "HEREDOC_#{@heredoc_count += 1}"
+  end
   eval(HEREDOC, binding, __FILE__, HEREDOC_LINE)
   nil
 end
@@ -98,6 +102,7 @@ END_OF_TEMPLATE
 # :startdoc:
 
 # Sets bash options for the duration of a block.  If no block is given,
+
 # set simply sets the options as specified.
 def set(options)
   eval(SET, binding, __FILE__, SET_LINE)
