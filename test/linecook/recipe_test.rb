@@ -29,7 +29,7 @@ class RecipeTest < Test::Unit::TestCase
   end
 
   def test_default_manifest_returns_nil_for_missing_files
-    assert_equal false, File.exists?(path('missing/file'))
+    assert_equal false, File.exists?(test_path('missing/file'))
     assert_equal nil, recipe.manifest['missing/file']
   end
 
@@ -85,7 +85,7 @@ class RecipeTest < Test::Unit::TestCase
       end
     }}
     
-    lib_path = path('lib')
+    lib_path = test_path('lib')
     begin
       $:.unshift lib_path
       
