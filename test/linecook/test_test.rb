@@ -1,8 +1,8 @@
-require File.expand_path('../../../test_helper', __FILE__)
-require 'linecook/test/helper'
+require File.expand_path('../../test_helper', __FILE__)
+require 'linecook/test'
 
 class HelperTest < Test::Unit::TestCase
-  include Linecook::Test::Helper
+  include Linecook::Test
   
   #
   # set_env test

@@ -3,7 +3,7 @@ require 'linecook/recipe'
 require 'stringio'
 
 class RecipeTest < Test::Unit::TestCase
-  include Linecook::Test::Helper
+  include Linecook::Test
   Recipe = Linecook::Recipe
   
   attr_reader :recipe

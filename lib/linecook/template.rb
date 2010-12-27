@@ -100,7 +100,9 @@ module Linecook
       erbout.closed?
     end
     
-    def result
+    def result(&block)
+      instance_eval(&block) if block
+      
       erbout.flush
       erbout.rewind
       erbout.read
