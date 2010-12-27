@@ -24,17 +24,26 @@ end
 # :stopdoc:
 HEREDOC_LINE = __LINE__ + 2
 HEREDOC = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
-<< <%= delimiter %>
+<<<%= options[:indent] ? '-' : ' '%><%= options[:quote] ? "\"#{delimiter}\"" : delimiter %>
 <% yield %>
 <%= delimiter %>
 
 END_OF_TEMPLATE
 # :startdoc:
 
-# Makes a heredoc statement surrounding the contents of the block.
-def heredoc(delimiter=nil)
-  delimiter ||= begin
-    @heredoc_count ||= 0
+# Makes a heredoc statement surrounding the contents of the block.  Options:
+
+# 
+
+#   delimiter   the delimiter used, by default HEREDOC_n where n increments
+
+#   indent      add '-' before the delimiter
+
+#   quote       quotes the delimiter
+
+def heredoc(options={})
+  delimiter = options[:delimiter] || begin
+    @heredoc_count ||= -1
     "HEREDOC_#{@heredoc_count += 1}"
   end
   eval(HEREDOC, binding, __FILE__, HEREDOC_LINE)

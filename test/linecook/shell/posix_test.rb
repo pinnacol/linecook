@@ -32,10 +32,40 @@ class PosixTest < Test::Unit::TestCase
         line two
       EOF
     } do
-      heredoc 'EOF' do
+      heredoc :delimiter => 'EOF' do
         script.puts 'line one  '
         script.puts '  line two'
       end
+    end
+  end
+  
+  def test_heredoc_increments_default_delimiter
+    assert_recipe %q{
+      << HEREDOC_0
+      HEREDOC_0
+      << HEREDOC_1
+      HEREDOC_1
+    } do
+      heredoc {}
+      heredoc {}
+    end
+  end
+  
+  def test_heredoc_quotes_if_specified
+    assert_recipe %q{
+      << "HEREDOC_0"
+      HEREDOC_0
+    } do
+      heredoc(:quote => true) {}
+    end
+  end
+  
+  def test_heredoc_flags_indent_if_specified
+    assert_recipe %q{
+      <<-HEREDOC_0
+      HEREDOC_0
+    } do
+      heredoc(:indent => true) {}
     end
   end
 end
