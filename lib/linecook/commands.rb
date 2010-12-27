@@ -1,0 +1,1 @@
+require 'linecook/commands/init'

@@ -10,7 +10,7 @@ class LinecookTest < Test::Unit::TestCase
     example_dir = path('example')
     assert_equal false, File.exists?(example_dir)
     
-    output = `ruby #{LINE_COOK} example`
+    output = `ruby #{LINE_COOK} init example`
     assert_equal 0, $?.exitstatus, output
     
     Dir.chdir(example_dir) do
@@ -24,40 +24,40 @@ class LinecookTest < Test::Unit::TestCase
     end
   end
   
-  def test_linecook_does_not_overwrite_existing_directory
+  def test_init_does_not_overwrite_existing_directory
     example_dir = path('example')
     FileUtils.mkdir_p(example_dir)
     
-    output = `ruby #{LINE_COOK} example`
+    output = `ruby #{LINE_COOK} init example`
     assert_equal 1, $?.exitstatus
     
     assert_equal [], Dir.glob("#{example_dir}/*")
   end
   
-  def test_linecook_regenerates_cookbook_on_force
+  def test_init_regenerates_cookbook_on_force
     example_readme = path('example/README')
     
-    output = `ruby #{LINE_COOK} example`
+    output = `ruby #{LINE_COOK} init example`
     assert_equal 0, $?.exitstatus, output
     
     assert_equal true, File.exists?(example_readme)
     FileUtils.rm(example_readme)
     
-    output = `ruby #{LINE_COOK} example --force`
+    output = `ruby #{LINE_COOK} init example --force`
     assert_equal 0, $?.exitstatus, output
     
     assert_equal true, File.exists?(example_readme)
   end
   
-  def test_linecook_does_not_allow_force_for_parent_dirs_or_current_dir
+  def test_init_does_not_allow_force_for_parent_dirs_or_current_dir
     example_dir = path('parent/current')
     FileUtils.mkdir_p(example_dir)
     
     Dir.chdir(example_dir)
-    output = `ruby #{LINE_COOK} . --force`
+    output = `ruby #{LINE_COOK} init . --force`
     assert_equal 1, $?.exitstatus
     
-    output = `ruby #{LINE_COOK} .. --force`
+    output = `ruby #{LINE_COOK} init .. --force`
     assert_equal 1, $?.exitstatus
     
     assert_equal [example_dir], Dir.glob(path('parent/*'))

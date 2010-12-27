@@ -1,84 +1,37 @@
 #!/usr/bin/env ruby
 
-require 'optparse'
-require 'fileutils'
-require 'erb'
-require 'ostruct'
 require 'linecook/version'
+require 'linecook/commands'
+include Linecook::Commands
 
-#
-# Parse options
-#
-
-ARGV << '-h' if ARGV.empty?
-
-options = {:force => false}
-OptionParser.new do |opts|
-  opts.banner = "Usage: linecook [options] PATH"
-  
-  opts.on("-f", "--force", "Force creation of project") do
-    options[:force] = true
-  end
-  
-  opts.on("-h", "--help", "Print this help") do |v|
-    puts opts
+cmd_class = 
+  case cmd = ARGV.shift
+  when 'init'
+    Init
+  when nil, '-h', '--help'
+    puts "Usage: linecook [options] COMMAND"
     exit
-  end
-end.parse!
-
-project_dir  = File.expand_path(ARGV[0])
-project_name = File.basename(project_dir)
-
-#
-# Setup the project dir
-#
-
-if File.exists?(project_dir)
-  unless options[:force]
-    puts "already exists: #{project_dir}"
+  else
+    puts "unknown command: #{cmd.inspect}"
     exit 1
   end
-  
-  current_dir = File.expand_path('.')
-  unless project_dir.index(current_dir) == 0 && project_dir.length > current_dir.length
-    puts "cannot force creation of current or parent directory (safety issue)"
-    exit 1
-  end
-  
-  FileUtils.rm_rf(project_dir)
+
+parser = ConfigParser.new
+parser.add cmd_class.configurations
+parser.on '-h', '--help', 'print this help' do
+  puts "usage: linecook [options] init #{cmd_class.desc.value}"
+  puts
+  puts cmd_class.desc.wrap
+  puts
+  puts "options:"
+  puts parser.to_s
+  exit
 end
+parser.parse ARGV
 
-#
-# Copy template files into place
-#
-
-context = OpenStruct.new(:project_name => project_name).send(:binding)
-
-source_dir = File.expand_path('../../templates', __FILE__)
-Dir.glob("#{source_dir}/**/*").each do |source|
-  if File.directory?(source)
-    next
-  end
-  
-  path = source[(source_dir.length + 1)..-1]
-  path = path.sub('project_name', project_name).sub(/^_/, '.')
-  target = File.join(project_dir, path)
-  
-  puts "      create  #{path}"
-  
-  target_dir = File.dirname(target)
-  unless File.exists?(target_dir)
-    FileUtils.mkdir_p(target_dir)
-  end
-  
-  File.open(target, 'w') do |io|
-    erb = ERB.new(File.read(source), nil, '<>')
-    erb.filename = source
-    io << erb.result(context)
-  end
+begin
+  cmd_class.new(parser.config).call ARGV
+rescue CommandError
+  puts $!.message
+  exit 1
 end
-
-# Link up scripts into vbox
-source = File.join(project_dir, 'scripts')
-target = File.join(project_dir, 'vbox/scripts')
-FileUtils.ln_s source, target
