@@ -7,6 +7,22 @@ module Unix
 require 'linecook/shell/posix'
 include Posix
 # :stopdoc:
+CAT_LINE = __LINE__ + 2
+CAT = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
+cat <%= sources.collect {|source| "'#{source}'" }.join(' ') %>
+END_OF_TEMPLATE
+# :startdoc:
+
+def cat(*sources)
+  eval(CAT, binding, __FILE__, CAT_LINE)
+  nil
+end
+
+def _cat(*args, &block) # :nodoc:
+  capture { cat(*args, &block) }
+end
+
+# :stopdoc:
 CHMOD_LINE = __LINE__ + 2
 CHMOD = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
 <% if mode %>

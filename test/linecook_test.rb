@@ -20,10 +20,26 @@ class LinecookTest < Test::Unit::TestCase
       output = `BUNDLE_GEMFILE='#{gemfile_path}' rake --silent scripts`
       assert_equal 0, $?.exitstatus, output
       assert_equal true, File.exists?('scripts/example/example')
-      
-      output = `sh scripts/example/example`
+    end
+    
+    Dir.chdir(File.join(example_dir, "scripts/example")) do
+      output = `sh example`
       assert_equal 0, $?.exitstatus, output
-      assert_equal "a b c\n7 8 9\n", output
+      assert_equal %q{
+a b c
+7 8 9
+Contents of an example file.
+Contents of a template file.
+Contents of a template file.
+Contents of a template file.
+Contents of a template file.
+Contents of a template file.
+Contents of a template file.
+Contents of a template file.
+Contents of a template file.
+Contents of a template file.
+Contents of a template file.
+}.lstrip, output
     end
   end
   
