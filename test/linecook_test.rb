@@ -21,23 +21,22 @@ class LinecookTest < Test::Unit::TestCase
       assert_equal 0, $?.exitstatus, output
       assert_equal true, File.exists?('scripts/example/example')
       
-      output = `sh scripts/example/example`
-      assert_equal 0, $?.exitstatus, output
-      assert_equal %q{
-a b c
-7 8 9
-Contents of an example file.
-Contents of a template file.
-Contents of a template file.
-Contents of a template file.
-Contents of a template file.
-Contents of a template file.
-Contents of a template file.
-Contents of a template file.
-Contents of a template file.
-Contents of a template file.
-Contents of a template file.
-}.lstrip, output
+      sh_test %q{
+        % sh scripts/example/example
+        a b c
+        7 8 9
+        Contents of an example file.
+        Contents of a template file.
+        Contents of a template file.
+        Contents of a template file.
+        Contents of a template file.
+        Contents of a template file.
+        Contents of a template file.
+        Contents of a template file.
+        Contents of a template file.
+        Contents of a template file.
+        Contents of a template file.
+      }
     end
   end
   
