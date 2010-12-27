@@ -8,6 +8,8 @@ cmd_class =
   case cmd = ARGV.shift
   when 'init'
     Init
+  when 'helpers'
+    Helpers
   when nil, '-h', '--help'
     puts "Usage: linecook [options] COMMAND"
     exit
