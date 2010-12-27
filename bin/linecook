@@ -10,6 +10,8 @@ cmd_class =
     Init
   when 'helpers'
     Helpers
+  when 'scripts'
+    Scripts
   when nil, '-h', '--help'
     puts "Usage: linecook [options] COMMAND"
     exit

@@ -1,16 +1,15 @@
 require 'linecook/commands/command'
 require 'linecook/cookbook'
-require 'linecook/helper'
+require 'linecook/script'
 
 module Linecook
   module Commands
     
     # ::desc patterns...
     #
-    # Generates helpers that match the input patterns (by default all,
-    # helpers).
+    # Generates scripts that match the input patterns (by default all).
     #
-    class Helpers < Command
+    class Scripts < Command
       config :cookbook_dir, '.'     # the cookbook directory
       
       def call(argv)
@@ -18,12 +17,12 @@ module Linecook
         filters  = argv.collect {|arg| Regexp.new("^#{arg}$", Regexp::IGNORECASE) }
         cookbook = Linecook::Cookbook.init(cookbook_dir)
         
-        cookbook.each_helper do |sources, target, const_name|
-          next unless filters.any? {|filter| filter =~ const_name }
-          log :create, const_name
+        cookbook.each_script do |source, target, name|
+          next unless filters.any? {|filter| filter =~ name }
+          log :create, name
           
-          helper = Linecook::Helper.new(const_name, sources)
-          helper.build_to(target, :force => true)
+          script = Linecook::Script.new(cookbook.manifest, YAML.load_file(source))
+          script.build_to(target, :force => true)
         end
       end
     end
