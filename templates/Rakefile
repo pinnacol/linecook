@@ -76,51 +76,17 @@ namespace :vbox do
 end
 
 #
-# Linecook Setup
+# Linecook Tasks
 #
-
-require 'linecook'
-pwd = File.expand_path('..', __FILE__)
-cookbook = Linecook::Cookbook.init(pwd)
-
-#
-# Linecook Helper Tasks
-# (compiles helper modules from helper definitions, as needed)
-
-cookbook.each_helper do |sources, target, const_name|
-  file target => sources do
-    puts "  helper: #{const_name}" unless Rake.application.options.silent
-    helper = Linecook::Helper.new(const_name, sources)
-    helper.build_to(target, :force => true)
-  end
-  
-  task :helpers => target
-end
 
 desc "generate helpers"
-task :helpers => :bundle
-
-#
-# Linecook Script Tasks
-# (compiles scripts, as directed)
-
-cookbook.each_script do |source, target, name|
-  task target => [:helpers, source] do
-    puts "  script: #{name}" unless Rake.application.options.silent
-    script = Linecook::Script.new(cookbook.manifest, YAML.load_file(source))
-    script.build_to(target, :force => true)
-  end
-  
-  namespace :scripts do
-    desc "generate script: #{name}"
-    task name => target
-  end
-  
-  task :scripts => "scripts:#{name}"
+task :helpers => :bundle do
+  sh 'bundle exec linecook helpers'
 end
 
-desc "generate scripts"
-task :scripts
+task :scripts => [:helpers, :bundle] do
+  sh 'bundle exec linecook scripts'
+end
 
 #
 # Dependency tasks
@@ -189,7 +155,6 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
   files = spec.files.select {|file| file =~ /^lib.*\.rb$/}
   rdoc.rdoc_files.include( files )
 end
-
 
 #
 # Test tasks

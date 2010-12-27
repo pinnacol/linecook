@@ -3,8 +3,8 @@ require File.expand_path('../test_helper', __FILE__)
 class LinecookTest < Test::Unit::TestCase
   include Linecook::TestHelper
   
-  LINE_COOK = File.expand_path('../../bin/linecook', __FILE__)
-  LINE_COOK_LIB = File.expand_path('../../lib', __FILE__)
+  LINE_COOK_DIR = File.expand_path('../..', __FILE__)
+  LINE_COOK = File.join(LINE_COOK_DIR, 'bin/linecook')
   
   def test_linecook_generates_a_cookbook_directory
     example_dir = path('example')
@@ -14,7 +14,10 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal 0, $?.exitstatus, output
     
     Dir.chdir(example_dir) do
-      output = `rake -I#{LINE_COOK_LIB} -Ilib --silent scripts`
+      File.open('Gemfile', 'a') {|io| io << "\npath '#{LINE_COOK_DIR}', :glob => 'linecook.gemspec'\n" }
+      gemfile_path = File.expand_path('Gemfile')
+      
+      output = `BUNDLE_GEMFILE='#{gemfile_path}' rake --silent scripts`
       assert_equal 0, $?.exitstatus, output
       assert_equal true, File.exists?('scripts/example/example')
       
