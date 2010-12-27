@@ -4,7 +4,7 @@ module Linecook
   class Cookbook
     class << self
       def config_file(dir)
-        Dir.glob(File.join(dir, '{Cc}ookbook')).first
+        Dir.glob(File.join(dir, '{C,c}ookbook')).first
       end
         
       def init(dir)
