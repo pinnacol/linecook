@@ -11,7 +11,7 @@ def shell_path
 end
 
 def script_path(source_path, basename=nil)
-  SCRIPT_PATH % super(source_path, basename=nil)
+  SCRIPT_PATH % super(source_path, basename)
 end
 
 def close
