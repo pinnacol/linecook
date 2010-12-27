@@ -94,6 +94,15 @@ task :bundle => :submodules do
 end
 
 #
+# Linecook tasks
+#
+
+desc "generate helpers"
+task :helpers => :bundle do
+  sh 'bundle exec linecook helpers'
+end
+
+#
 # Test tasks
 #
 
