@@ -48,6 +48,7 @@ module Linecook
     
     module ModuleMethods
       module_function
+      
       def included(base)
         base.extend base.kind_of?(Class) ? ClassMethods : ModuleMethods
         super
@@ -71,14 +72,10 @@ module Linecook
     end
     
     def teardown
-      Dir.chdir(previous_dir)
+      Dir.chdir previous_dir
       
       unless ENV["KEEP_OUTPUTS"] == "true"
-        begin
-          cleanup(self.class.test_dir)
-        rescue
-          raise("cleanup failure: #{$!.message}")
-        end
+        cleanup self.class.test_dir
       end
       
       super
@@ -87,23 +84,18 @@ module Linecook
     def cleanup(dir)
       FileUtils.rm_r(dir) if File.exists?(dir)
     end
-  
+    
     def path(relative_path)
       File.expand_path(relative_path, current_dir)
     end
-  
-    def mkdir(relative_path)
-      target = path(relative_path)
-      FileUtils.mkdir_p(target) unless File.exists?(target)
-      target
-    end
-
+    
     def file(relative_path, &block)
       target = path(relative_path)
+      target_dir = File.dirname(target)
       
-      mkdir File.dirname(target)
+      FileUtils.mkdir_p(target_dir) unless File.exists?(target_dir)
       block ? File.open(target, 'w', &block) : FileUtils.touch(target)
-
+      
       target
     end
     
