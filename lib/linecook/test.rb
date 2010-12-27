@@ -35,50 +35,73 @@ module Linecook
   #   end
   #
   module Test
-    attr_reader :previous_dir
+    module ClassMethods
+      attr_accessor :test_dir
+      
+      # Infers the test directory from the calling file.
+      #   'some_class_test.rb' => 'some_class_test'
+      def self.extended(base)
+        calling_file = caller[2].gsub(/:\d+(:in .*)?$/, "")
+        base.test_dir = calling_file.chomp(File.extname(calling_file))
+      end
+    end
+    
+    module ModuleMethods
+      module_function
+      def included(base)
+        base.extend base.kind_of?(Class) ? ClassMethods : ModuleMethods
+        super
+      end
+    end
+    
+    extend ModuleMethods
+    
     attr_reader :current_dir
-
+    attr_reader :previous_dir
+    
     def setup
       super
-      @_tempfiles = []
-      @previous_dir = Dir.pwd
-    
-      # assign current dir from pwd to resolve the full path having followed
-      # symlinks -- important because on OSX /var is a symlink to /private/var
-    
-      Dir.chdir(dir)
-      @current_dir = Dir.pwd
       @notify_method_name = true
+      @previous_dir = Dir.pwd
+      @current_dir  = File.expand_path(method_name, self.class.test_dir)
+      
+      cleanup current_dir
+      FileUtils.mkdir_p current_dir
+      Dir.chdir current_dir
     end
     
     def teardown
       Dir.chdir(previous_dir)
-      @_tempfiles = nil
+      
+      unless ENV["KEEP_OUTPUTS"] == "true"
+        begin
+          cleanup(self.class.test_dir)
+        rescue
+          raise("cleanup failure: #{$!.message}")
+        end
+      end
+      
       super
+    end
+    
+    def cleanup(dir)
+      FileUtils.rm_r(dir) if File.exists?(dir)
     end
   
     def path(relative_path)
-      path = File.expand_path(relative_path, current_dir)
+      File.expand_path(relative_path, current_dir)
     end
   
-    def dir(base=method_name)
-      tempfile = Tempfile.new(base)
-      tempfile.close
-      @_tempfiles << tempfile
-    
-      dir = tempfile.path
-    
-      FileUtils.rm(dir)
-      FileUtils.mkdir_p(dir)
-    
-      dir
+    def mkdir(relative_path)
+      target = path(relative_path)
+      FileUtils.mkdir_p(target) unless File.exists?(target)
+      target
     end
 
-    def file(relative_path, dir=current_dir, &block)
-      target = File.join(dir, relative_path)
-      target_dir = File.dirname(target)
-    
-      FileUtils.mkdir_p(target_dir) unless File.exists?(target_dir)
+    def file(relative_path, &block)
+      target = path(relative_path)
+      
+      mkdir File.dirname(target)
       block ? File.open(target, 'w', &block) : FileUtils.touch(target)
 
       target
