@@ -48,7 +48,7 @@ module Linecook
         # assign current dir from pwd to resolve the full path having followed
         # symlinks -- important because on OSX /var is a symlink to /private/var
       
-        Dir.chdir(test_dir)
+        Dir.chdir(dir)
         @current_dir = Dir.pwd
         @notify_method_name = true
       end
@@ -59,11 +59,11 @@ module Linecook
         super
       end
     
-      def test_path(relative_path)
+      def path(relative_path)
         path = File.expand_path(relative_path, current_dir)
       end
     
-      def test_dir(base=method_name)
+      def dir(base=method_name)
         tempfile = Tempfile.new(base)
         tempfile.close
         @_tempfiles << tempfile
@@ -76,7 +76,7 @@ module Linecook
         dir
       end
 
-      def test_file(relative_path, dir=current_dir, &block)
+      def file(relative_path, dir=current_dir, &block)
         target = File.join(dir, relative_path)
         target_dir = File.dirname(target)
       

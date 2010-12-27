@@ -24,12 +24,12 @@ class RecipeTest < Test::Unit::TestCase
   end
 
   def test_default_manifest_returns_full_path_for_existing_files
-    path = test_file('existing/file')
+    path = file('existing/file')
     assert_equal path, recipe.manifest['existing/file']
   end
 
   def test_default_manifest_returns_nil_for_missing_files
-    assert_equal false, File.exists?(test_path('missing/file'))
+    assert_equal false, File.exists?(path('missing/file'))
     assert_equal nil, recipe.manifest['missing/file']
   end
 
@@ -65,7 +65,7 @@ class RecipeTest < Test::Unit::TestCase
   #
 
   def test_attributes_evals_the_attributes_file_in_the_context_of_attributes
-    test_file('attributes/example.rb') {|io| io << "attrs[:key] = 'value'"}
+    file('attributes/example.rb') {|io| io << "attrs[:key] = 'value'"}
     assert_equal nil, recipe.attrs[:key]
 
     recipe.attributes('example')
@@ -77,7 +77,7 @@ class RecipeTest < Test::Unit::TestCase
   #
   
   def test_helpers_requires_helper_and_extends_self_with_helper_module
-    test_file('lib/recipe_test/require_helper.rb') {|io| io << %q{
+    file('lib/recipe_test/require_helper.rb') {|io| io << %q{
       class RecipeTest
         module RequireHelper
           def help; end
@@ -85,7 +85,7 @@ class RecipeTest < Test::Unit::TestCase
       end
     }}
     
-    lib_path = test_path('lib')
+    lib_path = path('lib')
     begin
       $:.unshift lib_path
       
@@ -102,8 +102,8 @@ class RecipeTest < Test::Unit::TestCase
   # file_path test
   #
 
-  def test_file_path_registers_file_from_files_dir
-    test_file('files/example.txt') {|io| io << 'content'}
+  def file_path_registers_file_from_files_dir
+    file('files/example.txt') {|io| io << 'content'}
 
     path = recipe.file_path('example.txt')
     assert_equal 'script.d/0-example.txt', path
@@ -129,7 +129,7 @@ class RecipeTest < Test::Unit::TestCase
   #
 
   def test_recipe_path_evals_the_recipe_file_in_the_context_of_a_new_recipe
-    test_file('recipes/example.rb') {|io| io << "script.puts 'content'"}
+    file('recipes/example.rb') {|io| io << "script.puts 'content'"}
     assert_equal 'example', recipe.recipe_path('example')
 
     recipe.close
@@ -146,7 +146,7 @@ class RecipeTest < Test::Unit::TestCase
   #
 
   def test_template_path_templates_and_registers_file_from_templates_dir
-    test_file('templates/example.txt.erb') do |io|
+    file('templates/example.txt.erb') do |io|
       io << "got <%= key %>"
     end
 
