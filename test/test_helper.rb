@@ -3,4 +3,4 @@ require 'bundler'
 Bundler.setup
 
 require 'test/unit'
-require 'linecook/test_helper'
+require 'linecook/test/helper'

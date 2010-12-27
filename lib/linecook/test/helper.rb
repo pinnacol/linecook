@@ -4,7 +4,7 @@ module Linecook
     # A module for testing shell scripts.
     #
     #   require 'test/unit'
-    #   class ShellTestSample < Test::Unit::TestCase
+    #   class LinecookTestSample < Test::Unit::TestCase
     #     include Linecook::Test::Utils
     #
     #     # these are the default sh_test options used 
@@ -36,13 +36,56 @@ module Linecook
     #     end
     #   end
     #
-    module Utils
-      
-      # Sets up the ShellTest module.  Be sure to call super if you override
-      # setup in an including module.
+    module Helper
+      attr_reader :previous_dir
+      attr_reader :current_dir
+
       def setup
         super
+        @_tempfiles = []
+        @previous_dir = Dir.pwd
+      
+        # assign current dir from pwd to resolve the full path having followed
+        # symlinks -- important because on OSX /var is a symlink to /private/var
+      
+        Dir.chdir(tempdir)
+        @current_dir = Dir.pwd
         @notify_method_name = true
+      end
+      
+      def teardown
+        Dir.chdir(previous_dir)
+        @_tempfiles = nil
+        super
+      end
+    
+      def path(relative_path)
+        path = File.expand_path(relative_path, current_dir)
+      end
+    
+      def tempdir(base=method_name)
+        tempfile = Tempfile.new(base)
+        tempfile.close
+        @_tempfiles << tempfile
+      
+        dir = tempfile.path
+      
+        FileUtils.rm(dir)
+        FileUtils.mkdir_p(dir)
+      
+        dir
+      end
+
+      def prepare(relative_path, dir=current_dir, &block)
+        block ||= lambda {}
+      
+        target = File.join(dir, relative_path)
+        target_dir = File.dirname(target)
+      
+        FileUtils.mkdir_p(target_dir) unless File.exists?(target_dir)
+        File.open(target, 'w', &block)
+
+        target
       end
       
       # Sets the specified ENV variables and returns the *current* env.
@@ -83,25 +126,22 @@ module Linecook
           end
         end
       end
-      
-      # Returns true if the ENV variable 'VERBOSE' is true.  When verbose,
-      # ShellTest prints the expanded commands of sh_test to $stdout.
+
+      # Returns true if the ENV variable 'VERBOSE' is true.
       def verbose?
         verbose = ENV['VERBOSE']
         verbose && verbose =~ /^true$/i ? true : false
       end
-      
-      # Returns true if the ENV variable 'QUIET' is true or nil.  When quiet,
-      # ShellTest does not print any extra information to $stdout.
-      #
-      # If 'VERBOSE' and 'QUIET' are both set, verbose wins.
+
+      # Returns true if the ENV variable 'QUIET' is true or nil. If 'VERBOSE'
+      # and 'QUIET' are both set, verbose wins.
       def quiet?
         return false if verbose?
-        
+
         quiet = ENV['QUIET']
         quiet.nil? || quiet =~ /^true$/i ? true : false
       end
-      
+
       # Executes the command using IO.popen and returns the stdout content.
       #
       # ==== Note
@@ -116,12 +156,12 @@ module Linecook
           puts
           puts method_name 
         end
-        
+
         original_cmd = cmd
         if cmd_pattern = options[:cmd_pattern]
           cmd = cmd.sub(cmd_pattern, options[:cmd].to_s)
         end
-        
+
         start = Time.now
         result = with_env(options[:env], options[:replace_env]) do
           IO.popen(cmd) do |io|
@@ -129,13 +169,13 @@ module Linecook
             io.read
           end
         end
-        
+
         finish = Time.now
         elapsed = "%.3f" % [finish-start]
         puts "  (#{elapsed}s) #{verbose? ? cmd : original_cmd}" unless quiet?
         result
       end
-      
+
       # Peforms a shell test.  Shell tests execute the command and yield the
       # $stdout result to the block for validation.  The command is executed
       # through sh, ie using IO.popen.
@@ -207,24 +247,24 @@ module Linecook
       # 
       def sh_test(cmd, options={})
         options = sh_test_options.merge(options)
-        
+
         # strip indentiation if possible
         if cmd =~ /\A(?:\s*?\n)?( *)(.*?\n)(.*)\z/m
           indent, cmd, expected = $1, $2, $3
           cmd.strip!
-          
+
           if indent.length > 0 && options[:indents]
             expected.gsub!(/^ {0,#{indent.length}}/, '')
           end
         end
-        
+
         result = sh(cmd, options)
-        
+
         assert_equal(expected, result, cmd) if expected
         yield(result) if block_given?
         result
       end
-      
+
       # Similar to sh_test, but matches the output against each of the
       # regexps.  A hash of sh options can be provided as the last argument;
       # it will be merged with the default sh_test_options.
@@ -242,7 +282,7 @@ module Linecook
         yield(result) if block_given?
         result
       end
-      
+
       # Returns a hash of default sh_test options.
       def sh_test_options
         {
@@ -253,7 +293,7 @@ module Linecook
           :replace_env => false
         }
       end
-      
+
       # Asserts whether or not the a and b strings are equal, with a more
       # readable output than assert_equal for large strings (especially large
       # strings with significant whitespace).
@@ -281,7 +321,7 @@ module Linecook
         a = strip_indent(a)
         assert_output_equal!(a, b, msg)
       end
-      
+
       # Same as assert_output_equal but without indentation stripping.
       def assert_output_equal!(a, b, msg=nil)
         if a == b
@@ -297,7 +337,7 @@ module Linecook
 }
         end
       end
-      
+
       # Asserts whether or not b is like a (which should be a Regexp), and
       # provides a more readable output in the case of a failure as compared
       # with assert_match.
@@ -326,11 +366,11 @@ module Linecook
         a = strip_indent(a) if a.kind_of?(String)
         assert_alike!(a, b, msg)
       end
-      
+
       # Same as assert_alike but without indentation stripping.
       def assert_alike!(a, b, msg=nil)
         a = RegexpEscape.new(a) if a.kind_of?(String)
-        
+
         if b =~ a
           assert true
         else
@@ -344,22 +384,22 @@ module Linecook
 }
         end
       end
-      
+
       private
-      
+
       # helper for stripping indentation off a string
       def strip_indent(str) # :nodoc:
         if str =~ /\A\s*?\n( *)(.*)\z/m
           indent, str = $1, $2, $3
-        
+
           if indent.length > 0
             str.gsub!(/^ {0,#{indent.length}}/, '')
           end
         end
-        
+
         str
       end
-      
+
       # helper for formatting escaping whitespace into readable text
       def whitespace_escape(str) # :nodoc:
         str.to_s.gsub(/\s/) do |match|
