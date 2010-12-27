@@ -1,5 +1,4 @@
-require 'linecook/commands/command_error'
-require 'configurable'
+require 'linecook/commands/command'
 require 'fileutils'
 require 'erb'
 require 'ostruct'
@@ -12,23 +11,11 @@ module Linecook
     # Initializes a linecook scaffold in the specified directory.  This
     # initializer is currently very basic; it is not a true generator.
     # 
-    class Init
-      extend Lazydoc::Attributes
-      include Configurable
-      
-      lazy_attr :desc
+    class Init < Command
       config :force, false, :short => :f, &c.flag   # force creation
-      
-      def initialize(config)
-        initialize_config(config)
-      end
       
       def source_dir
         @source_dir ||= File.expand_path('../../../../templates', __FILE__)
-      end
-      
-      def log(action, msg)
-        puts("      %s  %s" % [action, msg])
       end
       
       def call(argv)
