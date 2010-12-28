@@ -8,12 +8,19 @@ require 'linecook/shell/posix'
 include Posix
 
 DEFAULT_SHELL_PATH = '/bin/bash'
+DEFAULT_ENV_PATH   = '/usr/bin/env'
+
 TARGET_PATH = '$LINECOOK_DIR/%s'
 
 attr_writer :shell_path
+attr_writer :env_path
 
 def shell_path
   @shell_path ||= DEFAULT_SHELL_PATH
+end
+
+def env_path
+  @env_path ||= DEFAULT_ENV_PATH
 end
 
 def target_path(source_path, basename=nil)
@@ -116,8 +123,9 @@ END_OF_TEMPLATE
 
 # Use dev/null on set such that no options will not dump ENV into stdout.
 
-def shebang(shell_path=DEFAULT_SHELL_PATH)
+def shebang(shell_path=DEFAULT_SHELL_PATH, env_path=DEFAULT_ENV_PATH)
   @shell_path = shell_path
+  @env_path  = env_path
   eval(SHEBANG, binding, __FILE__, SHEBANG_LINE)
   nil
 end

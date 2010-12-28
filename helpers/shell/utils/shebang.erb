@@ -1,8 +1,9 @@
 == Notes
 Use dev/null on set such that no options will not dump ENV into stdout.
 
-(shell_path=DEFAULT_SHELL_PATH)
+(shell_path=DEFAULT_SHELL_PATH, env_path=DEFAULT_ENV_PATH)
   @shell_path = shell_path
+  @env_path  = env_path
 --
 #! <%= shell_path %>
 
