@@ -12,7 +12,7 @@ module Linecook
     end
     
     def recipe
-      @recipe ||= Linecook::Recipe.new(:manifest => cookbook.manifest)
+      @recipe ||= Linecook::Recipe.new('recipe', cookbook.manifest)
     end
     
     def assert_recipe(expected, &block)

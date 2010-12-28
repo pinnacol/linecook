@@ -16,10 +16,12 @@ class LinecookTest < Test::Unit::TestCase
     
     Dir.chdir(example_dir) do
       File.open('Gemfile', 'w') do |io|
-        io.puts "path '#{LINE_COOK_DIR}', :glob => 'linecook.gemspec'"
-        io.puts "gem 'linecook'"
-        io.puts "path '.', :glob => '*.gemspec'"
-        io.puts "gem 'example'"
+        io.puts %Q{
+          path '#{LINE_COOK_DIR}', :glob => 'linecook.gemspec'
+          gem 'linecook'
+          path '.', :glob => '*.gemspec'
+          gem 'example'
+        }
       end
       
       gemfile_path = File.expand_path('Gemfile')

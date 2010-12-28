@@ -16,17 +16,18 @@ module Linecook
       end
       
       def build(manifest, attrs)
-        attrs['linecook'] ||= {
-          'target_name' => 'linecook',
-          'recipe_name' => 'linecook'
-        }
-        target_name = attrs['linecook']['target_name'] or raise "no target name specified"
-        recipe_name = attrs['linecook']['recipe_name'] or raise "no recipe name specified"
+        registry = {}
         
-        recipe = new(:target_name => target_name, :manifest => manifest, :attrs => attrs)
-        recipe.evaluate(recipe_name)
-        recipe.close
-        recipe.registry
+        config  = attrs['linecook'] ||= {}
+        recipes = config['recipes'] ||= []
+        
+        recipes.each do |recipe_name|
+          recipe = new(recipe_name, manifest, attrs, registry)
+          recipe.evaluate(recipe_name)
+          recipe.close
+        end
+        
+        registry
       end
     end
     
@@ -44,14 +45,13 @@ module Linecook
     # the recipe.  See target_path.
     attr_reader :registry
     
-    def initialize(options={})
-      @target_name = options[:target_name] || 'script'
-      @manifest    = options[:manifest] || self.class.path_hash
-      @registry    = options[:registry] || {}
+    def initialize(target_name, manifest=nil, user_attrs={}, registry={}) 
+      @target_name = target_name
+      @manifest    = manifest || Recipe.path_hash
+      @attributes  = Attributes.new(user_attrs)
+      @registry    = registry
       
       @erbout      = Tempfile.new(target_name)
-      @attributes  = Attributes.new(options[:attrs] || {})
-      
       @registry[erbout.path] = target_name
       @cache = [erbout]
     end
@@ -87,7 +87,6 @@ module Linecook
       tempfile << content if content
       yield(tempfile) if block_given?
       
-      tempfile.close
       @cache << tempfile
       target_path(tempfile.path, name)
     end
@@ -139,12 +138,7 @@ module Linecook
         end
       end
       
-      recipe = Recipe.new(
-        :target_name => recipe_name, 
-        :manifest => manifest,
-        :registry => registry,
-        :attrs    => @attributes.user_attrs
-      )
+      recipe = Recipe.new(recipe_name, manifest, @attributes.user_attrs, registry)
       recipe.evaluate(recipe_name)
       @cache << recipe
       
