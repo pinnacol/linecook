@@ -20,9 +20,13 @@ module Linecook
           recipe.close
         end
         
-        results = []
+        unless block_given?
+          return registry.invert
+        end
+        
+        results = {}
         registry.each_pair do |source, target|
-          results = yield(source, target)
+          results[target] = yield(source, target)
         end
         results
       end

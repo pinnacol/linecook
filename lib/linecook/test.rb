@@ -7,24 +7,26 @@ module Linecook
   module Test
     include FileTest
     
+    attr_writer :cookbook
+    attr_writer :recipe
+    
     def cookbook
-      @cookbook ||= Linecook::Cookbook.init(user_dir)
+      @cookbook ||= Cookbook.init(user_dir)
     end
     
     def recipe
-      @recipe ||= Linecook::Recipe.new('recipe', cookbook.manifest)
+      @recipe ||= Recipe.new('recipe', cookbook.manifest)
     end
     
-    def assert_recipe(expected, &block)
-      recipe.instance_eval(&block)
-      assert_output_equal expected, recipe.result
-    end
-
-    def assert_content(expected, name)
-      recipe.close
-
-      source_path = recipe.registry.invert[name]
-      assert_output_equal expected, File.read(source_path)
+    def script(name, attrs={})
+      config = attrs['linecook'] ||= {}
+      config['recipes'] ||= [name]
+      
+      Recipe.build(cookbook.manifest, attrs) do |source, target|
+        target = prepare File.join('scripts', name, target)
+        FileUtils.cp(source, target)
+        target
+      end
     end
     
     # Asserts whether or not the a and b strings are equal, with a more
@@ -118,6 +120,18 @@ module Linecook
       end
     end
 
+    def assert_recipe(expected, &block)
+      recipe.instance_eval(&block)
+      assert_output_equal expected, recipe.result
+    end
+
+    def assert_content(expected, name)
+      recipe.close
+
+      source_path = recipe.registry.invert[name]
+      assert_output_equal expected, File.read(source_path)
+    end
+    
     private
 
     # helper for stripping indentation off a string
