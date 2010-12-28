@@ -44,13 +44,15 @@ Gem::Specification.new do |s|
     lib/linecook/cookbook.rb
     lib/linecook/helper.rb
     lib/linecook/recipe.rb
-    lib/linecook/script.rb
     lib/linecook/shell.rb
     lib/linecook/shell/posix.rb
+    lib/linecook/shell/test.rb
     lib/linecook/shell/unix.rb
     lib/linecook/shell/utils.rb
     lib/linecook/template.rb
-    lib/linecook/test_helper.rb
+    lib/linecook/test.rb
+    lib/linecook/test/file_test.rb
+    lib/linecook/test/regexp_escape.rb
     lib/linecook/utils.rb
     lib/linecook/version.rb
     templates/Gemfile
