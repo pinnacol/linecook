@@ -15,12 +15,18 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal 0, $?.exitstatus, output
     
     Dir.chdir(example_dir) do
-      File.open('Gemfile', 'a') {|io| io << "\npath '#{LINE_COOK_DIR}', :glob => 'linecook.gemspec'\n" }
+      File.open('Gemfile', 'w') do |io|
+        io.puts "path '#{LINE_COOK_DIR}', :glob => 'linecook.gemspec'"
+        io.puts "gem 'linecook'"
+        io.puts "path '.', :glob => '*.gemspec'"
+        io.puts "gem 'example'"
+      end
+      
       gemfile_path = File.expand_path('Gemfile')
       
       output = `BUNDLE_GEMFILE='#{gemfile_path}' rake --silent scripts`
       assert_equal 0, $?.exitstatus, output
-      assert_equal true, File.exists?('scripts/example/example')
+      assert_equal true, File.exists?('scripts/example/example'), output
       
       sh_test %q{
         % sh scripts/example/example

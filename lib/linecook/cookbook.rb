@@ -37,8 +37,8 @@ module Linecook
     attr_reader :dir
     attr_reader :config
     
-    def initialize(dir = Dir.pwd, config = {})
-      @dir = dir
+    def initialize(dir='.', config = {})
+      @dir = File.expand_path(dir)
       @config = {
          'manifest'  => {},
          'paths'     => ['.'],

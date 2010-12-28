@@ -31,9 +31,9 @@ module Linecook
           
           log :create, name
           
-          registry = Linecook::Recipe.build(manifest, YAML.load_file(source))
+          registry = Linecook::Recipe.build(cookbook.manifest, YAML.load_file(source))
           registry.each_pair do |source, target|
-            target = File.join(dir, target)
+            target = File.join(cookbook.dir, target)
 
             target_dir = File.dirname(target)
             FileUtils.mkdir_p(target_dir) unless File.exists?(target_dir)

@@ -7,7 +7,7 @@ attributes '<%= project_name %>'
 shebang '/bin/bash'
 
 # Write to the script target using 'script'
-script.puts '# An example script.'
+target.puts '# An example script.'
 
 # Helpers are now available, as are attributes.
 echo *attrs['<%= project_name %>']['letters']

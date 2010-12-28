@@ -12,6 +12,7 @@ module Linecook
     #
     class Helpers < Command
       config :cookbook_dir, '.'     # the cookbook directory
+      config :force, false, :short => :f, &c.flag   # force creation
       
       def call(argv)
         argv << '.*' if argv.empty?
@@ -21,12 +22,8 @@ module Linecook
         cookbook.each_helper do |sources, target, const_name|
           next unless filters.any? {|filter| filter =~ const_name }
           
-          if File.exists?(target)
-            if force
-              FileUtils.rm(target)
-            else
-              raise "already exists: #{target}"
-            end
+          if File.exists?(target) && !force
+            raise "already exists: #{target}"
           end
           
           log :create, const_name

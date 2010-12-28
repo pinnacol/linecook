@@ -99,7 +99,7 @@ end
 
 desc "generate helpers"
 task :helpers => :bundle do
-  sh 'bundle exec linecook helpers'
+  sh 'bundle exec linecook helpers --force'
 end
 
 #

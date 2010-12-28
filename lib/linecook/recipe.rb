@@ -20,8 +20,8 @@ module Linecook
           'target_name' => 'linecook',
           'recipe_name' => 'linecook'
         }
-        target_name = config['target_name'] or raise "no target name specified"
-        recipe_name = config['recipe_name'] or raise "no recipe name specified"
+        target_name = attrs['linecook']['target_name'] or raise "no target name specified"
+        recipe_name = attrs['linecook']['recipe_name'] or raise "no recipe name specified"
         
         recipe = new(:target_name => target_name, :manifest => manifest, :attrs => attrs)
         recipe.evaluate(recipe_name)

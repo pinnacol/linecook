@@ -22,7 +22,7 @@ end
 
 def close
   unless closed?
-    break_line " (#{script_name}) "
+    break_line " (#{target_name}) "
   end
   
   super
@@ -107,7 +107,7 @@ do
 done
 
 set $LINECOOK_OPTIONS > /dev/null
-<%= break_line " #{script_name} " %>
+<%= break_line " #{target_name} " %>
 
 END_OF_TEMPLATE
 # :startdoc:

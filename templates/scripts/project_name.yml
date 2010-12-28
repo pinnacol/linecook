@@ -1,7 +1,7 @@
 # Configure Linecook
 linecook:
   recipe_name: <%= project_name %>
-  script_name: <%= project_name %>
+  target_name: <%= project_name %>
 
 # Set attributes for the script
 <%= project_name %>:

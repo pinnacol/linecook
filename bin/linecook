@@ -31,7 +31,7 @@ parser.on '-h', '--help', 'print this help' do
   puts parser.to_s
   exit
 end
-parser.parse ARGV
+parser.parse! ARGV
 
 begin
   cmd_class.new(parser.config).call ARGV

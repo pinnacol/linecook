@@ -16,7 +16,7 @@ end
 
 def close
   unless closed?
-    break_line " (#{script_name}) "
+    break_line " (#{target_name}) "
   end
   
   super
