@@ -1,13 +1,13 @@
 module Linecook
   module Test
     module ClassMethods
-      attr_accessor :test_dir
+      attr_accessor :class_dir
       
       # Infers the test directory from the calling file.
       #   'some_class_test.rb' => 'some_class_test'
       def self.extended(base)
         calling_file = caller[2].gsub(/:\d+(:in .*)?$/, "")
-        base.test_dir = calling_file.chomp(File.extname(calling_file))
+        base.class_dir = calling_file.chomp(File.extname(calling_file))
       end
     end
     
@@ -22,24 +22,24 @@ module Linecook
     
     extend ModuleMethods
     
-    attr_reader :current_dir
-    attr_reader :previous_dir
+    attr_reader :user_dir
+    attr_reader :method_dir
     
     def setup
       super
-      @previous_dir = Dir.pwd
-      @current_dir  = File.expand_path(method_name, self.class.test_dir)
+      @user_dir   = Dir.pwd
+      @method_dir = File.expand_path(method_name, self.class.class_dir)
       
-      cleanup current_dir
-      FileUtils.mkdir_p current_dir
-      Dir.chdir current_dir
+      cleanup method_dir
+      FileUtils.mkdir_p method_dir
+      Dir.chdir method_dir
     end
     
     def teardown
-      Dir.chdir previous_dir
+      Dir.chdir user_dir
       
       unless ENV["KEEP_OUTPUTS"] == "true"
-        cleanup self.class.test_dir
+        cleanup self.class.class_dir
       end
       
       super
@@ -50,7 +50,7 @@ module Linecook
     end
     
     def path(relative_path)
-      File.expand_path(relative_path, current_dir)
+      File.expand_path(relative_path, method_dir)
     end
     
     def file(relative_path, &block)

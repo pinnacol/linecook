@@ -35,7 +35,7 @@ class CookbookTest < Test::Unit::TestCase
   
   def manifest(config)
     config['gems'] ||= []  # prevent assesment of default gems
-    cookbook = Cookbook.new(current_dir, config)
+    cookbook = Cookbook.new(method_dir, config)
     cookbook.extend MockSpecs
     cookbook.manifest
   end
