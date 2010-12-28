@@ -124,6 +124,11 @@ module Linecook
       recipe.instance_eval(&block)
       assert_output_equal expected, recipe.result
     end
+    
+    def assert_recipe_match(expected, &block)
+      recipe.instance_eval(&block)
+      assert_alike expected, recipe.result
+    end
 
     def assert_content(expected, name)
       recipe.close
