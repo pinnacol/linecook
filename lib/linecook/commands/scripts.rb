@@ -1,6 +1,7 @@
 require 'linecook/commands/command'
 require 'linecook/cookbook'
-require 'linecook/script'
+require 'linecook/recipe'
+require 'yaml'
 
 module Linecook
   module Commands
@@ -19,10 +20,26 @@ module Linecook
         
         cookbook.each_script do |source, target, name|
           next unless filters.any? {|filter| filter =~ name }
+          
+          if File.exists?(target)
+            if force
+              FileUtils.rm(target)
+            else
+              raise "already exists: #{target}"
+            end
+          end
+          
           log :create, name
           
-          script = Linecook::Script.new(cookbook.manifest, YAML.load_file(source))
-          script.build_to(target, :force => true)
+          registry = Linecook::Recipe.build(manifest, YAML.load_file(source))
+          registry.each_pair do |source, target|
+            target = File.join(dir, target)
+
+            target_dir = File.dirname(target)
+            FileUtils.mkdir_p(target_dir) unless File.exists?(target_dir)
+
+            FileUtils.cp(source, target)
+          end
         end
       end
     end

@@ -14,6 +14,20 @@ module Linecook
           hash[relative_path] = File.exists?(path) ? path : nil
         end
       end
+      
+      def build(manifest, attrs)
+        attrs['linecook'] ||= {
+          'script_name' => 'linecook',
+          'recipe_name' => 'linecook'
+        }
+        script_name = config['script_name'] or raise "no script name specified"
+        recipe_name = config['recipe_name'] or raise "no recipe name specified"
+        
+        recipe = new(:script_name => script_name, :manifest => manifest, :attrs => attrs)
+        recipe.evaluate(recipe_name)
+        recipe.close
+        recipe.registry
+      end
     end
     
     include Utils
