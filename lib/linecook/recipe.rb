@@ -14,7 +14,7 @@ module Linecook
         
         recipes.each do |recipe_name|
           recipe = new(recipe_name, manifest, attrs, registry)
-          recipe.evaluate(recipe_name)
+          recipe.evaluate
           recipe.close
         end
         
@@ -106,7 +106,7 @@ module Linecook
       extend const
     end
     
-    def evaluate(recipe_name=nil)
+    def evaluate(recipe_name=target_name)
       path = source_path('recipes', "#{recipe_name}.rb")
       instance_eval(File.read(path), path)
       self
@@ -130,9 +130,10 @@ module Linecook
       end
       
       recipe = Recipe.new(recipe_name, manifest, @attributes.user_attrs, registry)
-      recipe.evaluate(recipe_name)
-      @cache << recipe
+      recipe.evaluate
+      recipe.close
       
+      @cache << recipe
       target_path recipe.target.path
     end
     
@@ -144,7 +145,6 @@ module Linecook
     def close
       unless closed?
         @cache.each {|obj| obj.close }
-        @registry.freeze
       end
       
       self
