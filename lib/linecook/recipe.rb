@@ -6,15 +6,6 @@ require 'tempfile'
 module Linecook
   class Recipe < Template
     class << self
-      def path_hash(dir='.')
-        dir = File.expand_path(dir)
-        
-        Hash.new do |hash, relative_path|
-          path = File.join(dir, relative_path.to_s)
-          hash[relative_path] = File.exists?(path) ? path : nil
-        end
-      end
-      
       def build(manifest, attrs)
         registry = {}
         
@@ -45,9 +36,9 @@ module Linecook
     # the recipe.  See target_path.
     attr_reader :registry
     
-    def initialize(target_name, manifest=nil, user_attrs={}, registry={}) 
+    def initialize(target_name, manifest, user_attrs={}, registry={}) 
       @target_name = target_name
-      @manifest    = manifest || Recipe.path_hash
+      @manifest    = manifest
       @attributes  = Attributes.new(user_attrs)
       @registry    = registry
       
@@ -132,9 +123,9 @@ module Linecook
     end
     
     def recipe_path(recipe_name)
-      registry.each_pair do |key, value|
-        if value == recipe_name
-          return target_path(key)
+      registry.each_pair do |source, target|
+        if target == recipe_name
+          return target_path(source)
         end
       end
       

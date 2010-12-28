@@ -11,7 +11,14 @@ class RecipeTest < Test::Unit::TestCase
   
   def setup
     super
-    @recipe = Recipe.new 'recipe'
+    @recipe = Recipe.new 'recipe', manifest
+  end
+  
+  def manifest
+    Hash.new do |hash, relative_path|
+      path = File.join(method_dir, relative_path.to_s)
+      hash[relative_path] = File.exists?(path) ? path : nil
+    end
   end
   
   #
