@@ -17,13 +17,13 @@ module Linecook
       
       def build(manifest, attrs)
         attrs['linecook'] ||= {
-          'script_name' => 'linecook',
+          'target_name' => 'linecook',
           'recipe_name' => 'linecook'
         }
-        script_name = config['script_name'] or raise "no script name specified"
+        target_name = config['target_name'] or raise "no target name specified"
         recipe_name = config['recipe_name'] or raise "no recipe name specified"
         
-        recipe = new(:script_name => script_name, :manifest => manifest, :attrs => attrs)
+        recipe = new(:target_name => target_name, :manifest => manifest, :attrs => attrs)
         recipe.evaluate(recipe_name)
         recipe.close
         recipe.registry
@@ -32,27 +32,27 @@ module Linecook
     
     include Utils
     
-    alias script erbout
+    alias target erbout
     
-    attr_reader :script_name
+    attr_reader :target_name
     
     # A hash of (relative_path, source_path) pairs defining files available
     # for use by the recipe.  See source_path.
     attr_reader :manifest
     
     # A hash of (source_path, relative_path) pairs defining files created by
-    # the recipe.  See script_path.
+    # the recipe.  See target_path.
     attr_reader :registry
     
     def initialize(options={})
-      @script_name = options[:script_name] || 'script'
+      @target_name = options[:target_name] || 'script'
       @manifest    = options[:manifest] || self.class.path_hash
       @registry    = options[:registry] || {}
       
-      @erbout      = Tempfile.new(script_name)
+      @erbout      = Tempfile.new(target_name)
       @attributes  = Attributes.new(options[:attrs] || {})
       
-      @registry[erbout.path] = script_name
+      @registry[erbout.path] = target_name
       @cache = [erbout]
     end
     
@@ -61,11 +61,11 @@ module Linecook
       manifest[path] or raise "no such file: #{path.inspect}"
     end
     
-    def script_path(source_path, basename=nil)
+    def target_path(source_path, basename=nil)
       source_path = File.expand_path(source_path)
       
       registry[source_path] ||= begin
-        dirname = "#{script_name}.d"
+        dirname = "#{target_name}.d"
         basename ||= File.basename(source_path)
 
         # generate a unique prefix for the basename
@@ -82,14 +82,14 @@ module Linecook
       registry[source_path]
     end
     
-    def script_file(name, content=nil)
+    def target_file(name, content=nil)
       tempfile = Tempfile.new(name)
       tempfile << content if content
       yield(tempfile) if block_given?
       
       tempfile.close
       @cache << tempfile
-      script_path(tempfile.path, name)
+      target_path(tempfile.path, name)
     end
     
     def attrs
@@ -124,23 +124,23 @@ module Linecook
     
     def file_path(file_name)
       path = source_path('files', file_name)
-      script_path path
+      target_path path
     end
     
     def capture_path(name, &block)
       content = capture(false) { instance_eval(&block) }
-      script_file(name, content)
+      target_file(name, content)
     end
     
     def recipe_path(recipe_name)
       registry.each_pair do |key, value|
         if value == recipe_name
-          return script_path(key)
+          return target_path(key)
         end
       end
       
       recipe = Recipe.new(
-        :script_name => recipe_name, 
+        :target_name => recipe_name, 
         :manifest => manifest,
         :registry => registry,
         :attrs    => @attributes.user_attrs
@@ -148,12 +148,12 @@ module Linecook
       recipe.evaluate(recipe_name)
       @cache << recipe
       
-      script_path recipe.script.path
+      target_path recipe.target.path
     end
     
     def template_path(template_name, locals={})
       path = source_path('templates', "#{template_name}.erb")
-      script_file template_name, Template.build(File.read(path), locals, path)
+      target_file template_name, Template.build(File.read(path), locals, path)
     end
     
     def close

@@ -41,20 +41,20 @@ class RecipeTest < Test::Unit::TestCase
   end
   
   #
-  # script test
+  # target test
   #
   
-  def test_script_allows_direct_writing
-    recipe.script.puts 'str'
+  def test_target_allows_direct_writing
+    recipe.target.puts 'str'
     assert_equal "str\n", recipe.result
   end
   
   #
-  # script_file test
+  # target_file test
   #
   
-  def test_script_file_creates_and_registers_file_with_the_specified_name_and_content
-    path = recipe.script_file('name.txt', 'content')
+  def test_target_file_creates_and_registers_file_with_the_specified_name_and_content
+    path = recipe.target_file('name.txt', 'content')
     assert_equal 'script.d/0-name.txt', path
     
     source_path = recipe.registry.invert[path]
@@ -118,7 +118,7 @@ class RecipeTest < Test::Unit::TestCase
   #
   
   def test_capture_path_creates_file_from_block
-    path = recipe.capture_path('example.sh') { script << 'content'}
+    path = recipe.capture_path('example.sh') { target << 'content'}
     assert_equal 'script.d/0-example.sh', path
     
     source_path = recipe.registry.invert[path]
@@ -130,7 +130,7 @@ class RecipeTest < Test::Unit::TestCase
   #
 
   def test_recipe_path_evals_the_recipe_file_in_the_context_of_a_new_recipe
-    file('recipes/example.rb') {|io| io << "script.puts 'content'"}
+    file('recipes/example.rb') {|io| io << "target.puts 'content'"}
     assert_equal 'example', recipe.recipe_path('example')
 
     recipe.close

@@ -33,8 +33,8 @@ class PosixTest < Test::Unit::TestCase
       EOF
     } do
       heredoc :delimiter => 'EOF' do
-        script.puts 'line one  '
-        script.puts '  line two'
+        target.puts 'line one  '
+        target.puts '  line two'
       end
     end
   end
