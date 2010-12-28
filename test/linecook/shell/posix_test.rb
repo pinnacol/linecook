@@ -1,12 +1,12 @@
 require File.expand_path('../../../test_helper', __FILE__)
 require 'linecook/shell/posix'
-require 'linecook/test/helper'
+require 'linecook/test'
 
 class PosixTest < Test::Unit::TestCase
-  include Linecook::Test::Helper
+  include Linecook::Test
   
-  def helper
-    Linecook::Shell::Posix
+  def recipe
+    super.extend Linecook::Shell::Posix
   end
   
   #

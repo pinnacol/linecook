@@ -1,8 +1,8 @@
 require File.expand_path('../../../test_helper', __FILE__)
-require 'linecook/test/shell'
+require 'linecook/shell/test'
 
-class ShellTest < Test::Unit::TestCase
-  include Linecook::Test::Shell
+class ShellTestTest < Test::Unit::TestCase
+  include Linecook::Shell::Test
   
   #
   # set_env test

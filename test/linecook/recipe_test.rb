@@ -1,5 +1,6 @@
 require File.expand_path('../../test_helper', __FILE__)
 require 'linecook/recipe'
+require 'linecook/test'
 require 'stringio'
 
 class RecipeTest < Test::Unit::TestCase

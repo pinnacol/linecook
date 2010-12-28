@@ -1,8 +1,7 @@
 require 'linecook/test'
 
 module Linecook
-  module Test
-    
+  module Shell
     # A module for testing shell scripts.
     #
     #   class ShellTestSample < Test::Unit::TestCase
@@ -37,14 +36,14 @@ module Linecook
     #     end
     #   end
     #
-    module Shell
+    module Test
       include Linecook::Test
-      
+    
       def setup
         super
         @notify_method_name = true
       end
-      
+    
       # Sets the specified ENV variables and returns the *current* env.
       # If replace is true, current ENV variables are replaced; otherwise
       # the new env variables are simply added to the existing set.

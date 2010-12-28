@@ -1,66 +1,30 @@
+require 'linecook/cookbook'
+require 'linecook/recipe'
+require 'linecook/test/file_test'
+require 'linecook/test/regexp_escape'
+
 module Linecook
   module Test
-    module ClassMethods
-      attr_accessor :class_dir
-      
-      # Infers the test directory from the calling file.
-      #   'some_class_test.rb' => 'some_class_test'
-      def self.extended(base)
-        calling_file = caller[2].gsub(/:\d+(:in .*)?$/, "")
-        base.class_dir = calling_file.chomp(File.extname(calling_file))
-      end
+    include FileTest
+    
+    def cookbook
+      @cookbook ||= Linecook::Cookbook.init(user_dir)
     end
     
-    module ModuleMethods
-      module_function
-      
-      def included(base)
-        base.extend base.kind_of?(Class) ? ClassMethods : ModuleMethods
-        super
-      end
+    def recipe
+      @recipe ||= Linecook::Recipe.new(:manifest => cookbook.manifest)
     end
     
-    extend ModuleMethods
-    
-    attr_reader :user_dir
-    attr_reader :method_dir
-    
-    def setup
-      super
-      @user_dir   = Dir.pwd
-      @method_dir = File.expand_path(method_name, self.class.class_dir)
-      
-      cleanup method_dir
-      FileUtils.mkdir_p method_dir
-      Dir.chdir method_dir
+    def assert_recipe(expected, &block)
+      recipe.instance_eval(&block)
+      assert_output_equal expected, recipe.result
     end
-    
-    def teardown
-      Dir.chdir user_dir
-      
-      unless ENV["KEEP_OUTPUTS"] == "true"
-        cleanup self.class.class_dir
-      end
-      
-      super
-    end
-    
-    def cleanup(dir)
-      FileUtils.rm_r(dir) if File.exists?(dir)
-    end
-    
-    def path(relative_path)
-      File.expand_path(relative_path, method_dir)
-    end
-    
-    def file(relative_path, &block)
-      target = path(relative_path)
-      target_dir = File.dirname(target)
-      
-      FileUtils.mkdir_p(target_dir) unless File.exists?(target_dir)
-      block ? File.open(target, 'w', &block) : FileUtils.touch(target)
-      
-      target
+
+    def assert_content(expected, name)
+      recipe.close
+
+      source_path = recipe.registry.invert[name]
+      assert_output_equal expected, File.read(source_path)
     end
     
     # Asserts whether or not the a and b strings are equal, with a more

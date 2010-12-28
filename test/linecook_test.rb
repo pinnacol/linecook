@@ -1,8 +1,8 @@
 require File.expand_path('../test_helper', __FILE__)
-require 'linecook/test/shell'
+require 'linecook/shell/test'
 
 class LinecookTest < Test::Unit::TestCase
-  include Linecook::Test::Shell
+  include Linecook::Shell::Test
   
   LINE_COOK_DIR = File.expand_path('../..', __FILE__)
   LINE_COOK = File.join(LINE_COOK_DIR, 'bin/linecook')

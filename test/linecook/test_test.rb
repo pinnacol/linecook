@@ -1,7 +1,7 @@
 require File.expand_path('../../test_helper', __FILE__)
 require 'linecook/test'
 
-class HelperTest < Test::Unit::TestCase
+class LinecookTestTest < Test::Unit::TestCase
   include Linecook::Test
   
   #
