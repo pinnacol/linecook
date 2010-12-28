@@ -12,13 +12,19 @@ module Linecook
         config  = attrs['linecook'] ||= {}
         recipes = config['recipes'] ||= []
         
-        recipes.each do |recipe_name|
+        # keep references to the recipes to prevent gc of tempfiles until this
+        # method returns (just in case... this is a little paranoid)
+        recipes = recipes.collect do |recipe_name|
           recipe = new(recipe_name, manifest, attrs, registry)
           recipe.evaluate
           recipe.close
         end
         
-        registry
+        results = []
+        registry.each_pair do |source, target|
+          results = yield(source, target)
+        end
+        results
       end
     end
     

@@ -31,14 +31,14 @@ module Linecook
           
           log :create, name
           
-          registry = Linecook::Recipe.build(cookbook.manifest, YAML.load_file(source))
-          registry.each_pair do |source, target|
+          Linecook::Recipe.build(cookbook.manifest, YAML.load_file(source)) do |source, target|
             target = File.join(cookbook.dir, 'scripts', name, target)
 
             target_dir = File.dirname(target)
             FileUtils.mkdir_p(target_dir) unless File.exists?(target_dir)
 
             FileUtils.cp(source, target)
+            target
           end
         end
       end
