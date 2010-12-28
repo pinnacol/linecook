@@ -53,14 +53,19 @@ module Linecook
       def path(relative_path)
         File.expand_path(relative_path, method_dir)
       end
-    
-      def file(relative_path, &block)
+      
+      def prepare(relative_path)
         target = path(relative_path)
+        
         target_dir = File.dirname(target)
-      
         FileUtils.mkdir_p(target_dir) unless File.exists?(target_dir)
-        block ? File.open(target, 'w', &block) : FileUtils.touch(target)
+        
+        target
+      end
       
+      def file(relative_path, &block)
+        target = prepare(relative_path)
+        block ? File.open(target, 'w', &block) : FileUtils.touch(target)
         target
       end
     
