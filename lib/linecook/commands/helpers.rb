@@ -20,10 +20,26 @@ module Linecook
         
         cookbook.each_helper do |sources, target, const_name|
           next unless filters.any? {|filter| filter =~ const_name }
+          
+          if File.exists?(target)
+            if force
+              FileUtils.rm(target)
+            else
+              raise "already exists: #{target}"
+            end
+          end
+          
           log :create, const_name
           
           helper = Linecook::Helper.new(const_name, sources)
-          helper.build_to(target, :force => true)
+          content = helper.build
+
+          target_dir = File.dirname(target)
+          unless File.exists?(target_dir)
+            FileUtils.mkdir_p(target_dir) 
+          end
+
+          File.open(target, 'w') {|io| io << content }
         end
       end
     end
