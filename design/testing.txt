@@ -1,0 +1,22 @@
+# makes a per-method sandbox directory and helpers for them
+FileTest
+
+# For testing helpers.  Not cookbook needed, just the file sandbox.
+# The helpers need to be responsible for loading their own files if
+# they need them.
+HelperTest <- FileTest
+
+# No new assertions needed -- just the ability to make manifests.
+CookbookTest <- FileTest
+  manifest(config=nil)
+    if no config
+      CookbookTest.user_manifest
+
+# For testing what is produced by a given recipe.  Requires manifest.
+# Add assertions for large content.  Allow specification of attributes
+# per recipe_test.
+RecipeTest <- CookbookTest
+
+# For running scripts produced by recipes.  Requires manifest.  Requires
+# methods for setting ENV, setting VM, and testing shell out results.
+ShellTest < RecipeTest
