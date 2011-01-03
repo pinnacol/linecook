@@ -132,4 +132,34 @@ class ScriptTest < Test::Unit::TestCase
     err = assert_raises(RuntimeError) { script.register 'source/path', 'relative/path' }
     assert_equal 'already registered: "source/path"', err.message
   end
+  
+  #
+  # with_scope test
+  #
+  
+  def test_with_scope_sets_scope_for_duration_of_block
+    scope = nil
+    
+    script.with_scope('scope') do
+      scope = script.scope
+    end
+    
+    assert_equal 'scope', scope
+  end
+  
+  def test_with_scopes_may_be_nested
+    a1, a2, b = nil, nil, nil
+    
+    script.with_scope('a') do
+      a1 = script.scope
+      script.with_scope('b') do
+        b = script.scope
+      end
+      a2 = script.scope
+    end
+    
+    assert_equal 'a', a1
+    assert_equal 'a', a2
+    assert_equal 'b', b
+  end
 end

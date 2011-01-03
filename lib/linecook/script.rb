@@ -11,10 +11,12 @@ module Linecook
     
     attr_reader :context
     attr_reader :cache
+    attr_accessor :scope
     
     def initialize(context={})
       @context = context
       @cache   = []
+      @scope   = nil
     end
     
     def config
@@ -74,6 +76,17 @@ module Linecook
       end
       
       registry[source_path] = relative_path
+    end
+    
+    def with_scope(scope)
+      current = self.scope
+      
+      begin
+        self.scope = scope
+        yield
+      ensure
+        self.scope = current
+      end
     end
     
     def close
