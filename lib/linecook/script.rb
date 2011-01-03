@@ -55,5 +55,10 @@ module Linecook
       
       tempfile
     end
+    
+    def source_path(*relative_path)
+      path = File.join(*relative_path)
+      manifest[path] or raise "no such file in manifest: #{path.inspect}"
+    end
   end
 end
