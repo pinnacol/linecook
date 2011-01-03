@@ -127,6 +127,14 @@ class ScriptTest < Test::Unit::TestCase
     assert_equal 'relative/path.1', script.registry['source/b']
   end
   
+  def test_register_nests_relative_path_under_current_scope
+    script.with_scope 'scope' do
+      script.register 'source/path', 'relative/path'
+    end
+    
+    assert_equal 'scope/relative/path', script.registry['source/path']
+  end
+  
   def test_register_raises_error_for_already_registered_source
     script.register 'source/path', 'relative/path'
     err = assert_raises(RuntimeError) { script.register 'source/path', 'relative/path' }

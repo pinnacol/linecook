@@ -75,6 +75,10 @@ module Linecook
         relative_path = "#{relative_path}.#{count}"
       end
       
+      if scope
+        relative_path = File.join(scope, relative_path)
+      end
+      
       registry[source_path] = relative_path
     end
     
