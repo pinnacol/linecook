@@ -85,4 +85,23 @@ class ScriptTest < Test::Unit::TestCase
     attributes = script.attributes
     assert_equal script.context, attributes.context
   end
+  
+  #
+  # tempfile test
+  #
+  
+  def test_tempfile_returns_a_tempfile
+    tempfile = script.tempfile('rp')
+    assert_equal Tempfile, tempfile.class
+  end
+  
+  def test_tempfile_registers_tempfile_in_registry_using_relative_path
+    tempfile = script.tempfile('rp')
+    assert_equal 'rp', script.registry[tempfile.path]
+  end
+  
+  def test_tempfile_caches_reference_to_tempfile
+    tempfile = script.tempfile('rp')
+    assert_equal true, script.cache.include?(tempfile)
+  end
 end

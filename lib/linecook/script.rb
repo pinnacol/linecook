@@ -1,4 +1,5 @@
 require 'linecook/attributes'
+require 'tempfile'
 
 module Linecook
   class Script
@@ -8,9 +9,11 @@ module Linecook
     REGISTRY_KEY = 'registry'
     
     attr_reader :context
+    attr_reader :cache
     
     def initialize(context={})
       @context = context
+      @cache   = []
     end
     
     def config
@@ -42,6 +45,15 @@ module Linecook
     
     def attributes
       Attributes.new(context)
+    end
+    
+    def tempfile(relative_path, basename=relative_path)
+      tempfile = Tempfile.new(relative_path)
+      
+      registry[tempfile.path] = relative_path
+      cache << tempfile
+      
+      tempfile
     end
   end
 end
