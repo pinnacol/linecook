@@ -21,12 +21,19 @@ module Linecook
     def script(name, attrs={})
       config = attrs['linecook'] ||= {}
       config['recipes'] ||= [name]
+      config['manifest'] = cookbook.manifest
       
-      Recipe.build(cookbook.manifest, attrs) do |source, target|
-        target = prepare File.join('scripts', name, target)
+      script = Script.new(attrs)
+      script.build
+      script.close
+      
+      results = {}
+      script.registry.each_pair do |source, relative_path|
+        target = prepare File.join('scripts', name, relative_path)
         FileUtils.cp(source, target)
-        target
+        results[relative_path] = target
       end
+      results
     end
     
     # Asserts whether or not the a and b strings are equal, with a more

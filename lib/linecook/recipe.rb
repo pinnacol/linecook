@@ -5,33 +5,6 @@ require 'tempfile'
 
 module Linecook
   class Recipe < Template
-    class << self
-      def build(manifest, attrs)
-        registry = {}
-        
-        config  = attrs['linecook'] ||= {}
-        recipes = config['recipes'] ||= []
-        
-        # keep references to the recipes to prevent gc of tempfiles until this
-        # method returns (just in case... this is a little paranoid)
-        recipes = recipes.collect do |recipe_name|
-          recipe = new(recipe_name, manifest, attrs, registry)
-          recipe.evaluate
-          recipe.close
-        end
-        
-        unless block_given?
-          return registry.invert
-        end
-        
-        results = {}
-        registry.each_pair do |source, target|
-          results[target] = yield(source, target)
-        end
-        results
-      end
-    end
-    
     include Utils
     
     alias target erbout

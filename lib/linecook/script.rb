@@ -1,4 +1,5 @@
 require 'linecook/attributes'
+require 'linecook/recipe'
 require 'tempfile'
 
 module Linecook
@@ -59,6 +60,25 @@ module Linecook
     def source_path(*relative_path)
       path = File.join(*relative_path)
       manifest[path] or raise "no such file in manifest: #{path.inspect}"
+    end
+    
+    def close
+      cache.each do |obj|
+        obj.close unless obj.closed?
+      end
+    end
+    
+    def clear
+      registry.clear
+      cache.clear
+    end
+    
+    def build
+      recipes.each_pair do |recipe_name, target_name|
+        recipe = Recipe.new(recipe_name, manifest, context, registry)
+        recipe.evaluate
+        cache << recipe
+      end
     end
   end
 end

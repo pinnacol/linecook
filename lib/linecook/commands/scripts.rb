@@ -1,6 +1,6 @@
 require 'linecook/commands/command'
 require 'linecook/cookbook'
-require 'linecook/recipe'
+require 'linecook/script'
 require 'yaml'
 
 module Linecook
@@ -12,7 +12,7 @@ module Linecook
     #
     class Scripts < Command
       config :cookbook_dir, '.'     # the cookbook directory
-      
+      config :force, false, :short => :f, &c.flag   # force creation
       def call(argv)
         argv << '.*' if argv.empty?
         filters  = argv.collect {|arg| Regexp.new("^#{arg}$", Regexp::IGNORECASE) }
@@ -23,7 +23,7 @@ module Linecook
           
           if File.exists?(target)
             if force
-              FileUtils.rm(target)
+              FileUtils.rm_r(target)
             else
               raise "already exists: #{target}"
             end
@@ -31,14 +31,19 @@ module Linecook
           
           log :create, name
           
-          Linecook::Recipe.build(cookbook.manifest, YAML.load_file(source)) do |source, target|
-            target = File.join(cookbook.dir, 'scripts', name, target)
+          context = YAML.load_file(source)
+          script  = Linecook::Script.new(context)
+          script.manifest.merge!(cookbook.manifest)
+          
+          script.build
+          script.close
+          script.registry.each_pair do |source, relative_path|
+            target = File.join(cookbook.dir, 'scripts', name, relative_path)
 
             target_dir = File.dirname(target)
             FileUtils.mkdir_p(target_dir) unless File.exists?(target_dir)
 
             FileUtils.cp(source, target)
-            target
           end
         end
       end
