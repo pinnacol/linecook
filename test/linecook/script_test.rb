@@ -76,4 +76,13 @@ class ScriptTest < Test::Unit::TestCase
     assert_equal({}, script.registry)
     assert_equal({}, script.context[Script::CONFIG_KEY][Script::REGISTRY_KEY])
   end
+  
+  #
+  # attributes test
+  #
+  
+  def test_attributes_returns_new_attributes_with_context
+    attributes = script.attributes
+    assert_equal script.context, attributes.context
+  end
 end

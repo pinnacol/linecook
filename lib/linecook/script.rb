@@ -1,3 +1,5 @@
+require 'linecook/attributes'
+
 module Linecook
   class Script
     CONFIG_KEY   = 'linecook'
@@ -36,6 +38,10 @@ module Linecook
     
     def registry
       config[REGISTRY_KEY] ||= {}
+    end
+    
+    def attributes
+      Attributes.new(context)
     end
   end
 end

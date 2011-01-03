@@ -139,7 +139,7 @@ module Linecook
         end
       end
       
-      recipe = Recipe.new(recipe_name, manifest, @attributes.user_attrs, registry)
+      recipe = Recipe.new(recipe_name, manifest, @attributes.context, registry)
       recipe.evaluate
       recipe.close
       

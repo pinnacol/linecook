@@ -12,29 +12,29 @@ class AttributesTest < Test::Unit::TestCase
   end
   
   #
-  # Attributes.nest_hash test
+  # attrs test
   #
   
-  def test_nest_hash_auto_fills_to_allow_setting_of_nested_hash_values
-    hash = Attributes.nest_hash
-    hash[:a] = 1
-    hash[:b][:c] = 2
+  def test_attrs_auto_fills_to_allow_setting_of_nested_hash_values
+    attrs = attributes.attrs
+    attrs[:a] = 1
+    attrs[:b][:c] = 2
     
     assert_equal({
       :a => 1,
       :b => {:c => 2}
-    }, hash)
+    }, attrs)
   end
   
   #
   # current test
   #
   
-  def test_current_merges_attrs_and_user_attrs
+  def test_current_merges_attrs_and_context
     attributes.attrs[:a]    = 'A'
     attributes.attrs[:b]    = '-'
     
-    attributes.user_attrs[:b] = 'B'
+    attributes.context[:b] = 'B'
     
     assert_equal({
       :a => 'A',
@@ -48,8 +48,8 @@ class AttributesTest < Test::Unit::TestCase
     attributes.attrs[:one][:a] = 'a'
     attributes.attrs[:one][:b] = '-'
     
-    attributes.user_attrs[:b] = 'B'
-    attributes.user_attrs[:one] = {:b => 'b'}
+    attributes.context[:b] = 'B'
+    attributes.context[:one] = {:b => 'b'}
     
     assert_equal({
       :a => 'A',
@@ -71,7 +71,7 @@ class AttributesTest < Test::Unit::TestCase
   
   def test_reset_clears_attrs
     attributes.attrs[:a] = 'A'
-    attributes.user_attrs[:b] = 'B'
+    attributes.context[:b] = 'B'
     
     assert_equal({
       :a => 'A',

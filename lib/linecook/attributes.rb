@@ -1,29 +1,27 @@
 module Linecook
   class Attributes
-    class << self
-      def nest_hash
-        Hash.new {|hash, key| hash[key] = nest_hash }
-      end
-    end
-    
     attr_reader :attrs
-    attr_reader :user_attrs
+    attr_reader :context
     
-    def initialize(user_attrs={})
-      @user_attrs = user_attrs
+    def initialize(context={})
+      @context = context
       reset(true)
     end
     
     def current
-      @current ||= serial_merge(attrs, user_attrs)
+      @current ||= serial_merge(attrs, context)
     end
     
     def reset(full=true)
-      @attrs = self.class.nest_hash if full
+      @attrs = nest_hash if full
       @current = nil
     end
     
     private
+    
+    def nest_hash # :nodoc:
+      Hash.new {|hash, key| hash[key] = nest_hash }
+    end
     
     def serial_merge(*hashes) # :nodoc:
       attrs = {}
