@@ -20,7 +20,8 @@ module Linecook
     end
     
     def source_path(*relative_path)
-      script.source_path(*relative_path)
+      path = File.join(*relative_path)
+      script.manifest[path] or raise "no such file in manifest: #{path.inspect}"
     end
     
     def target_path(source_path)

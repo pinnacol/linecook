@@ -15,6 +15,25 @@ class RecipeTest < Test::Unit::TestCase
   end
   
   #
+  # source_path test
+  #
+  
+  def test_source_path_returns_corresponding_path_in_manifest
+    script.manifest['relative/path'] = 'source/path'
+    assert_equal 'source/path', recipe.source_path('relative/path')
+  end
+  
+  def test_source_path_joins_path_segments
+    script.manifest['relative/path'] = 'source/path'
+    assert_equal 'source/path', recipe.source_path('relative', 'path')
+  end
+  
+  def test_source_path_raises_error_for_path_unregistered_in_manifest
+    err = assert_raises(RuntimeError) { recipe.source_path('unknown/path') }
+    assert_equal 'no such file in manifest: "unknown/path"', err.message
+  end
+  
+  #
   # target test
   #
   

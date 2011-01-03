@@ -104,23 +104,4 @@ class ScriptTest < Test::Unit::TestCase
     tempfile = script.tempfile('rp')
     assert_equal true, script.cache.include?(tempfile)
   end
-  
-  #
-  # source_path test
-  #
-  
-  def test_source_path_returns_corresponding_path_in_manifest
-    script.manifest['relative/path'] = 'source/path'
-    assert_equal 'source/path', script.source_path('relative/path')
-  end
-  
-  def test_source_path_joins_path_segments
-    script.manifest['relative/path'] = 'source/path'
-    assert_equal 'source/path', script.source_path('relative', 'path')
-  end
-  
-  def test_source_path_raises_error_for_path_unregistered_in_manifest
-    err = assert_raises(RuntimeError) { script.source_path('unknown/path') }
-    assert_equal 'no such file in manifest: "unknown/path"', err.message
-  end
 end
