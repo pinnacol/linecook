@@ -48,8 +48,8 @@ module Linecook
       Attributes.new(context)
     end
     
-    def tempfile(relative_path, name=relative_path)
-      tempfile = Tempfile.new(name)
+    def tempfile(relative_path)
+      tempfile = Tempfile.new File.basename(relative_path)
       
       register(tempfile.path, relative_path)
       cache << tempfile

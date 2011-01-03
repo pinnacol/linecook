@@ -32,7 +32,7 @@ module Linecook
     end
     
     def target_file(name, content=nil)
-      tempfile = script.tempfile(File.join("#{target_name}.d", name), name)
+      tempfile = script.tempfile(File.join("#{target_name}.d", name))
       
       tempfile << content if content
       yield(tempfile) if block_given?
