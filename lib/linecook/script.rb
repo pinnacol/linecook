@@ -48,10 +48,10 @@ module Linecook
       Attributes.new(context)
     end
     
-    def tempfile(relative_path, basename=relative_path)
-      tempfile = Tempfile.new(relative_path)
+    def tempfile(relative_path, name=relative_path)
+      tempfile = Tempfile.new(name)
       
-      registry[tempfile.path] = relative_path
+      register(tempfile.path, relative_path)
       cache << tempfile
       
       tempfile
@@ -60,6 +60,25 @@ module Linecook
     def source_path(*relative_path)
       path = File.join(*relative_path)
       manifest[path] or raise "no such file in manifest: #{path.inspect}"
+    end
+    
+    def register(source_path, relative_path=nil)
+      relative_path ||= File.basename(source_path)
+      dirname = File.dirname(relative_path)
+      
+      count = 0
+      registry.each_value do |path|
+        if path.index(dirname) == 0
+          count += 1
+        end
+      end
+      
+      if count > 0
+        basename = File.basename(relative_path)
+        relative_path = File.join(dirname, "#{count}-#{basename}")
+      end
+      
+      registry[source_path] = relative_path
     end
     
     def close
@@ -75,10 +94,14 @@ module Linecook
     
     def build
       recipes.each_pair do |recipe_name, target_name|
-        recipe = Recipe.new(recipe_name, manifest, context, registry)
+        recipe = Recipe.new(recipe_name, self)
         recipe.evaluate
         cache << recipe
       end
+    end
+    
+    def results
+      registry.invert
     end
   end
 end

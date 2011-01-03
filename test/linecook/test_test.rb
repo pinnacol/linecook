@@ -5,13 +5,13 @@ class LinecookTestTest < Test::Unit::TestCase
   include Linecook::Test
   
   #
-  # script test
+  # build test
   #
   
-  def test_script_builds_script_to_method_dir
+  def test_build_builds_script_to_method_dir
     file('recipes/example.rb') {|io| io << "target << Array.new(attrs['n'], 'success').join(',')"}
     @cookbook = Linecook::Cookbook.init(method_dir)
-    results = script('example', 'n' => 3)
+    results = build('example', 'n' => 3)
     
     assert_equal path('scripts/example/example'), results['example']
     assert_equal "success,success,success", File.read(results['example'])

@@ -1,5 +1,5 @@
 require 'linecook/cookbook'
-require 'linecook/recipe'
+require 'linecook/script'
 require 'linecook/test/file_test'
 require 'linecook/test/regexp_escape'
 
@@ -8,17 +8,26 @@ module Linecook
     include FileTest
     
     attr_writer :cookbook
+    attr_writer :script
     attr_writer :recipe
     
     def cookbook
       @cookbook ||= Cookbook.init(user_dir)
     end
     
-    def recipe
-      @recipe ||= Recipe.new('recipe', cookbook.manifest)
+    def manifest
+      cookbook.manifest
     end
     
-    def script(name, attrs={})
+    def script
+      @script ||= Script.new(Script::CONFIG_KEY => {Script::MANIFEST_KEY => manifest})
+    end
+    
+    def recipe
+      @recipe ||= Recipe.new('recipe', script)
+    end
+    
+    def build(name, attrs={})
       config = attrs['linecook'] ||= {}
       config['recipes'] ||= [name]
       config['manifest'] = cookbook.manifest
