@@ -57,20 +57,20 @@ module Linecook
       tempfile
     end
     
-    def register(source_path, relative_path=nil)
-      relative_path ||= File.basename(source_path)
-      dirname = File.dirname(relative_path)
+    def register(source_path, relative_path = File.basename(source_path))
+      if registry.has_key?(source_path)
+        raise "already registered: #{source_path.inspect}"
+      end
       
       count = 0
       registry.each_value do |path|
-        if path.index(dirname) == 0
+        if path.index(relative_path) == 0
           count += 1
         end
       end
       
       if count > 0
-        basename = File.basename(relative_path)
-        relative_path = File.join(dirname, "#{count}-#{basename}")
+        relative_path = "#{relative_path}.#{count}"
       end
       
       registry[source_path] = relative_path

@@ -104,4 +104,32 @@ class ScriptTest < Test::Unit::TestCase
     tempfile = script.tempfile('rp')
     assert_equal true, script.cache.include?(tempfile)
   end
+  
+  #
+  # register test
+  #
+  
+  def test_register_records_relative_path_in_registry_using_source_path
+    script.register 'source/path', 'relative/path'
+    assert_equal 'relative/path', script.registry['source/path']
+  end
+  
+  def test_register_uses_basename_of_source_as_default_relative_path
+    script.register 'source/path'
+    assert_equal 'path', script.registry['source/path']
+  end
+  
+  def test_register_ensures_relative_path_is_unique
+    script.register 'source/a', 'relative/path'
+    script.register 'source/b', 'relative/path'
+    
+    assert_equal 'relative/path', script.registry['source/a']
+    assert_equal 'relative/path.1', script.registry['source/b']
+  end
+  
+  def test_register_raises_error_for_already_registered_source
+    script.register 'source/path', 'relative/path'
+    err = assert_raises(RuntimeError) { script.register 'source/path', 'relative/path' }
+    assert_equal 'already registered: "source/path"', err.message
+  end
 end
