@@ -48,7 +48,7 @@ class RecipeTest < Test::Unit::TestCase
   
   def test_target_file_creates_and_registers_file_with_the_specified_name_and_content
     path = recipe.target_file('name.txt', 'content')
-    assert_equal 'recipe.d/name.txt', path
+    assert_equal 'name.txt', path
     
     script.close
     
@@ -102,7 +102,7 @@ class RecipeTest < Test::Unit::TestCase
     file('files/example.txt') {|io| io << 'content'}
 
     path = recipe.file_path('example.txt')
-    assert_equal 'recipe.d/example.txt', path
+    assert_equal 'example.txt', path
 
     source_path = recipe.registry.invert[path]
     assert_equal 'content', File.read(source_path)
@@ -114,7 +114,7 @@ class RecipeTest < Test::Unit::TestCase
   
   def test_capture_path_creates_file_from_block
     path = recipe.capture_path('example.sh') { target << 'content'}
-    assert_equal 'recipe.d/example.sh', path
+    assert_equal 'example.sh', path
     
     script.close
     
@@ -149,7 +149,7 @@ class RecipeTest < Test::Unit::TestCase
     end
 
     path = recipe.template_path('example.txt', :key => 'value')
-    assert_equal 'recipe.d/example.txt', path
+    assert_equal 'example.txt', path
     
     script.close
     

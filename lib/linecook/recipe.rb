@@ -26,13 +26,11 @@ module Linecook
     
     def target_path(source_path)
       source_path = File.expand_path(source_path)
-      
-      script.registry[source_path] || 
-      script.register(source_path, File.join("#{target_name}.d", File.basename(source_path)))
+      script.registry[source_path] || script.register(source_path)
     end
     
     def target_file(name, content=nil)
-      tempfile = script.tempfile(File.join("#{target_name}.d", name))
+      tempfile = script.tempfile(name)
       
       tempfile << content if content
       yield(tempfile) if block_given?

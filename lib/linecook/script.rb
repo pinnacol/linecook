@@ -107,8 +107,10 @@ module Linecook
     def build
       recipes.each_pair do |recipe_name, target_name|
         recipe = Recipe.new(recipe_name, self)
-        recipe.evaluate
-        cache << recipe
+        with_scope "#{recipe_name}.d" do
+          recipe.evaluate
+          cache << recipe
+        end
       end
     end
     
