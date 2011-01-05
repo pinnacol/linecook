@@ -90,38 +90,6 @@ module Linecook
       end
     end
     
-    def each_helper
-      helpers_dir = File.expand_path('helpers', dir)
-      lib_dir = File.expand_path('lib', dir)
-      
-      sources = {}
-      Dir.glob("#{helpers_dir}/**/*").each do |source|
-        next if File.directory?(source)
-        (sources[File.dirname(source)] ||= []) << source
-      end
-      
-      sources.each_pair do |dir, sources|
-        name = dir[(helpers_dir.length+1)..-1]
-        const_path = name ? File.join(namespace, name) : namespace
-        
-        target  = File.join(lib_dir, "#{const_path}.rb")
-        sources = sources + [dir]
-        
-        yield sources, target, camelize(const_path)
-      end
-    end
-    
-    def each_script
-      scripts_dir = File.expand_path('scripts', dir)
-      
-      Dir.glob("#{scripts_dir}/*.yml").each do |source|
-        name   = File.basename(source).chomp('.yml')
-        target = File.join(scripts_dir, name)
-        
-        yield source, target, name
-      end
-    end
-    
     private
     
     def split(str) # :nodoc:

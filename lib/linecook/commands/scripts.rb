@@ -20,7 +20,7 @@ module Linecook
         filters  = argv.collect {|arg| Regexp.new("^#{arg}$", Regexp::IGNORECASE) }
         cookbook = Linecook::Cookbook.init(cookbook_dir)
         
-        cookbook.each_script do |source, target, name|
+        each_script(cookbook_dir) do |source, target, name|
           next unless filters.any? {|filter| filter =~ name }
           
           if File.exists?(target)
@@ -37,6 +37,17 @@ module Linecook
           config = env['linecook'] ||= {} 
           config['manifest'] = cookbook.manifest
           Linecook::Recipe.build(env).export File.join(cookbook.dir, 'scripts', name)
+        end
+      end
+      
+      def each_script(dir)
+        scripts_dir = File.expand_path('scripts', dir)
+
+        Dir.glob("#{scripts_dir}/*.yml").each do |source|
+          name   = File.basename(source).chomp('.yml')
+          target = File.join(scripts_dir, name)
+
+          yield source, target, name
         end
       end
     end
