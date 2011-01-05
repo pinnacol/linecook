@@ -7,8 +7,12 @@ class RecipeTest < Test::Unit::TestCase
   include Linecook::Test
   Recipe = Linecook::Recipe
   
-  def manifest
-    Hash.new do |hash, relative_path|
+  attr_accessor :manifest
+  
+  def setup
+    super
+    
+    @manifest = Hash.new do |hash, relative_path|
       path = File.join(method_dir, relative_path.to_s)
       hash[relative_path] = File.exists?(path) ? path : nil
     end
@@ -19,12 +23,12 @@ class RecipeTest < Test::Unit::TestCase
   #
   
   def test_source_path_returns_corresponding_path_in_manifest
-    script.manifest['relative/path'] = 'source/path'
+    manifest['relative/path'] = 'source/path'
     assert_equal 'source/path', recipe.source_path('relative/path')
   end
   
   def test_source_path_joins_path_segments
-    script.manifest['relative/path'] = 'source/path'
+    manifest['relative/path'] = 'source/path'
     assert_equal 'source/path', recipe.source_path('relative', 'path')
   end
   
@@ -48,11 +52,11 @@ class RecipeTest < Test::Unit::TestCase
   
   def test_target_file_creates_and_registers_file_with_the_specified_name_and_content
     path = recipe.target_file('name.txt', 'content')
-    assert_equal 'name.txt', path
+    assert_equal 'recipe.d/name.txt', path
     
-    script.close
+    registry = recipe.close
     
-    source_path = script.results[path]
+    source_path = registry[path]
     assert_equal 'content', File.read(source_path)
   end
 
@@ -102,7 +106,7 @@ class RecipeTest < Test::Unit::TestCase
     file('files/example.txt') {|io| io << 'content'}
 
     path = recipe.file_path('example.txt')
-    assert_equal 'example.txt', path
+    assert_equal 'recipe.d/example.txt', path
 
     source_path = recipe.registry.invert[path]
     assert_equal 'content', File.read(source_path)
@@ -114,11 +118,11 @@ class RecipeTest < Test::Unit::TestCase
   
   def test_capture_path_creates_file_from_block
     path = recipe.capture_path('example.sh') { target << 'content'}
-    assert_equal 'example.sh', path
+    assert_equal 'recipe.d/example.sh', path
     
-    script.close
+    registry = recipe.close
     
-    source_path = script.results[path]
+    source_path = registry[path]
     assert_equal 'content', File.read(source_path)
   end
   
@@ -130,12 +134,12 @@ class RecipeTest < Test::Unit::TestCase
     file('recipes/example.rb') {|io| io << "target.puts 'content'"}
     assert_equal 'example', recipe.recipe_path('example')
 
-    script.close
+    registry = recipe.close
     
-    source_path = script.results['recipe']
+    source_path = registry['recipe']
     assert_equal "", File.read(source_path)
 
-    source_path = script.results['example']
+    source_path = registry['example']
     assert_equal "content\n", File.read(source_path)
   end
   
@@ -149,11 +153,11 @@ class RecipeTest < Test::Unit::TestCase
     end
 
     path = recipe.template_path('example.txt', :key => 'value')
-    assert_equal 'example.txt', path
+    assert_equal 'recipe.d/example.txt', path
     
-    script.close
+    registry = recipe.close
     
-    source_path = script.results[path]
+    source_path = registry[path]
     assert_equal 'got value', File.read(source_path)
   end
 end

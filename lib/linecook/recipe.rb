@@ -1,36 +1,48 @@
 require 'linecook/template'
-require 'linecook/script'
+require 'linecook/attributes'
+require 'linecook/package'
 require 'linecook/utils'
 
 module Linecook
   class Recipe < Template
+    class << self
+      def build(env)
+        package = Package.new(env)
+        
+        package.recipes.each do |recipe_name, target_name|
+          new(target_name, env).evaluate(recipe_name)
+        end
+        
+        package.close
+        package
+      end
+    end
+    
     include Utils
     
     alias target erbout
     
     attr_reader :target_name
     
-    attr_reader :script
-    
-    def initialize(target_name, script)
+    def initialize(target_name, env={})
       @target_name = target_name
-      @script      = script
-      @attributes  = script.attributes
-      @erbout      = script.tempfile(target_name)
+      @package     = Package.new(env)
+      @attributes  = Attributes.new(env)
+      @erbout      = @package.build(target_name)
     end
     
     def source_path(*relative_path)
       path = File.join(*relative_path)
-      script.manifest[path] or raise "no such file in manifest: #{path.inspect}"
+      @package.manifest[path] or raise "no such file in manifest: #{path.inspect}"
     end
     
     def target_path(source_path)
-      source_path = File.expand_path(source_path)
-      script.registry[source_path] || script.register(source_path)
+      @package.build_path(source_path) ||
+      @package.register(source_path, File.join("#{target_name}.d", File.basename(source_path)))
     end
     
     def target_file(name, content=nil)
-      tempfile = script.tempfile(name)
+      tempfile = @package.build File.join("#{target_name}.d", name)
       
       tempfile << content if content
       yield(tempfile) if block_given?
@@ -78,24 +90,23 @@ module Linecook
       target_file(name, content)
     end
     
-    def recipe_path(recipe_name)
-      script.registry.each_pair do |source, target|
-        if target == recipe_name
-          return target_path(source)
-        end
-      end
+    def recipe_path(recipe_name, target_name = recipe_name)
+      source_path = 
+        @package.built?(target_name) ?
+        @package.source_path(target_name) :
+        Recipe.new(target_name, @package.env).evaluate(recipe_name).target.path
       
-      recipe = Recipe.new(recipe_name, script)
-      recipe.evaluate
-      recipe.close
-      
-      script.cache << recipe
-      target_path recipe.target.path
+      target_path source_path
     end
     
     def template_path(template_name, locals={})
       path = source_path('templates', "#{template_name}.erb")
       target_file template_name, Template.build(File.read(path), locals, path)
+    end
+    
+    def close
+      @package.close
+      @package.registry
     end
   end
 end

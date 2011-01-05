@@ -1,7 +1,8 @@
 require 'linecook/cookbook'
-require 'linecook/script'
+require 'linecook/recipe'
 require 'linecook/test/file_test'
 require 'linecook/test/regexp_escape'
+require 'linecook/hash_utils'
 
 module Linecook
   module Test
@@ -19,30 +20,17 @@ module Linecook
       cookbook.manifest
     end
     
-    def script
-      @script ||= Script.new(Script::CONFIG_KEY => {Script::MANIFEST_KEY => manifest})
+    def default_env
+      {Package::CONFIG_KEY => {Package::MANIFEST_KEY => manifest}}
     end
     
     def recipe
-      @recipe ||= Recipe.new('recipe', script)
+      @recipe ||= Recipe.new('recipe', default_env)
     end
     
-    def build(name, attrs={})
-      config = attrs['linecook'] ||= {}
-      config['recipes'] ||= [name]
-      config['manifest'] = cookbook.manifest
-      
-      script = Script.new(attrs)
-      script.build
-      script.close
-      
-      results = {}
-      script.registry.each_pair do |source, relative_path|
-        target = prepare File.join('scripts', name, relative_path)
-        FileUtils.cp(source, target)
-        results[relative_path] = target
-      end
-      results
+    def build(env={})
+      env = HashUtils.deep_merge(default_env, env)
+      Recipe.build(env).export File.join(method_dir, 'scripts')
     end
     
     # Asserts whether or not the a and b strings are equal, with a more
