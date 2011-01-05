@@ -24,8 +24,8 @@ module Linecook
     
     def initialize(target_name, env={})
       @target_name = target_name
-      @package     = Package.new(env)
-      @attributes  = Attributes.new(env)
+      @package     = Package.init(env)
+      @attributes  = Attributes.new(@package.env)
       @erbout      = @package.build(target_name)
     end
     
@@ -85,7 +85,7 @@ module Linecook
       source_path = 
         @package.built?(target_name) ?
         @package.source_path(target_name) :
-        Recipe.new(target_name, @package.env).evaluate(recipe_name).target.path
+        Recipe.new(target_name, @package).evaluate(recipe_name).target.path
       
       target_path source_path
     end

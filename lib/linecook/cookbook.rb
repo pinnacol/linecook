@@ -26,7 +26,6 @@ module Linecook
       end
     end
     
-    NAMESPACE = 'linebook'
     PATTERNS  = [
       File.join('attributes', '**', '*.rb'),
       File.join('files',      '**', '*'),
@@ -37,12 +36,12 @@ module Linecook
     attr_reader :dir
     attr_reader :config
     
-    def initialize(dir='.', config = {})
+    def initialize(dir='.', config={})
       @dir = File.expand_path(dir)
       @config = {
-         'manifest'  => {},
-         'paths'     => ['.'],
-         'gems'      => self.class.gems
+         'manifest' => {},
+         'paths'    => ['.'],
+         'gems'     => self.class.gems
        }.merge(config)
     end
     
@@ -75,7 +74,7 @@ module Linecook
     end
     
     def env(*uris)
-      Package.init(manifest, *uris)
+      Package.env(manifest, *uris)
     end
     
     private

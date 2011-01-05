@@ -5,7 +5,7 @@ require 'open-uri'
 module Linecook
   class Package
     class << self
-      def load_config(uri)
+      def load_env(uri)
         config = uri ? open(uri) do |io|
           stream_loader = YAML.load_stream(io)
           stream_loader ? stream_loader.documents.first : nil
@@ -13,9 +13,13 @@ module Linecook
         config || {}
       end
       
-      def init(manifest, *uris)
+      def env(manifest, *uris)
         default = {CONFIG_KEY => {MANIFEST_KEY => manifest}}
-        Utils.serial_merge(default, *uris.collect {|uri| load_config(uri) })
+        Utils.serial_merge(default, *uris.collect {|uri| load_env(uri) })
+      end
+      
+      def init(env={})
+        env.kind_of?(Package) ? env : new(env)
       end
     end
     
