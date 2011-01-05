@@ -12,7 +12,7 @@ module Linecook
     # helpers).
     #
     class Helpers < Command
-      config :cookbook_dir, '.'     # the cookbook directory
+      config :cookbook_dir, '.', :short => :d       # the cookbook directory
       config :force, false, :short => :f, &c.flag   # force creation
       
       def call(argv)

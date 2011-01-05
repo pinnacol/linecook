@@ -12,8 +12,9 @@ module Linecook
     # Generates scripts that match the input patterns (by default all).
     #
     class Scripts < Command
-      config :cookbook_dir, '.'     # the cookbook directory
+      config :cookbook_dir, '.', :short => :d       # the cookbook directory
       config :force, false, :short => :f, &c.flag   # force creation
+      
       def call(argv)
         argv << '.*' if argv.empty?
         filters  = argv.collect {|arg| Regexp.new("^#{arg}$", Regexp::IGNORECASE) }
