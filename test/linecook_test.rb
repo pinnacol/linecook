@@ -29,7 +29,7 @@ class LinecookTest < Test::Unit::TestCase
       output = `BUNDLE_GEMFILE='#{gemfile_path}' bundle exec linecook helpers`
       assert_equal 0, $?.exitstatus, output
       
-      output = `BUNDLE_GEMFILE='#{gemfile_path}' bundle exec linecook scripts`
+      output = `BUNDLE_GEMFILE='#{gemfile_path}' bundle exec linecook package scripts/example.yml`
       assert_equal 0, $?.exitstatus, output
       assert_equal true, File.exists?('scripts/example/example'), output
       

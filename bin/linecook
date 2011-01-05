@@ -8,7 +8,7 @@ cmd_class =
   case cmd = ARGV.shift
   when Init.name.to_s    then Init
   when Helpers.name.to_s then Helpers
-  when Scripts.name.to_s then Scripts
+  when Package.name.to_s then Package
   when Env.name.to_s     then Env
   when nil, '-h', '--help'
     puts "Usage: linecook [options] COMMAND"
