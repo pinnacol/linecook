@@ -4,7 +4,6 @@ require 'linecook/helper'
 module Linecook
   module Commands
     
-    # ::name helpers
     # ::desc patterns...
     #
     # Generates helpers that match the input patterns (by default all,

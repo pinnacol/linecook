@@ -11,7 +11,7 @@ module Linecook
         
         def inherited(base)
           super
-          registry[base.name.to_s] = base
+          registry[base.to_s.split('::').last.downcase] = base
         end
       end
       
@@ -19,7 +19,6 @@ module Linecook
       include Configurable
       
       lazy_attr :desc
-      lazy_attr :name
       
       def initialize(config)
         initialize_config(config)

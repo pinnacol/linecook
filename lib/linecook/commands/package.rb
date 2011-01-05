@@ -6,7 +6,6 @@ require 'yaml'
 module Linecook
   module Commands
     
-    # ::name package
     # ::desc uri [target]
     #
     # Generates a package.
