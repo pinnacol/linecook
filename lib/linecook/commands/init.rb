@@ -18,8 +18,8 @@ module Linecook
         @source_dir ||= File.expand_path('../../../../templates', __FILE__)
       end
       
-      def call(argv)
-        project_dir  = File.expand_path(argv[0])
+      def process(project_dir)
+        project_dir = File.expand_path(project_dir)
         
         prepare project_dir
         template project_dir

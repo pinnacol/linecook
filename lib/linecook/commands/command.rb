@@ -27,6 +27,14 @@ module Linecook
       def log(action, msg)
         puts("      %s  %s" % [action, msg])
       end
+      
+      def call(argv)
+        process(*argv)
+      end
+      
+      def process(*args)
+        raise NotImplementedError
+      end
     end
   end
 end

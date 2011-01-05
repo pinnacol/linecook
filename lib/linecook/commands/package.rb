@@ -14,10 +14,7 @@ module Linecook
       config :cookbook_dir, '.', :short => :d       # the cookbook directory
       config :force, false, :short => :f, &c.flag   # force creation
       
-      def call(argv)
-        uri, target = argv
-        target ||= default_target(uri)
-        
+      def process(uri, target=default_target(uri))
         if File.exists?(target)
           if force
             FileUtils.rm_r(target)
