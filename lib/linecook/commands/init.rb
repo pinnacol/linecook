@@ -6,6 +6,7 @@ require 'ostruct'
 module Linecook
   module Commands
     
+    # ::name init
     # ::desc dir
     #
     # Initializes a linecook scaffold in the specified directory.  This

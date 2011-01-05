@@ -6,12 +6,9 @@ include Linecook::Commands
 
 cmd_class = 
   case cmd = ARGV.shift
-  when 'init'
-    Init
-  when 'helpers'
-    Helpers
-  when 'scripts'
-    Scripts
+  when Init.name.to_s    then Init
+  when Helpers.name.to_s then Helpers
+  when Scripts.name.to_s then Scripts
   when nil, '-h', '--help'
     puts "Usage: linecook [options] COMMAND"
     exit
@@ -23,7 +20,7 @@ cmd_class =
 parser = ConfigParser.new
 parser.add cmd_class.configurations
 parser.on '-h', '--help', 'print this help' do
-  puts "usage: linecook [options] init #{cmd_class.desc.value}"
+  puts "usage: linecook [options] #{cmd_class.name} #{cmd_class.desc.value}"
   puts
   puts cmd_class.desc.wrap
   puts

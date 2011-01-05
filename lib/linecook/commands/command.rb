@@ -8,6 +8,7 @@ module Linecook
       include Configurable
       
       lazy_attr :desc
+      lazy_attr :name
       
       def initialize(config)
         initialize_config(config)

@@ -6,6 +6,7 @@ require 'yaml'
 module Linecook
   module Commands
     
+    # ::name scripts
     # ::desc patterns...
     #
     # Generates scripts that match the input patterns (by default all).
