@@ -2,14 +2,12 @@
 
 require 'linecook/version'
 require 'linecook/commands'
-include Linecook::Commands
 
-cmd_class = 
-  case cmd = ARGV.shift
-  when Init.name.to_s    then Init
-  when Helpers.name.to_s then Helpers
-  when Package.name.to_s then Package
-  when Env.name.to_s     then Env
+cmd = ARGV.shift
+cmd_class = Linecook::Commands::Command.registry[cmd]
+
+if cmd_class.nil?
+  case cmd
   when nil, '-h', '--help'
     puts "Usage: linecook [options] COMMAND"
     exit
@@ -17,6 +15,7 @@ cmd_class =
     puts "unknown command: #{cmd.inspect}"
     exit 1
   end
+end
 
 parser = ConfigParser.new
 parser.add cmd_class.configurations

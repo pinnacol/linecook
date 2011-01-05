@@ -4,6 +4,17 @@ require 'configurable'
 module Linecook
   module Commands
     class Command
+      class << self
+        def registry
+          @registry ||= {}
+        end
+        
+        def inherited(base)
+          super
+          registry[base.name.to_s] = base
+        end
+      end
+      
       extend Lazydoc::Attributes
       include Configurable
       
