@@ -1,4 +1,4 @@
-require 'linecook/hash_utils'
+require 'linecook/utils'
 
 module Linecook
   class Attributes
@@ -11,18 +11,12 @@ module Linecook
     end
     
     def current
-      @current ||= HashUtils.serial_merge(attrs, context)
+      @current ||= Utils.serial_merge(attrs, context)
     end
     
     def reset(full=true)
-      @attrs = nest_hash if full
+      @attrs = Utils.nest_hash if full
       @current = nil
-    end
-    
-    private
-    
-    def nest_hash # :nodoc:
-      Hash.new {|hash, key| hash[key] = nest_hash }
     end
   end
 end

@@ -18,8 +18,6 @@ module Linecook
       end
     end
     
-    include Utils
-    
     alias target erbout
     
     attr_reader :target_name
@@ -63,15 +61,8 @@ module Linecook
     end
     
     def helpers(helper_name)
-      require underscore(helper_name)
-      
-      const = Object
-      constants = camelize(helper_name).split(/::/)
-      while name = constants.shift
-        const = const.const_get(name)
-      end
-      
-      extend const
+      require Utils.underscore(helper_name)
+      extend Utils.constantize(helper_name)
     end
     
     def evaluate(recipe_name=target_name)

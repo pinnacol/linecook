@@ -2,7 +2,7 @@ require 'linecook/cookbook'
 require 'linecook/recipe'
 require 'linecook/test/file_test'
 require 'linecook/test/regexp_escape'
-require 'linecook/hash_utils'
+require 'linecook/utils'
 
 module Linecook
   module Test
@@ -29,7 +29,7 @@ module Linecook
     end
     
     def build(env={})
-      env = HashUtils.deep_merge(default_env, env)
+      env = Utils.deep_merge(default_env, env)
       Recipe.build(env).export File.join(method_dir, 'scripts')
     end
     

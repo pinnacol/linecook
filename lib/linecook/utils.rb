@@ -2,6 +2,31 @@ module Linecook
   module Utils
     module_function
     
+    def nest_hash
+      Hash.new {|hash, key| hash[key] = nest_hash }
+    end
+    
+    def serial_merge(*hashes)
+      attrs = {}
+      while overrides = hashes.shift
+        attrs = deep_merge(attrs, overrides)
+      end
+      attrs
+    end
+    
+    def deep_merge(a, b)
+      b.each_pair do |key, current|
+        previous = a[key]
+        a[key] = deep_merge?(previous, current) ? deep_merge(previous, current) : current
+      end
+      
+      a
+    end
+    
+    def deep_merge?(previous, current)
+      current.kind_of?(Hash) && previous.kind_of?(Hash)
+    end
+    
     def camelize(str)
       str.to_s.gsub(/\/(.?)/) { "::" + $1.upcase }.gsub(/(^|_)(.)/) { $2.upcase }
     end
@@ -15,12 +40,13 @@ module Linecook
     end
     
     def constantize(const_name)
-      const = Object
       constants = camelize(const_name).split(/::/)
       
+      const = Object
       while name = constants.shift
         const = const.const_get(name)
       end
+      
       const
     end
   end
