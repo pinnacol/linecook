@@ -17,7 +17,11 @@ module Linecook
       end
       
       def load_config(uri)
-        uri ? open(uri) {|io| YAML.load_stream(io).documents.first } : {}
+        config = uri ? open(uri) do |io|
+          stream_loader = YAML.load_stream(io)
+          stream_loader ? stream_loader.documents.first : nil
+        end : nil
+        config || {}
       end
       
       def gems
