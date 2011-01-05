@@ -1,7 +1,24 @@
+require 'linecook/utils'
 require 'tempfile'
+require 'open-uri'
 
 module Linecook
   class Package
+    class << self
+      def load_config(uri)
+        config = uri ? open(uri) do |io|
+          stream_loader = YAML.load_stream(io)
+          stream_loader ? stream_loader.documents.first : nil
+        end : nil
+        config || {}
+      end
+      
+      def init(manifest, *uris)
+        default = {CONFIG_KEY => {MANIFEST_KEY => manifest}}
+        Utils.serial_merge(default, *uris.collect {|uri| load_config(uri) })
+      end
+    end
+    
     CONFIG_KEY    = 'linecook'
     MANIFEST_KEY  = 'manifest'
     REGISTRY_KEY  = 'registry'
@@ -9,6 +26,8 @@ module Linecook
     FILES_KEY     = 'files'
     TEMPLATES_KEY = 'templates'
     RECIPES_KEY   = 'recipes'
+    PATHS_KEY     = 'paths'
+    GEMS_KEY      = 'gems'
     
     attr_reader :env
     

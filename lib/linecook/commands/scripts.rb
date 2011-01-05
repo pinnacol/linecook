@@ -33,9 +33,7 @@ module Linecook
           
           log :create, name
           
-          env = YAML.load_file(source)
-          config = env['linecook'] ||= {} 
-          config['manifest'] = cookbook.manifest
+          env = cookbook.env(source)
           Linecook::Recipe.build(env).export File.join(cookbook.dir, 'scripts', name)
         end
       end

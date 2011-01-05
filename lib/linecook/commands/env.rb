@@ -1,6 +1,5 @@
 require 'linecook/commands/command'
 require 'linecook/cookbook'
-require 'pp'
 
 module Linecook
   module Commands
@@ -14,13 +13,10 @@ module Linecook
       config :uris, [], &c.list                     # package uris
       
       def call(argv)
-        config = Linecook::Cookbook.init(cookbook_dir, *uris).config
-        argv = config.keys if argv.empty?
+        current = Linecook::Cookbook.init(cookbook_dir).env(*uris)
+        argv.each {|key| current = current[key] if current }
         
-        results = {}
-        argv.each {|key| results[key] = config[key] }
-        
-        pp results
+        YAML.dump(current, $stdout)
       end
     end
   end

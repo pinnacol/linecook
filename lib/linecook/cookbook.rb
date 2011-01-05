@@ -1,5 +1,5 @@
-require 'linecook/utils'
-require 'open-uri'
+require 'linecook/package'
+require 'yaml'
 
 module Linecook
   class Cookbook
@@ -8,20 +8,11 @@ module Linecook
         Dir.glob(File.join(dir, '{C,c}ookbook')).first
       end
         
-      def init(dir, *overrides)
-        defaults = load_config config_file(dir)
-        overrides.collect! {|uri| load_config(uri) }
+      def init(dir)
+        path   = config_file(dir)
+        config = path ? YAML.load_file(path) : nil
         
-        config = Utils.serial_merge(defaults, *overrides)
-        new(dir, config)
-      end
-      
-      def load_config(uri)
-        config = uri ? open(uri) do |io|
-          stream_loader = YAML.load_stream(io)
-          stream_loader ? stream_loader.documents.first : nil
-        end : nil
-        config || {}
+        new(dir, config || {})
       end
       
       def gems
@@ -34,8 +25,6 @@ module Linecook
         end
       end
     end
-    
-    include Utils
     
     NAMESPACE = 'linebook'
     PATTERNS  = [
@@ -53,13 +42,8 @@ module Linecook
       @config = {
          'manifest'  => {},
          'paths'     => ['.'],
-         'gems'      => self.class.gems,
-         'namespace' => NAMESPACE
+         'gems'      => self.class.gems
        }.merge(config)
-    end
-    
-    def namespace
-      config['namespace']
     end
     
     def manifest
@@ -88,6 +72,10 @@ module Linecook
         manifest.merge!(overrides)
         manifest
       end
+    end
+    
+    def env(*uris)
+      Package.init(manifest, *uris)
     end
     
     private
