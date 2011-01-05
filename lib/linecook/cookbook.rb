@@ -1,4 +1,5 @@
 require 'linecook/utils'
+require 'open-uri'
 
 module Linecook
   class Cookbook
@@ -7,10 +8,16 @@ module Linecook
         Dir.glob(File.join(dir, '{C,c}ookbook')).first
       end
         
-      def init(dir)
-        path   = config_file(dir)
-        config = path ? YAML.load_file(path) : nil
-        new(dir, config || {})
+      def init(dir, *overrides)
+        defaults = load_config config_file(dir)
+        overrides.collect! {|uri| load_config(uri) }
+        
+        config = Utils.serial_merge(defaults, *overrides)
+        new(dir, config)
+      end
+      
+      def load_config(uri)
+        uri ? open(uri) {|io| YAML.load_stream(io).documents.first } : {}
       end
       
       def gems

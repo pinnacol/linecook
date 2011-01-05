@@ -9,6 +9,7 @@ cmd_class =
   when Init.name.to_s    then Init
   when Helpers.name.to_s then Helpers
   when Scripts.name.to_s then Scripts
+  when Env.name.to_s     then Env
   when nil, '-h', '--help'
     puts "Usage: linecook [options] COMMAND"
     exit
