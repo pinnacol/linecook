@@ -76,19 +76,6 @@ namespace :vbox do
 end
 
 #
-# Linecook Tasks
-#
-
-desc "generate helpers"
-task :helpers => :bundle do
-  sh 'bundle exec linecook helpers --force'
-end
-
-task :scripts => [:helpers, :bundle] do
-  sh 'bundle exec linecook scripts'
-end
-
-#
 # Dependency tasks
 #
 
