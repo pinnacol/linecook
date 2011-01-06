@@ -14,6 +14,8 @@ END_OF_TEMPLATE
 # :startdoc:
 
 # Writes a comment
+# ==== COMMENT ERB
+#   # <%= str %>
 def comment(str)
   eval(COMMENT, binding, __FILE__, COMMENT_LINE)
   nil
@@ -41,6 +43,10 @@ END_OF_TEMPLATE
 #   indent      add '-' before the delimiter
 #   quote       quotes the delimiter
 # 
+# ==== HEREDOC ERB
+#   <<<%= options[:indent] ? '-' : ' '%><%= options[:quote] ? "\"#{delimiter}\"" : delimiter %>
+#   <% yield %>
+#   <%= delimiter %>
 def heredoc(options={})
   delimiter = options[:delimiter] || begin
     @heredoc_count ||= -1
@@ -56,6 +62,7 @@ end
 
 ################################ not_if ################################
 
+# 
 def not_if(cmd, &block)
   only_if("! #{cmd}", &block)
 end
@@ -77,6 +84,12 @@ fi
 END_OF_TEMPLATE
 # :startdoc:
 
+# 
+# ==== ONLY_IF ERB
+#   if <%= cmd %>
+#   then
+#   <% indent { yield } %>
+#   fi
 def only_if(cmd)
   eval(ONLY_IF, binding, __FILE__, ONLY_IF_LINE)
   nil
@@ -110,6 +123,20 @@ END_OF_TEMPLATE
 
 # Sets bash options for the duration of a block.  If no block is given,
 # set simply sets the options as specified.
+# ==== SET ERB
+#   <% if block_given? %>
+#   <% reset_file = "LINECOOK_RESET_OPTIONS_#{next_count}" %>
+#   <%= reset_file %>=`mktemp /tmp/line_cook_reset_fileXXXXXX`
+#   set -o | sed 's/\(.*\)	on/set -o \1/' | sed 's/\(.*\)	off/set +o \1/' > $<%= reset_file %>
+#   <% end %><% options.keys.sort_by {|opt| opt.to_s }.each do |opt| %>
+#   set <%= options[opt] ? '-' : '+' %>o <%= opt %>
+#   <% end %>
+#   <% if block_given? %>
+#   
+#   <% indent { yield }  %>
+#   
+#   source $<%= reset_file %>
+#   <% end %>
 def set(options)
   eval(SET, binding, __FILE__, SET_LINE)
   nil
@@ -131,6 +158,10 @@ END_OF_TEMPLATE
 # :startdoc:
 
 # Unsets a list of variables.
+# ==== UNSET ERB
+#   <% keys.each do |key| %>
+#   unset <%= key %>
+#   <% end %>
 def unset(*keys)
   eval(UNSET, binding, __FILE__, UNSET_LINE)
   nil

@@ -45,6 +45,10 @@ BREAK_LINE = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
 END_OF_TEMPLATE
 # :startdoc:
 
+# 
+# ==== BREAK_LINE ERB
+#   <% n = (76 - comment.length)/2 %>
+#   <%= "#" * n %><%= comment %><%= "#" * n %>
 def break_line(comment="")
   eval(BREAK_LINE, binding, __FILE__, BREAK_LINE_LINE)
   nil
@@ -64,6 +68,8 @@ END_OF_TEMPLATE
 # :startdoc:
 
 # Adds a check after a command that ensures the status is as indicated
+# ==== CHECK_STATUS ERB
+#   check_status <%= status %> $? $LINENO
 def check_status(status=0)
   eval(CHECK_STATUS, binding, __FILE__, CHECK_STATUS_LINE)
   nil
@@ -83,6 +89,8 @@ END_OF_TEMPLATE
 # :startdoc:
 
 # Adds the check status function.
+# ==== CHECK_STATUS_FUNCTION ERB
+#   function check_status { if [ $1 -ne $2 ]; then echo "[$2] $0:$3"; exit $2; fi }
 def check_status_function
   eval(CHECK_STATUS_FUNCTION, binding, __FILE__, CHECK_STATUS_FUNCTION_LINE)
   nil
@@ -103,6 +111,10 @@ RECIPE = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
 END_OF_TEMPLATE
 # :startdoc:
 
+# 
+# ==== RECIPE ERB
+#   "<%= env_path %>" - "<%= shell_path %>" "<%= recipe_path(name) %>" $*
+#   <% check_status %>
 def recipe(name)
   eval(RECIPE, binding, __FILE__, RECIPE_LINE)
   nil
@@ -150,6 +162,33 @@ END_OF_TEMPLATE
 # == Notes
 # Use dev/null on set such that no options will not dump ENV into stdout.
 # 
+# ==== SHEBANG ERB
+#   #! <%= shell_path %>
+#   
+#   <%= break_line %>
+#   <%= check_status_function %>
+#   
+#   export -f check_status
+#   export LINECOOK_DIR=$(dirname $0)
+#   export LINECOOK_OPTIONS=
+#   
+#   while getopts bhvx opt
+#   do
+#     case $opt in
+#     v)  LINECOOK_OPTIONS="$LINECOOK_OPTIONS -v";;
+#     x)  LINECOOK_OPTIONS="$LINECOOK_OPTIONS -x";;
+#     h)  printf "Usage: %s: [-hvx]\n" $0
+#         printf "  -h    prints this help\n"
+#         printf "  -v    verbose (set -v)\n"
+#         printf "  -x    xtrace  (set -x)\n"
+#         exit 0;;
+#     ?)  printf "Usage: %s: [-hvx]\n" $0
+#         exit 2;;
+#     esac
+#   done
+#   
+#   set $LINECOOK_OPTIONS > /dev/null
+#   <%= break_line " #{target_name} " %>
 def shebang(shell_path=DEFAULT_SHELL_PATH, env_path=DEFAULT_ENV_PATH)
   @shell_path = shell_path
   @env_path  = env_path

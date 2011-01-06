@@ -32,21 +32,21 @@ module Linecook
     end
     
     def definitions
-      @definitions ||= @definition_paths.collect do |path|
-        name = File.basename(path).chomp File.extname(path)
-        desc, signature, body = parse File.read(path)
-        [name, desc, signature, body, File.extname(path)]
-      end
+      @definitions ||= @definition_paths.collect {|path| parse(path) }
     end
     
     private
     
-    def parse(str)
-      head, body = str.split(/^--.*\n/, 2)
+    def parse(path)
+      extname = File.extname(path)
+      name = File.basename(path).chomp(extname)
+      
+      head, body = File.read(path).split(/^--.*\n/, 2)
       head, body = '', head if body.nil?
       signature, desc = parse_head(head)
       
-      [desc, signature.join("\n"), body]
+      desc << '' if desc.empty?
+      [name, desc, signature.join("\n"), body, extname]
     end
     
     def parse_head(head)
@@ -98,6 +98,11 @@ END_OF_TEMPLATE
 
 <% desc.each do |line| %>
 # <%= line %>
+<% end %><% unless type == '.rb' %>
+# ==== <%= name.upcase %> ERB
+<% body.each_line do |line| %>
+#   <%= line.chomp %>
+<% end %>
 <% end %>
 def <%= method_name(name) %><%= signature %>
 <% if type == '.rb' %>

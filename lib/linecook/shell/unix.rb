@@ -15,6 +15,9 @@ cat<% sources.each do |source| %> "<%= source %>"<% end %>
 END_OF_TEMPLATE
 # :startdoc:
 
+# 
+# ==== CAT ERB
+#   cat<% sources.each do |source| %> "<%= source %>"<% end %>
 def cat(*sources)
   eval(CAT, binding, __FILE__, CAT_LINE)
   nil
@@ -36,6 +39,12 @@ chmod <%= mode %> "<%= target %>"
 END_OF_TEMPLATE
 # :startdoc:
 
+# 
+# ==== CHMOD ERB
+#   <% if mode %>
+#   chmod <%= mode %> "<%= target %>"
+#   <% check_status %>
+#   <% end %>
 def chmod(target, mode=nil)
   eval(CHMOD, binding, __FILE__, CHMOD_LINE)
   nil
@@ -57,6 +66,12 @@ chown <%= user %>:<%= group %> "<%= target %>"
 END_OF_TEMPLATE
 # :startdoc:
 
+# 
+# ==== CHOWN ERB
+#   <% if user || group %>
+#   chown <%= user %>:<%= group %> "<%= target %>"
+#   <% check_status %>
+#   <% end %>
 def chown(target, user=nil, group=nil)
   eval(CHOWN, binding, __FILE__, CHOWN_LINE)
   nil
@@ -76,6 +91,8 @@ END_OF_TEMPLATE
 # :startdoc:
 
 # Echos input
+# ==== ECHO ERB
+#   echo '<%= args.join(" ") %>'
 def echo(*args)
   eval(ECHO, binding, __FILE__, ECHO_LINE)
   nil
@@ -96,6 +113,10 @@ ln -sf "<%= source %>" "<%= target %>"
 END_OF_TEMPLATE
 # :startdoc:
 
+# 
+# ==== LN_S ERB
+#   ln -sf "<%= source %>" "<%= target %>"
+#   <% check_status %>
 def ln_s(source, target)
   eval(LN_S, binding, __FILE__, LN_S_LINE)
   nil
@@ -116,6 +137,11 @@ rm <% if opts %><%= opts %> <% end %>"<%= path %>"
 END_OF_TEMPLATE
 # :startdoc:
 
+# 
+# ==== RM ERB
+#   <% only_if %Q{ls -l "#{path}"} do %>
+#   rm <% if opts %><%= opts %> <% end %>"<%= path %>"
+#   <% end %>
 def rm(path, opts=nil)
   eval(RM, binding, __FILE__, RM_LINE)
   nil
