@@ -24,7 +24,7 @@ if cmd_class.nil?
     
     exit
   when '-v', '--version'
-    puts "version #{Linecook::VERSION} -- #{Linecook::WEBSITE}"
+    puts "linecook version #{Linecook::VERSION} -- #{Linecook::WEBSITE}"
     exit
   else
     puts "unknown command: #{cmd.inspect}"
