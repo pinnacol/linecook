@@ -88,7 +88,7 @@ sources.each_pair do |dir, sources|
   target = File.join(lib_dir, 'linebook', "#{name}.rb")
   
   file target => sources + [dir] do
-    system "bundle exec linecook helper '#{name}' --force"
+    sh "bundle exec linecook helper '#{name}' --force"
   end
   
   helpers << target
