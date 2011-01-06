@@ -1,7 +1,7 @@
 module Linecook
   module Commands
     
-    # ::desc vm_name
+    # Linecook::Commands::Start::desc vm_name
     # start the vm
     class Start < Command
       config :type, 'headless'
@@ -13,7 +13,7 @@ module Linecook
       end
     end
     
-    # ::desc vm_name
+    # Linecook::Commands::Stop::desc vm_name
     # stop the vm
     class Stop < Command
       def process(vmname='vbox')
@@ -23,7 +23,7 @@ module Linecook
       end
     end
     
-    # ::desc vm_name
+    # Linecook::Commands::Reset::desc vm_name
     # reset the vm to a snapshot
     class Reset < Command
       
@@ -40,7 +40,7 @@ module Linecook
       end
     end
     
-    # ::desc snapshot, vm_name
+    # Linecook::Commands::Snapshot::desc snapshot, vm_name
     # take a snapshop
     class Snapshot < Command
       def process(snapshot, vmname='vbox')
@@ -49,7 +49,7 @@ module Linecook
       end
     end
     
-    # ::desc vm_name
+    # Linecook::Commands::State::desc vm_name
     class State < Command
       def process(vmname='vbox')
         if `VBoxManage -q list runningvms`.include?(vmname)
@@ -60,7 +60,7 @@ module Linecook
       end
     end
     
-    # ::desc cmd
+    # Linecook::Commands::Ssh::desc cmd
     # ssh to a vm and execute a command
     class Ssh < Command
       
