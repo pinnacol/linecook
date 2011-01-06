@@ -11,11 +11,20 @@ if cmd_class.nil?
   case cmd
   when nil, '-h', '--help'
     puts "usage: linecook [options] COMMAND"
+    puts
     puts "commands: "
     registry.keys.sort.each do |key|
       cmd_class = registry[key]
-      puts "  %-8s   %s" % [key, cmd_class.desc]
+      puts "  %-16s   %s" % [key, cmd_class.desc]
     end
+    puts
+    puts "options:"
+    puts  "  -%s, --%-10s   %s" % ['v', 'version', 'print version']
+    puts  "  -%s, --%-10s   %s" % ['h', 'help', 'print this help']
+    
+    exit
+  when '-v', '--version'
+    puts "version #{Linecook::VERSION}"
     exit
   else
     puts "unknown command: #{cmd.inspect}"
