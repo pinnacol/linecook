@@ -17,7 +17,14 @@ module Linecook
     end
     
     def manifest
-      cookbook.manifest
+      @manifest ||= cookbook.manifest
+    end
+    
+    def use_method_dir_manifest
+      @manifest = Hash.new do |hash, relative_path|
+        path = File.join(method_dir, relative_path.to_s)
+        hash[relative_path] = File.exists?(path) ? path : nil
+      end
     end
     
     def default_env
@@ -139,6 +146,13 @@ module Linecook
 
       assert_equal true, registry.has_key?(build_path), "not in registry: #{build_path}"
       assert_output_equal expected, File.read(registry[build_path]), build_path
+    end
+    
+    def assert_content_match(expected, build_path)
+      registry = recipe.close
+
+      assert_equal true, registry.has_key?(build_path), "not in registry: #{build_path}"
+      assert_alike expected, File.read(registry[build_path]), build_path
     end
     
     private

@@ -11,11 +11,7 @@ class RecipeTest < Test::Unit::TestCase
   
   def setup
     super
-    
-    @manifest = Hash.new do |hash, relative_path|
-      path = File.join(method_dir, relative_path.to_s)
-      hash[relative_path] = File.exists?(path) ? path : nil
-    end
+    use_method_dir_manifest
   end
   
   #
