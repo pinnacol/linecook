@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.author  = 'Simon Chiang'
   s.email   = 'simon.chiang@pinnacol.com'
   s.summary = 'A shell script generator.'
-  s.homepage = 'http://gems.pinnacol.com/linecook'
+  s.homepage = Linecook::WEBSITE
   s.rubyforge_project = ''
   s.platform = Gem::Platform::RUBY
   s.has_rdoc = true

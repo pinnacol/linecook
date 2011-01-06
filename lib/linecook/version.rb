@@ -4,4 +4,5 @@ module Linecook
   TINY  = 0
 
   VERSION = "#{MAJOR}.#{MINOR}.#{TINY}"
+  WEBSITE = "http://github.com/pinnacol/linecook"
 end
