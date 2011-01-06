@@ -113,4 +113,17 @@ now!
   def test_assert_alike_regexp_escapes_strings
     assert_alike "a:...:c", "...alot of random stuff toc..."
   end
+  
+  #
+  # assert_content test
+  #
+  
+  def test_assert_content_checks_the_registered_content_is_as_expected
+    recipe.instance_eval do
+      target << target_file('name', 'content')
+    end
+    
+    assert_content 'recipe.d/name', 'recipe'
+    assert_content 'content', 'recipe.d/name'
+  end
 end
