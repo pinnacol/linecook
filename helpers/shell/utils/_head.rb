@@ -17,8 +17,8 @@ def env_path
   @env_path ||= DEFAULT_ENV_PATH
 end
 
-def target_path(source_path, basename=nil)
-  TARGET_PATH % super(source_path, basename)
+def target_path(source_path)
+  TARGET_PATH % super(source_path)
 end
 
 def close

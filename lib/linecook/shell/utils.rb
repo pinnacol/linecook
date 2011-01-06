@@ -7,7 +7,7 @@ module Utils
 require 'linecook/shell/posix'
 include Posix
 
-DEFAULT_SHELL_PATH = '/bin/bash'
+DEFAULT_SHELL_PATH = '/bin/sh'
 DEFAULT_ENV_PATH   = '/usr/bin/env'
 
 TARGET_PATH = '$LINECOOK_DIR/%s'
