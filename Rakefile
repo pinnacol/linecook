@@ -99,6 +99,7 @@ end
 
 lib_dir     = File.expand_path("../lib", __FILE__)
 helpers_dir = File.expand_path("../helpers", __FILE__)
+helper_code = File.expand_path("../lib/linecook/helper.rb", __FILE__)
 
 sources = {}
 Dir.glob("#{helpers_dir}/**/*").each do |source|
@@ -110,7 +111,7 @@ sources.each_pair do |dir, sources|
   name = dir[(helpers_dir.length + 1)..-1]
   target = File.join(lib_dir, 'linecook', "#{name}.rb")
   
-  file target => sources + [dir] do
+  file target => sources + [dir, helper_code] do
     sh "bundle exec linecook helper '#{name}' --namespace linecook --force"
   end
   
