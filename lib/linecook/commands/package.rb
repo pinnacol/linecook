@@ -6,7 +6,7 @@ require 'yaml'
 module Linecook
   module Commands
     
-    # ::desc source [target]
+    # ::desc generates a package
     #
     # Generates a package.
     #
@@ -14,7 +14,9 @@ module Linecook
       config :cookbook_dir, '.', :short => :d       # the cookbook directory
       config :force, false, :short => :f, &c.flag   # force creation
       
-      def process(source, target=default_target(source))
+      def process(source, target=nil)
+        target ||= default_target(source)
+        
         if File.exists?(target)
           if force
             FileUtils.rm_r(target)

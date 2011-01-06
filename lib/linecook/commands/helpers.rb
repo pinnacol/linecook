@@ -4,7 +4,7 @@ require 'linecook/helper'
 module Linecook
   module Commands
     
-    # ::desc patterns...
+    # ::desc generates helpers
     #
     # Generates helpers that match the input patterns (by default all,
     # helpers).
@@ -16,9 +16,9 @@ module Linecook
       
       include Utils
       
-      def call(argv)
-        argv << '.*' if argv.empty?
-        filters  = argv.collect {|arg| Regexp.new("^#{arg}$", Regexp::IGNORECASE) }
+      def process(*patterns)
+        patterns << '.*' if patterns.empty?
+        filters = patterns.collect {|arg| Regexp.new("^#{arg}$", Regexp::IGNORECASE) }
         
         each_helper(cookbook_dir) do |sources, target, const_name|
           next unless filters.any? {|filter| filter =~ const_name }

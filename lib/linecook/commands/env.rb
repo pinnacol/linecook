@@ -4,7 +4,8 @@ require 'linecook/cookbook'
 module Linecook
   module Commands
     
-    # ::desc [keys...]
+    # ::desc prints the cookbook env
+    #
     # Print the cookbook env.
     #
     class Env < Command

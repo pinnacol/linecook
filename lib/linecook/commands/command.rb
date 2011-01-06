@@ -19,6 +19,8 @@ module Linecook
       include Configurable
       
       lazy_attr :desc
+      lazy_attr :args, :process
+      lazy_register :process, Lazydoc::Arguments
       
       def initialize(config)
         initialize_config(config)
