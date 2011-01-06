@@ -53,14 +53,14 @@ module Linecook
     end
 
     def assert_content(expected, build_path)
-      registry = recipe.close
+      registry = recipe.close.registry
 
       assert_equal true, registry.has_key?(build_path), "not in registry: #{build_path}"
       assert_output_equal expected, File.read(registry[build_path]), build_path
     end
     
     def assert_content_match(expected, build_path)
-      registry = recipe.close
+      registry = recipe.close.registry
 
       assert_equal true, registry.has_key?(build_path), "not in registry: #{build_path}"
       assert_alike expected, File.read(registry[build_path]), build_path

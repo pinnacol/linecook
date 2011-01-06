@@ -97,7 +97,7 @@ module Linecook
     
     def close
       @package.close
-      @package.registry
+      @package
     end
   end
 end

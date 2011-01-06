@@ -50,7 +50,7 @@ class RecipeTest < Test::Unit::TestCase
     path = recipe.target_file('name.txt', 'content')
     assert_equal 'recipe.d/name.txt', path
     
-    registry = recipe.close
+    registry = recipe.close.registry
     
     source_path = registry[path]
     assert_equal 'content', File.read(source_path)
@@ -116,7 +116,7 @@ class RecipeTest < Test::Unit::TestCase
     path = recipe.capture_path('example.sh') { target << 'content'}
     assert_equal 'recipe.d/example.sh', path
     
-    registry = recipe.close
+    registry = recipe.close.registry
     
     source_path = registry[path]
     assert_equal 'content', File.read(source_path)
@@ -130,7 +130,7 @@ class RecipeTest < Test::Unit::TestCase
     file('recipes/example.rb') {|io| io << "target.puts 'content'"}
     assert_equal 'example', recipe.recipe_path('example')
 
-    registry = recipe.close
+    registry = recipe.close.registry
     
     source_path = registry['recipe']
     assert_equal "", File.read(source_path)
@@ -151,7 +151,7 @@ class RecipeTest < Test::Unit::TestCase
     path = recipe.template_path('example.txt', :key => 'value')
     assert_equal 'recipe.d/example.txt', path
     
-    registry = recipe.close
+    registry = recipe.close.registry
     
     source_path = registry[path]
     assert_equal 'got value', File.read(source_path)
