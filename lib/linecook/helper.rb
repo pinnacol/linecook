@@ -109,8 +109,7 @@ END_OF_TEMPLATE
 # :startdoc:
 
 <% desc.each do |line| %>
-# <%= line %>
-<% end %>
+# <%= line %><% end %>
 def <%= method_name(name) %><%= signature %>
   eval(<%= name.upcase %>, binding, __FILE__, <%= name.upcase %>_LINE)
   nil
@@ -124,8 +123,7 @@ DOC
     RB_TEMPLATE_LINE = __LINE__ + 2
     RB_TEMPLATE = ERB.new(<<-DOC, nil, '<>').src
 <% desc.each do |line| %>
-# <%= line %>
-<% end %>
+# <%= line %><% end %>
 def <%= method_name(name) %><%= signature %>
   <%= body %>
 end

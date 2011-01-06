@@ -32,13 +32,9 @@ END_OF_TEMPLATE
 # :startdoc:
 
 # Makes a heredoc statement surrounding the contents of the block.  Options:
-
 # 
-
 #   delimiter   the delimiter used, by default HEREDOC_n where n increments
-
 #   indent      add '-' before the delimiter
-
 #   quote       quotes the delimiter
 
 def heredoc(options={})
@@ -53,6 +49,7 @@ end
 def _heredoc(*args, &block) # :nodoc:
   capture { heredoc(*args, &block) }
 end
+
 
 def not_if(cmd, &block)
   only_if("! #{cmd}", &block)
@@ -72,6 +69,7 @@ fi
 
 END_OF_TEMPLATE
 # :startdoc:
+
 
 def only_if(cmd)
   eval(ONLY_IF, binding, __FILE__, ONLY_IF_LINE)
@@ -103,7 +101,6 @@ END_OF_TEMPLATE
 # :startdoc:
 
 # Sets bash options for the duration of a block.  If no block is given,
-
 # set simply sets the options as specified.
 def set(options)
   eval(SET, binding, __FILE__, SET_LINE)

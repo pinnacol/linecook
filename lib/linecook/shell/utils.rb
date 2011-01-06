@@ -43,6 +43,7 @@ BREAK_LINE = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
 END_OF_TEMPLATE
 # :startdoc:
 
+
 def break_line(comment="")
   eval(BREAK_LINE, binding, __FILE__, BREAK_LINE_LINE)
   nil
@@ -95,6 +96,7 @@ RECIPE = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
 END_OF_TEMPLATE
 # :startdoc:
 
+
 def recipe(name)
   eval(RECIPE, binding, __FILE__, RECIPE_LINE)
   nil
@@ -138,7 +140,6 @@ END_OF_TEMPLATE
 # :startdoc:
 
 # == Notes
-
 # Use dev/null on set such that no options will not dump ENV into stdout.
 
 def shebang(shell_path=DEFAULT_SHELL_PATH, env_path=DEFAULT_ENV_PATH)

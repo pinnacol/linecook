@@ -13,6 +13,7 @@ cat<% sources.each do |source| %> "<%= source %>"<% end %>
 END_OF_TEMPLATE
 # :startdoc:
 
+
 def cat(*sources)
   eval(CAT, binding, __FILE__, CAT_LINE)
   nil
@@ -32,6 +33,7 @@ chmod <%= mode %> "<%= target %>"
 END_OF_TEMPLATE
 # :startdoc:
 
+
 def chmod(target, mode=nil)
   eval(CHMOD, binding, __FILE__, CHMOD_LINE)
   nil
@@ -50,6 +52,7 @@ chown <%= user %>:<%= group %> "<%= target %>"
 <% end %>
 END_OF_TEMPLATE
 # :startdoc:
+
 
 def chown(target, user=nil, group=nil)
   eval(CHOWN, binding, __FILE__, CHOWN_LINE)
@@ -86,6 +89,7 @@ ln -sf "<%= source %>" "<%= target %>"
 END_OF_TEMPLATE
 # :startdoc:
 
+
 def ln_s(source, target)
   eval(LN_S, binding, __FILE__, LN_S_LINE)
   nil
@@ -103,6 +107,7 @@ rm <% if opts %><%= opts %> <% end %>"<%= path %>"
 <% end %>
 END_OF_TEMPLATE
 # :startdoc:
+
 
 def rm(path, opts=nil)
   eval(RM, binding, __FILE__, RM_LINE)
