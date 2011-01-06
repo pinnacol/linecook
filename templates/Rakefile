@@ -1,74 +1,6 @@
 require 'rake'
 
 #
-# Linecook Helpers
-#
-
-lib_dir     = File.expand_path("../lib", __FILE__)
-helpers_dir = File.expand_path("../helpers", __FILE__)
-
-sources = {}
-Dir.glob("#{helpers_dir}/**/*").each do |source|
-  next if File.directory?(source)
-  (sources[File.dirname(source)] ||= []) << source
-end
-
-sources.each_pair do |dir, sources|
-  name = dir[(helpers_dir.length + 1)..-1]
-  target = File.join(lib_dir, 'linebook', "#{name}.rb")
-  
-  file target => sources + [dir] do
-    system "bundle exec linecook helper '#{name}' --force"
-  end
-  
-  task :helpers => target
-end
-
-desc "generate helpers"
-task :helpers => :bundle
-
-#
-# Linecook Scripts
-#
-
-scripts      = Dir.glob("scripts/*.yml")
-dependencies = Dir.glob('{attributes,files,recipes,templates}/**/*')
-
-scripts.each do |source|
-  target = source.chomp('.yml')
-  name   = File.basename(target)
-  
-  namespace :scripts do
-    file target => dependencies + [source, :helpers] do
-      sh "bundle exec linecook package '#{source}' '#{target}' --force"
-    end
-    
-    desc "generate the script: #{name}"
-    task name => target
-  end
-  
-  task :scripts => target
-end
-
-desc "generate scripts"
-task :scripts
-
-#
-# Dependency tasks
-#
-
-desc 'Bundle dependencies'
-task :bundle do
-  output = `bundle check 2>&1`
-  
-  unless $?.to_i == 0
-    puts output
-    sh "bundle install 2>&1"
-    puts
-  end
-end
-
-#
 # Gem tasks
 #
 
@@ -120,6 +52,74 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
   files = spec.files.select {|file| file =~ /^lib.*\.rb$/}
   rdoc.rdoc_files.include( files )
 end
+
+#
+# Dependency tasks
+#
+
+desc 'Bundle dependencies'
+task :bundle do
+  output = `bundle check 2>&1`
+  
+  unless $?.to_i == 0
+    puts output
+    sh "bundle install 2>&1"
+    puts
+  end
+end
+
+#
+# Linecook Helpers
+#
+
+lib_dir     = File.expand_path("../lib", __FILE__)
+helpers_dir = File.expand_path("../helpers", __FILE__)
+
+sources = {}
+Dir.glob("#{helpers_dir}/**/*").each do |source|
+  next if File.directory?(source)
+  (sources[File.dirname(source)] ||= []) << source
+end
+
+sources.each_pair do |dir, sources|
+  name = dir[(helpers_dir.length + 1)..-1]
+  target = File.join(lib_dir, 'linebook', "#{name}.rb")
+  
+  file target => sources + [dir] do
+    system "bundle exec linecook helper '#{name}' --force"
+  end
+  
+  task :helpers => target
+end
+
+desc "generate helpers"
+task :helpers => :bundle
+
+#
+# Linecook Scripts
+#
+
+scripts      = Dir.glob("scripts/*.yml")
+dependencies = Dir.glob('{attributes,files,recipes,templates}/**/*')
+
+scripts.each do |source|
+  target = source.chomp('.yml')
+  name   = File.basename(target)
+  
+  namespace :scripts do
+    file target => dependencies + [source, :helpers] do
+      sh "bundle exec linecook package '#{source}' '#{target}' --force"
+    end
+    
+    desc "generate the script: #{name}"
+    task name => target
+  end
+  
+  task :scripts => target
+end
+
+desc "generate scripts"
+task :scripts
 
 #
 # Test tasks
