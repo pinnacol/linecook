@@ -2,9 +2,6 @@
 # Adding this file to a gem marks it as a cookbook gem
 # (note that in a gem the contents of this file are ignored)
 
-# The namespace for helpers
-# namespace: linebook
-
 # Define directories searched for attributes/recipes/etc.
 # paths: ['.']
 
