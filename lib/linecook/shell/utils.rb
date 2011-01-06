@@ -89,13 +89,13 @@ end
 # :stopdoc:
 RECIPE_LINE = __LINE__ + 2
 RECIPE = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
-"<%= env_path %>" - "<%= shell_path %>" "<%= recipe_path(name, &block) %>" $*
+"<%= env_path %>" - "<%= shell_path %>" "<%= recipe_path(name) %>" $*
 <% check_status %>
 
 END_OF_TEMPLATE
 # :startdoc:
 
-def recipe(name, &block)
+def recipe(name)
   eval(RECIPE, binding, __FILE__, RECIPE_LINE)
   nil
 end
