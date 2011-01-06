@@ -4,6 +4,8 @@ require 'erb'
 module Linecook
 module Shell
 module Posix
+############################### comment ###############################
+
 # :stopdoc:
 COMMENT_LINE = __LINE__ + 2
 COMMENT = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
@@ -21,6 +23,8 @@ def _comment(*args, &block) # :nodoc:
   capture { comment(*args, &block) }
 end
 
+############################### heredoc ###############################
+
 # :stopdoc:
 HEREDOC_LINE = __LINE__ + 2
 HEREDOC = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
@@ -36,7 +40,7 @@ END_OF_TEMPLATE
 #   delimiter   the delimiter used, by default HEREDOC_n where n increments
 #   indent      add '-' before the delimiter
 #   quote       quotes the delimiter
-
+# 
 def heredoc(options={})
   delimiter = options[:delimiter] || begin
     @heredoc_count ||= -1
@@ -50,14 +54,15 @@ def _heredoc(*args, &block) # :nodoc:
   capture { heredoc(*args, &block) }
 end
 
-
+################################ not_if ################################
 def not_if(cmd, &block)
-  only_if("! #{cmd}", &block)
-end
+  only_if("! #{cmd}", &block)end
 
 def _not_if(*args, &block) # :nodoc:
   capture { not_if(*args, &block) }
 end
+
+############################### only_if ###############################
 
 # :stopdoc:
 ONLY_IF_LINE = __LINE__ + 2
@@ -70,7 +75,6 @@ fi
 END_OF_TEMPLATE
 # :startdoc:
 
-
 def only_if(cmd)
   eval(ONLY_IF, binding, __FILE__, ONLY_IF_LINE)
   nil
@@ -79,6 +83,8 @@ end
 def _only_if(*args, &block) # :nodoc:
   capture { only_if(*args, &block) }
 end
+
+################################### set ###################################
 
 # :stopdoc:
 SET_LINE = __LINE__ + 2
@@ -110,6 +116,8 @@ end
 def _set(*args, &block) # :nodoc:
   capture { set(*args, &block) }
 end
+
+################################# unset #################################
 
 # :stopdoc:
 UNSET_LINE = __LINE__ + 2

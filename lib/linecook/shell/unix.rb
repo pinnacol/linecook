@@ -6,13 +6,14 @@ module Shell
 module Unix
 require 'linecook/shell/posix'
 include Posix
+################################### cat ###################################
+
 # :stopdoc:
 CAT_LINE = __LINE__ + 2
 CAT = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
 cat<% sources.each do |source| %> "<%= source %>"<% end %>
 END_OF_TEMPLATE
 # :startdoc:
-
 
 def cat(*sources)
   eval(CAT, binding, __FILE__, CAT_LINE)
@@ -22,6 +23,8 @@ end
 def _cat(*args, &block) # :nodoc:
   capture { cat(*args, &block) }
 end
+
+################################# chmod #################################
 
 # :stopdoc:
 CHMOD_LINE = __LINE__ + 2
@@ -33,7 +36,6 @@ chmod <%= mode %> "<%= target %>"
 END_OF_TEMPLATE
 # :startdoc:
 
-
 def chmod(target, mode=nil)
   eval(CHMOD, binding, __FILE__, CHMOD_LINE)
   nil
@@ -42,6 +44,8 @@ end
 def _chmod(*args, &block) # :nodoc:
   capture { chmod(*args, &block) }
 end
+
+################################# chown #################################
 
 # :stopdoc:
 CHOWN_LINE = __LINE__ + 2
@@ -53,7 +57,6 @@ chown <%= user %>:<%= group %> "<%= target %>"
 END_OF_TEMPLATE
 # :startdoc:
 
-
 def chown(target, user=nil, group=nil)
   eval(CHOWN, binding, __FILE__, CHOWN_LINE)
   nil
@@ -62,6 +65,8 @@ end
 def _chown(*args, &block) # :nodoc:
   capture { chown(*args, &block) }
 end
+
+################################## echo ##################################
 
 # :stopdoc:
 ECHO_LINE = __LINE__ + 2
@@ -80,6 +85,8 @@ def _echo(*args, &block) # :nodoc:
   capture { echo(*args, &block) }
 end
 
+################################## ln_s ##################################
+
 # :stopdoc:
 LN_S_LINE = __LINE__ + 2
 LN_S = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
@@ -88,7 +95,6 @@ ln -sf "<%= source %>" "<%= target %>"
 
 END_OF_TEMPLATE
 # :startdoc:
-
 
 def ln_s(source, target)
   eval(LN_S, binding, __FILE__, LN_S_LINE)
@@ -99,6 +105,8 @@ def _ln_s(*args, &block) # :nodoc:
   capture { ln_s(*args, &block) }
 end
 
+#################################### rm ####################################
+
 # :stopdoc:
 RM_LINE = __LINE__ + 2
 RM = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
@@ -107,7 +115,6 @@ rm <% if opts %><%= opts %> <% end %>"<%= path %>"
 <% end %>
 END_OF_TEMPLATE
 # :startdoc:
-
 
 def rm(path, opts=nil)
   eval(RM, binding, __FILE__, RM_LINE)

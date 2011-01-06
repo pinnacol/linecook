@@ -54,7 +54,7 @@ module Linecook
       head, body = '', head if body.nil?
       signature, desc = parse_head(head)
       
-      [desc.join("\n"), signature.join("\n"), body]
+      [desc, signature.join("\n"), body]
     end
     
     def parse_head(head)
@@ -100,6 +100,10 @@ DOC
     
     ERB_TEMPLATE_LINE = __LINE__ + 2
     ERB_TEMPLATE = ERB.new(<<-DOC, nil, '<>').src
+<% n = 40 - name.length - 2 %>
+<%= "#" * n %> <%= name %> <%= "#" * n %>
+
+
 # :stopdoc:
 <%= name.upcase %>_LINE = __LINE__ + 2
 <%= name.upcase %> = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
@@ -109,7 +113,8 @@ END_OF_TEMPLATE
 # :startdoc:
 
 <% desc.each do |line| %>
-# <%= line %><% end %>
+# <%= line %>
+<% end %>
 def <%= method_name(name) %><%= signature %>
   eval(<%= name.upcase %>, binding, __FILE__, <%= name.upcase %>_LINE)
   nil
@@ -122,10 +127,14 @@ DOC
 
     RB_TEMPLATE_LINE = __LINE__ + 2
     RB_TEMPLATE = ERB.new(<<-DOC, nil, '<>').src
+<% n = 40 - name.length - 2 %>
+<%= "#" * n %> <%= name %> <%= "#" * n %>
+
 <% desc.each do |line| %>
-# <%= line %><% end %>
+# <%= line %>
+<% end %>
 def <%= method_name(name) %><%= signature %>
-  <%= body %>
+<%= body %>
 end
 
 def _<%= method_name(name) %>(*args, &block) # :nodoc:

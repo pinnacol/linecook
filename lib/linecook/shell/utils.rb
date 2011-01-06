@@ -34,6 +34,8 @@ def close
   
   super
 end
+############################ break_line ############################
+
 # :stopdoc:
 BREAK_LINE_LINE = __LINE__ + 2
 BREAK_LINE = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
@@ -43,7 +45,6 @@ BREAK_LINE = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
 END_OF_TEMPLATE
 # :startdoc:
 
-
 def break_line(comment="")
   eval(BREAK_LINE, binding, __FILE__, BREAK_LINE_LINE)
   nil
@@ -52,6 +53,8 @@ end
 def _break_line(*args, &block) # :nodoc:
   capture { break_line(*args, &block) }
 end
+
+########################## check_status ##########################
 
 # :stopdoc:
 CHECK_STATUS_LINE = __LINE__ + 2
@@ -70,6 +73,8 @@ def _check_status(*args, &block) # :nodoc:
   capture { check_status(*args, &block) }
 end
 
+################# check_status_function #################
+
 # :stopdoc:
 CHECK_STATUS_FUNCTION_LINE = __LINE__ + 2
 CHECK_STATUS_FUNCTION = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
@@ -87,6 +92,8 @@ def _check_status_function(*args, &block) # :nodoc:
   capture { check_status_function(*args, &block) }
 end
 
+################################ recipe ################################
+
 # :stopdoc:
 RECIPE_LINE = __LINE__ + 2
 RECIPE = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
@@ -96,7 +103,6 @@ RECIPE = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
 END_OF_TEMPLATE
 # :startdoc:
 
-
 def recipe(name)
   eval(RECIPE, binding, __FILE__, RECIPE_LINE)
   nil
@@ -105,6 +111,8 @@ end
 def _recipe(*args, &block) # :nodoc:
   capture { recipe(*args, &block) }
 end
+
+############################### shebang ###############################
 
 # :stopdoc:
 SHEBANG_LINE = __LINE__ + 2
@@ -141,7 +149,7 @@ END_OF_TEMPLATE
 
 # == Notes
 # Use dev/null on set such that no options will not dump ENV into stdout.
-
+# 
 def shebang(shell_path=DEFAULT_SHELL_PATH, env_path=DEFAULT_ENV_PATH)
   @shell_path = shell_path
   @env_path  = env_path

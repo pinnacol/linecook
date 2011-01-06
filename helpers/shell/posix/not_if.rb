@@ -1,3 +1,3 @@
 (cmd, &block)
 --
-only_if("! #{cmd}", &block)
+  only_if("! #{cmd}", &block)
