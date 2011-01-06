@@ -28,6 +28,10 @@ module Linecook
         puts("      %s  %s" % [action, msg])
       end
       
+      def sh(cmd)
+        system cmd
+      end
+      
       def call(argv)
         process(*argv)
       end
