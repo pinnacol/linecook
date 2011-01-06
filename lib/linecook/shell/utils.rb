@@ -87,6 +87,24 @@ def _check_status_function(*args, &block) # :nodoc:
 end
 
 # :stopdoc:
+RECIPE_LINE = __LINE__ + 2
+RECIPE = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
+"<%= env_path %>" - "<%= shell_path %>" "<%= recipe_path(name, &block) %>" $*
+<% check_status %>
+
+END_OF_TEMPLATE
+# :startdoc:
+
+def recipe(name, &block)
+  eval(RECIPE, binding, __FILE__, RECIPE_LINE)
+  nil
+end
+
+def _recipe(*args, &block) # :nodoc:
+  capture { recipe(*args, &block) }
+end
+
+# :stopdoc:
 SHEBANG_LINE = __LINE__ + 2
 SHEBANG = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
 #! <%= shell_path %>

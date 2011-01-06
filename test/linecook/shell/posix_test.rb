@@ -68,4 +68,35 @@ class PosixTest < Test::Unit::TestCase
       heredoc(:indent => true) {}
     end
   end
+  
+  #
+  # not_if test
+  #
+  
+  def test_not_if_reverses_condition
+    assert_recipe %q{
+      if ! condition
+      then
+      fi
+      
+    } do
+      not_if('condition') {}
+    end
+  end
+  
+  #
+  # only_if test
+  #
+  
+  def test_only_if_encapsulates_block_in_if_statement
+    assert_recipe %q{
+      if condition
+      then
+        content
+      fi
+      
+    } do
+      only_if('condition') { target << 'content' }
+    end
+  end
 end

@@ -54,16 +54,8 @@ def _heredoc(*args, &block) # :nodoc:
   capture { heredoc(*args, &block) }
 end
 
-# :stopdoc:
-NOT_IF_LINE = __LINE__ + 2
-NOT_IF = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
-only_if("! #{cmd}", &block)
-END_OF_TEMPLATE
-# :startdoc:
-
 def not_if(cmd, &block)
-  eval(NOT_IF, binding, __FILE__, NOT_IF_LINE)
-  nil
+  only_if("! #{cmd}", &block)
 end
 
 def _not_if(*args, &block) # :nodoc:
