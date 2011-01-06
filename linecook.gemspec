@@ -39,6 +39,7 @@ Gem::Specification.new do |s|
     lib/linecook/commands/command.rb
     lib/linecook/commands/command_error.rb
     lib/linecook/commands/env.rb
+    lib/linecook/commands/helper.rb
     lib/linecook/commands/helpers.rb
     lib/linecook/commands/init.rb
     lib/linecook/commands/package.rb
