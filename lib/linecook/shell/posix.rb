@@ -55,8 +55,10 @@ def _heredoc(*args, &block) # :nodoc:
 end
 
 ################################ not_if ################################
+
 def not_if(cmd, &block)
-  only_if("! #{cmd}", &block)end
+  only_if("! #{cmd}", &block)
+end
 
 def _not_if(*args, &block) # :nodoc:
   capture { not_if(*args, &block) }
