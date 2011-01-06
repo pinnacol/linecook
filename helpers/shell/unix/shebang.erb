@@ -7,7 +7,7 @@ Use dev/null on set such that no options will not dump ENV into stdout.
 --
 #! <%= shell_path %>
 
-<%= break_line %>
+<%= section %>
 <%= check_status_function %>
 
 export -f check_status
@@ -30,4 +30,4 @@ do
 done
 
 set $LINECOOK_OPTIONS > /dev/null
-<%= break_line " #{target_name} " %>
+<%= section " #{target_name} " %>

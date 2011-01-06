@@ -6,6 +6,34 @@ module Shell
 module Unix
 require 'linecook/shell/posix'
 include Posix
+
+DEFAULT_SHELL_PATH = '/bin/sh'
+DEFAULT_ENV_PATH   = '/usr/bin/env'
+
+TARGET_PATH = '$LINECOOK_DIR/%s'
+
+attr_writer :shell_path
+attr_writer :env_path
+
+def shell_path
+  @shell_path ||= DEFAULT_SHELL_PATH
+end
+
+def env_path
+  @env_path ||= DEFAULT_ENV_PATH
+end
+
+def target_path(source_path)
+  TARGET_PATH % super(source_path)
+end
+
+def close
+  unless closed?
+    section " (#{target_name}) "
+  end
+  
+  super
+end
 ################################### cat ###################################
 
 # :stopdoc:
@@ -25,6 +53,48 @@ end
 
 def _cat(*args, &block) # :nodoc:
   capture { cat(*args, &block) }
+end
+
+########################## check_status ##########################
+
+# :stopdoc:
+CHECK_STATUS_LINE = __LINE__ + 2
+CHECK_STATUS = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
+check_status <%= status %> $? $LINENO
+END_OF_TEMPLATE
+# :startdoc:
+
+# Adds a check after a command that ensures the status is as indicated
+# ==== CHECK_STATUS ERB
+#   check_status <%= status %> $? $LINENO
+def check_status(status=0)
+  eval(CHECK_STATUS, binding, __FILE__, CHECK_STATUS_LINE)
+  nil
+end
+
+def _check_status(*args, &block) # :nodoc:
+  capture { check_status(*args, &block) }
+end
+
+################# check_status_function #################
+
+# :stopdoc:
+CHECK_STATUS_FUNCTION_LINE = __LINE__ + 2
+CHECK_STATUS_FUNCTION = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
+function check_status { if [ $1 -ne $2 ]; then echo "[$2] $0:$3"; exit $2; fi }
+END_OF_TEMPLATE
+# :startdoc:
+
+# Adds the check status function.
+# ==== CHECK_STATUS_FUNCTION ERB
+#   function check_status { if [ $1 -ne $2 ]; then echo "[$2] $0:$3"; exit $2; fi }
+def check_status_function
+  eval(CHECK_STATUS_FUNCTION, binding, __FILE__, CHECK_STATUS_FUNCTION_LINE)
+  nil
+end
+
+def _check_status_function(*args, &block) # :nodoc:
+  capture { check_status_function(*args, &block) }
 end
 
 ################################# chmod #################################
@@ -126,6 +196,30 @@ def _ln_s(*args, &block) # :nodoc:
   capture { ln_s(*args, &block) }
 end
 
+################################ recipe ################################
+
+# :stopdoc:
+RECIPE_LINE = __LINE__ + 2
+RECIPE = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
+"<%= env_path %>" - "<%= shell_path %>" "<%= recipe_path(name) %>" $*
+<% check_status %>
+
+END_OF_TEMPLATE
+# :startdoc:
+
+# 
+# ==== RECIPE ERB
+#   "<%= env_path %>" - "<%= shell_path %>" "<%= recipe_path(name) %>" $*
+#   <% check_status %>
+def recipe(name)
+  eval(RECIPE, binding, __FILE__, RECIPE_LINE)
+  nil
+end
+
+def _recipe(*args, &block) # :nodoc:
+  capture { recipe(*args, &block) }
+end
+
 #################################### rm ####################################
 
 # :stopdoc:
@@ -149,6 +243,106 @@ end
 
 def _rm(*args, &block) # :nodoc:
   capture { rm(*args, &block) }
+end
+
+############################### section ###############################
+
+# :stopdoc:
+SECTION_LINE = __LINE__ + 2
+SECTION = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
+<% n = (76 - comment.length)/2 %>
+<%= "#" * n %><%= comment %><%= "#" * n %>
+
+END_OF_TEMPLATE
+# :startdoc:
+
+# 
+# ==== SECTION ERB
+#   <% n = (76 - comment.length)/2 %>
+#   <%= "#" * n %><%= comment %><%= "#" * n %>
+def section(comment="")
+  eval(SECTION, binding, __FILE__, SECTION_LINE)
+  nil
+end
+
+def _section(*args, &block) # :nodoc:
+  capture { section(*args, &block) }
+end
+
+############################### shebang ###############################
+
+# :stopdoc:
+SHEBANG_LINE = __LINE__ + 2
+SHEBANG = "self." + ERB.new(<<'END_OF_TEMPLATE', nil, '<>').src
+#! <%= shell_path %>
+
+<%= section %>
+<%= check_status_function %>
+
+export -f check_status
+export LINECOOK_DIR=$(dirname $0)
+export LINECOOK_OPTIONS=
+
+while getopts bhvx opt
+do
+  case $opt in
+  v)  LINECOOK_OPTIONS="$LINECOOK_OPTIONS -v";;
+  x)  LINECOOK_OPTIONS="$LINECOOK_OPTIONS -x";;
+  h)  printf "Usage: %s: [-hvx]\n" $0
+      printf "  -h    prints this help\n"
+      printf "  -v    verbose (set -v)\n"
+      printf "  -x    xtrace  (set -x)\n"
+      exit 0;;
+  ?)  printf "Usage: %s: [-hvx]\n" $0
+      exit 2;;
+  esac
+done
+
+set $LINECOOK_OPTIONS > /dev/null
+<%= section " #{target_name} " %>
+
+END_OF_TEMPLATE
+# :startdoc:
+
+# == Notes
+# Use dev/null on set such that no options will not dump ENV into stdout.
+# 
+# ==== SHEBANG ERB
+#   #! <%= shell_path %>
+#   
+#   <%= section %>
+#   <%= check_status_function %>
+#   
+#   export -f check_status
+#   export LINECOOK_DIR=$(dirname $0)
+#   export LINECOOK_OPTIONS=
+#   
+#   while getopts bhvx opt
+#   do
+#     case $opt in
+#     v)  LINECOOK_OPTIONS="$LINECOOK_OPTIONS -v";;
+#     x)  LINECOOK_OPTIONS="$LINECOOK_OPTIONS -x";;
+#     h)  printf "Usage: %s: [-hvx]\n" $0
+#         printf "  -h    prints this help\n"
+#         printf "  -v    verbose (set -v)\n"
+#         printf "  -x    xtrace  (set -x)\n"
+#         exit 0;;
+#     ?)  printf "Usage: %s: [-hvx]\n" $0
+#         exit 2;;
+#     esac
+#   done
+#   
+#   set $LINECOOK_OPTIONS > /dev/null
+#   <%= section " #{target_name} " %>
+def shebang(shell_path=DEFAULT_SHELL_PATH, env_path=DEFAULT_ENV_PATH)
+  @shell_path = shell_path
+  @env_path  = env_path
+  eval(SHEBANG, binding, __FILE__, SHEBANG_LINE)
+  nil
+end
+
+def _shebang(*args, &block) # :nodoc:
+  capture { shebang(*args, &block) }
 end
 end
 end

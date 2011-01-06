@@ -1,13 +1,13 @@
 require File.expand_path('../../../test_helper', __FILE__)
-require 'linecook/shell/utils'
+require 'linecook/shell/unix'
 require 'linecook/test'
 
-class ShellUtilsTest < Test::Unit::TestCase
+class UnixTest < Test::Unit::TestCase
   include Linecook::Test
   
   def recipe
     use_method_dir_manifest
-    super.extend Linecook::Shell::Utils
+    super.extend Linecook::Shell::Unix
   end
   
   #
