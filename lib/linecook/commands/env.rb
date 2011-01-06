@@ -9,10 +9,10 @@ module Linecook
     #
     class Env < Command
       config :cookbook_dir, '.', :short => :d       # the cookbook directory
-      config :uri, nil                              # package uri
+      config :path, nil                             # package path
       
       def process(*keys)
-        current = Linecook::Cookbook.init(cookbook_dir).env(uri)
+        current = Linecook::Cookbook.init(cookbook_dir).env(path)
         keys.each {|key| current = current[key] if current }
         
         YAML.dump(current, $stdout)

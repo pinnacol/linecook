@@ -1,21 +1,17 @@
 require 'linecook/utils'
 require 'tempfile'
-require 'open-uri'
 
 module Linecook
   class Package
     class << self
-      def load_env(uri)
-        config = uri ? open(uri) do |io|
-          stream_loader = YAML.load_stream(io)
-          stream_loader ? stream_loader.documents.first : nil
-        end : nil
-        config || {}
+      def load_env(path)
+        (path ? YAML.load_file(path) : nil) || {}
       end
       
-      def env(manifest, *uris)
-        default = {CONFIG_KEY => {MANIFEST_KEY => manifest}}
-        Utils.serial_merge(default, *uris.collect {|uri| load_env(uri) })
+      def env(manifest, path)
+        default   = {CONFIG_KEY => {MANIFEST_KEY => manifest}}
+        overrides = load_env(path)
+        Utils.serial_merge(default, overrides)
       end
       
       def init(env={})

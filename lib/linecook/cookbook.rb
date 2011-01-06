@@ -73,8 +73,8 @@ module Linecook
       end
     end
     
-    def env(*uris)
-      Package.env(manifest, *uris)
+    def env(path=nil)
+      Package.env(manifest, path)
     end
     
     private
