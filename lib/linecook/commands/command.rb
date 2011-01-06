@@ -6,7 +6,7 @@ module Linecook
     class Command
       class << self
         def registry
-          @registry ||= {}
+          REGISTRY
         end
         
         def inherited(base)
@@ -14,6 +14,8 @@ module Linecook
           registry[base.to_s.split('::').last.downcase] = base
         end
       end
+      
+      REGISTRY = {}
       
       extend Lazydoc::Attributes
       include Configurable
