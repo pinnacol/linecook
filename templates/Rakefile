@@ -9,6 +9,28 @@ task :helpers => :bundle do
   sh 'bundle exec linecook helpers --force'
 end
 
+scripts      = Dir.glob("scripts/*.yml")
+dependencies = Dir.glob('{attributes,files,recipes,templates}/**/*')
+
+scripts.each do |source|
+  target = source.chomp('.yml')
+  name   = File.basename(target)
+  
+  namespace :scripts do
+    file target => dependencies + [source, :helpers] do
+      sh "bundle exec linecook package '#{source}' '#{target}' --force"
+    end
+    
+    desc "generate the script: #{name}"
+    task name => target
+  end
+  
+  task :scripts => target
+end
+
+desc "generate scripts"
+task :scripts
+
 #
 # Dependency tasks
 #
