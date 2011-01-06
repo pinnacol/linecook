@@ -6,7 +6,7 @@ require 'yaml'
 module Linecook
   module Commands
     
-    # ::desc uri [target]
+    # ::desc source [target]
     #
     # Generates a package.
     #
@@ -14,7 +14,7 @@ module Linecook
       config :cookbook_dir, '.', :short => :d       # the cookbook directory
       config :force, false, :short => :f, &c.flag   # force creation
       
-      def process(uri, target=default_target(uri))
+      def process(source, target=default_target(source))
         if File.exists?(target)
           if force
             FileUtils.rm_r(target)
@@ -25,12 +25,12 @@ module Linecook
         
         log :create, File.basename(target)
         
-        env = Linecook::Cookbook.init(cookbook_dir).env(uri)
+        env = Linecook::Cookbook.init(cookbook_dir).env(source)
         Linecook::Recipe.build(env).export(target)
       end
       
-      def default_target(uri)
-        File.file?(uri) ? uri.chomp(File.extname(uri)) : File.join(cookbook_dir, 'package')
+      def default_target(source)
+        source.chomp(File.extname(source))
       end
     end
   end
