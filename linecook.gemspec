@@ -38,11 +38,14 @@ Gem::Specification.new do |s|
     lib/linecook/commands.rb
     lib/linecook/commands/command.rb
     lib/linecook/commands/command_error.rb
+    lib/linecook/commands/env.rb
     lib/linecook/commands/helpers.rb
     lib/linecook/commands/init.rb
-    lib/linecook/commands/scripts.rb
+    lib/linecook/commands/package.rb
+    lib/linecook/commands/vbox.rb
     lib/linecook/cookbook.rb
     lib/linecook/helper.rb
+    lib/linecook/package.rb
     lib/linecook/recipe.rb
     lib/linecook/shell.rb
     lib/linecook/shell/posix.rb

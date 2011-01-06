@@ -1,3 +1,9 @@
+== 0.6.0 2011/01/06
+
+Rework with a cleaner interface. Now package interfaces with env state, which
+gets passed around, rather than the hodge-podge of state passed around
+previously.
+
 == 0.5.0 2010/12/28
 
 * rework with the ability to test more
