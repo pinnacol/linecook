@@ -1,4 +1,4 @@
-require 'linecook/package'
+require 'linecook/utils'
 
 module Linecook
   class Cookbook
@@ -78,16 +78,6 @@ module Linecook
       end
       
       manifest
-    end
-    
-    def env(path=nil)
-      env = Utils.load_config(path)
-      
-      package_config  = env[Package::CONFIG_KEY] ||= {}
-      cookbook_config = package_config[Package::COOKBOOK_CONFIG_KEY]
-      package_config[Package::MANIFEST_KEY] ||= manifest(cookbook_config)
-      
-      env
     end
     
     private

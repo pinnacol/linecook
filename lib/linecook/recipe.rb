@@ -5,19 +5,6 @@ require 'linecook/utils'
 
 module Linecook
   class Recipe < Template
-    class << self
-      def build(env)
-        package = Package.new(env)
-        
-        package.recipes.each do |recipe_name, target_name|
-          new(target_name, package).evaluate(recipe_name)
-        end
-        
-        package.close
-        package
-      end
-    end
-    
     alias target erbout
     
     attr_reader :target_name

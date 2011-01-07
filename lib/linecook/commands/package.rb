@@ -27,8 +27,8 @@ module Linecook
         
         log :create, File.basename(target)
         
-        env = Linecook::Cookbook.init(cookbook_dir).env(source)
-        Linecook::Recipe.build(env).export(target)
+        cookbook = Linecook::Cookbook.init(cookbook_dir)
+        Linecook::Package.build(source, cookbook).export(target)
       end
       
       def default_target(source)

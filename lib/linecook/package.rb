@@ -7,6 +7,20 @@ module Linecook
       def init(env={})
         env.kind_of?(Package) ? env : new(env)
       end
+      
+      def build(path=nil, cookbook=nil)
+        env = Utils.load_config(path)
+        package = new env
+        
+        if cookbook
+          cookbook_config = package.cookbook_config
+          package.config[MANIFEST_KEY] ||= cookbook.manifest(cookbook_config)
+        end
+        
+        package.build_all
+        package.close
+        package
+      end
     end
     
     CONFIG_KEY          = 'linecook'
@@ -30,6 +44,10 @@ module Linecook
     
     def config
       env[CONFIG_KEY] ||= {}
+    end
+    
+    def cookbook_config
+      env[COOKBOOK_CONFIG_KEY] ||= {}
     end
     
     def manifest
@@ -107,6 +125,14 @@ module Linecook
     
     def source_path(build_path)
       registry[build_path]
+    end
+    
+    def build_all
+      recipes.each do |recipe_name, target_name|
+        Recipe.new(target_name, self).evaluate(recipe_name)
+      end
+      
+      self
     end
     
     def export(dir, options={})

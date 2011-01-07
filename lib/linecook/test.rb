@@ -39,7 +39,7 @@ module Linecook
     
     def build(env={})
       env = Utils.deep_merge(default_env, env)
-      Recipe.build(env).export File.join(method_dir, 'scripts')
+      Package.new(env).build_all.export File.join(method_dir, 'scripts')
     end
     
     def assert_recipe(expected, &block)
