@@ -1,6 +1,12 @@
+require 'yaml'
+
 module Linecook
   module Utils
     module_function
+    
+    def load_config(path)
+      (path ? YAML.load_file(path) : nil) || {}
+    end
     
     def nest_hash
       Hash.new {|hash, key| hash[key] = nest_hash }

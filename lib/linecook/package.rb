@@ -4,59 +4,48 @@ require 'tempfile'
 module Linecook
   class Package
     class << self
-      def load_env(path)
-        (path ? YAML.load_file(path) : nil) || {}
-      end
-      
-      def env(manifest, path)
-        default   = {CONFIG_KEY => {MANIFEST_KEY => manifest}}
-        overrides = load_env(path)
-        Utils.serial_merge(default, overrides)
-      end
-      
       def init(env={})
         env.kind_of?(Package) ? env : new(env)
       end
     end
     
-    CONFIG_KEY    = 'linecook'
-    MANIFEST_KEY  = 'manifest'
-    REGISTRY_KEY  = 'registry'
-    CACHE_KEY     = 'cache'
-    FILES_KEY     = 'files'
-    TEMPLATES_KEY = 'templates'
-    RECIPES_KEY   = 'recipes'
-    PATHS_KEY     = 'paths'
-    GEMS_KEY      = 'gems'
+    CONFIG_KEY          = 'linecook'
+    COOKBOOK_CONFIG_KEY = 'cookbook'
+    MANIFEST_KEY        = 'manifest'
+    FILES_KEY           = 'files'
+    TEMPLATES_KEY       = 'templates'
+    RECIPES_KEY         = 'recipes'
     
     attr_reader :env
+    attr_reader :tempfiles
+    attr_reader :registry
+    attr_reader :reverse_registry
     
     def initialize(env={})
       @env = env
+      @tempfiles = []
+      @registry = {}
+      @reverse_registry = {}
     end
     
     def config
       env[CONFIG_KEY] ||= {}
     end
     
-    def cache
-      config[CACHE_KEY] ||= {}
-    end
-    
     def manifest
       config[MANIFEST_KEY] ||= {}
     end
     
-    def registry
-      config[REGISTRY_KEY] ||= {}
+    def files
+      normalize(FILES_KEY)
     end
     
-    def reverse_registry
-      cache[:reverse_registry] ||= {}
+    def templates
+      normalize(TEMPLATES_KEY)
     end
     
-    def tempfiles
-      cache[:tempfiles] ||= []
+    def recipes
+      normalize(RECIPES_KEY)
     end
     
     def register(source_path, build_path=nil)
@@ -118,18 +107,6 @@ module Linecook
     
     def source_path(build_path)
       registry[build_path]
-    end
-    
-    def files
-      normalize(FILES_KEY)
-    end
-    
-    def templates
-      normalize(TEMPLATES_KEY)
-    end
-    
-    def recipes
-      normalize(RECIPES_KEY)
     end
     
     def export(dir, options={})

@@ -10,7 +10,7 @@ module Linecook
         package = Package.new(env)
         
         package.recipes.each do |recipe_name, target_name|
-          new(target_name, env).evaluate(recipe_name)
+          new(target_name, package).evaluate(recipe_name)
         end
         
         package.close

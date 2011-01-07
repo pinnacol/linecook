@@ -1,5 +1,4 @@
 require 'linecook/package'
-require 'yaml'
 
 module Linecook
   class Cookbook
@@ -7,12 +6,19 @@ module Linecook
       def config_file(dir)
         Dir.glob(File.join(dir, '{C,c}ookbook')).first
       end
-        
+      
       def init(dir)
-        path   = config_file(dir)
-        config = path ? YAML.load_file(path) : nil
-        
-        new(dir, config || {})
+        path = config_file(dir)
+        new(dir, Utils.load_config(path))
+      end
+      
+      def default
+        {
+           MANIFEST_KEY => {},
+           PATHS_KEY    => ['.'],
+           GEMS_KEY     => gems,
+           ALIASES_KEY  => {}
+         }
       end
       
       def gems
@@ -26,6 +32,11 @@ module Linecook
       end
     end
     
+    MANIFEST_KEY  = 'manifest'
+    PATHS_KEY     = 'paths'
+    GEMS_KEY      = 'gems'
+    ALIASES_KEY   = 'aliases'
+    
     PATTERNS  = [
       File.join('attributes', '**', '*.rb'),
       File.join('files',      '**', '*'),
@@ -34,63 +45,55 @@ module Linecook
     ]
     
     attr_reader :dir
-    attr_reader :config
+    attr_reader :default_config
     
-    def initialize(dir='.', config={})
+    def initialize(dir='.', default_config={})
       @dir = File.expand_path(dir)
-      @config = {
-         'manifest' => {},
-         'paths'    => ['.'],
-         'gems'     => self.class.gems
-       }.merge(config)
+      @default_config = self.class.default.merge(default_config)
     end
     
-    def manifest
-      @manifest ||= begin
-        manifest  = {}
+    def manifest(config={})
+      manifest = {}
+      config = default_config.merge(config || {})
+      
+      paths = split config[PATHS_KEY]
+      gems  = split config[GEMS_KEY]
+      
+      (full_gem_paths(gems) + paths).each do |path|
+        path  = File.expand_path(path, dir)
+        start = path.length + 1
         
-        paths = split config['paths']
-        gems  = split config['gems']
-        gems  = resolve gems
-        
-        (gems + paths).each do |path|
-          path  = File.expand_path(path, dir)
-          start = path.length + 1
-          
-          PATTERNS.each do |pattern|
-            Dir.glob(File.join(path, pattern)).each do |full_path|
-              next unless File.file?(full_path)
-              
-              rel_path = full_path[start, full_path.length - start]
-              manifest[rel_path] = full_path
-            end
+        PATTERNS.each do |pattern|
+          Dir.glob(File.join(path, pattern)).each do |full_path|
+            next unless File.file?(full_path)
+            
+            rel_path = full_path[start, full_path.length - start]
+            manifest[rel_path] = full_path
           end
         end
-        
-        overrides = config['manifest']
-        manifest.merge!(overrides)
-        manifest
       end
+      
+      if overrides = config[MANIFEST_KEY]
+        manifest.merge! overrides
+      end
+      
+      manifest
     end
     
     def env(path=nil)
-      Package.env(manifest, path)
+      env = Utils.load_config(path)
+      
+      package_config  = env[Package::CONFIG_KEY] ||= {}
+      cookbook_config = package_config[Package::COOKBOOK_CONFIG_KEY]
+      package_config[Package::MANIFEST_KEY] ||= manifest(cookbook_config)
+      
+      env
     end
     
     private
     
-    def split(str) # :nodoc:
-      str.kind_of?(String) ? str.split(':') : str
-    end
-    
-    def resolve(gems) # :nodoc:
-      return gems if gems.empty?
-      specs = latest_specs
-      
-      gems.collect do |name| 
-        spec = specs[name] or raise "no such gem: #{name.inspect}"
-        spec.full_gem_path
-      end
+    def split(obj) # :nodoc:
+      obj.kind_of?(String) ? obj.split(':') : obj
     end
     
     def latest_specs # :nodoc:
@@ -99,6 +102,16 @@ module Linecook
         latest[spec.name] = spec
       end
       latest
+    end
+    
+    def full_gem_paths(gems) # :nodoc:
+      return gems if gems.empty?
+      specs = latest_specs
+      
+      gems.collect do |name| 
+        spec = specs[name] or raise "no such gem: #{name.inspect}"
+        spec.full_gem_path
+      end
     end
   end
 end
