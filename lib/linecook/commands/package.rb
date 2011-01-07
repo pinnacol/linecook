@@ -1,6 +1,6 @@
 require 'linecook/commands/command'
 require 'linecook/cookbook'
-require 'linecook/recipe'
+require 'linecook/package'
 require 'yaml'
 
 module Linecook

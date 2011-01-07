@@ -1,24 +1,23 @@
 require 'linecook/template'
 require 'linecook/attributes'
-require 'linecook/package'
-require 'linecook/utils'
 
 module Linecook
   class Recipe < Template
     alias target erbout
     
-    attr_reader :target_name
-    
-    def initialize(target_name, env={})
-      @target_name = target_name
-      @package     = Package.init(env)
+    def initialize(target, package)
+      @erbout      = target
+      @package     = package
       @attributes  = Attributes.new(@package.env)
-      @erbout      = @package.build(target_name)
     end
     
     def source_path(*relative_path)
       path = File.join(*relative_path)
       @package.manifest[path] or raise "no such file in manifest: #{path.inspect}"
+    end
+    
+    def target_name
+      @package.build_path(target.path)
     end
     
     def target_path(source_path)
@@ -27,11 +26,12 @@ module Linecook
     end
     
     def target_file(name, content=nil)
-      tempfile = @package.build File.join("#{target_name}.d", name)
+      tempfile = @package.tempfile File.join("#{target_name}.d", name)
       
       tempfile << content if content
       yield(tempfile) if block_given?
       
+      tempfile.close
       target_path tempfile.path
     end
     
@@ -72,7 +72,7 @@ module Linecook
       source_path = 
         @package.built?(target_name) ?
         @package.source_path(target_name) :
-        Recipe.new(target_name, @package).evaluate(recipe_name).target.path
+        @package.build_recipe(target_name) { evaluate(recipe_name) }.target.path
       
       target_path source_path
     end
@@ -80,11 +80,6 @@ module Linecook
     def template_path(template_name, locals={})
       path = source_path('templates', "#{template_name}.erb")
       target_file template_name, Template.build(File.read(path), locals, path)
-    end
-    
-    def close
-      @package.close
-      @package
     end
   end
 end

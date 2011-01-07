@@ -5,8 +5,11 @@ require 'linecook/test'
 class UnixTest < Test::Unit::TestCase
   include Linecook::Test
   
-  def recipe
-    use_method_dir_manifest
+  def cookbook_dir
+    method_dir
+  end
+  
+  def setup_recipe
     super.extend Linecook::Shell::Unix
   end
   
@@ -15,9 +18,11 @@ class UnixTest < Test::Unit::TestCase
   #
   
   def test_recipe_evals_recipe_into_recipe_file
-    file('recipes/name.rb') {|io| io << "target << 'content'" }
+    file('recipes/child.rb') {|io| io << "target << 'content'" }
     
-    recipe.instance_eval { recipe('name') }
-    assert_content 'content', 'name'
+    recipe.recipe('child')
+    recipe.close
+    
+    assert_equal 'content', package.content('child')
   end
 end

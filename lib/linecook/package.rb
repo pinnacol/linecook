@@ -1,21 +1,23 @@
-require 'linecook/utils'
+require 'linecook/recipe'
 require 'tempfile'
 
 module Linecook
   class Package
     class << self
-      def init(env={})
-        env.kind_of?(Package) ? env : new(env)
-      end
-      
-      def build(path=nil, cookbook=nil)
-        env = Utils.load_config(path)
-        package = new env
+      def init(env={}, cookbook=nil)
+        package = new(env)
         
         if cookbook
           cookbook_config = package.cookbook_config
           package.config[MANIFEST_KEY] ||= cookbook.manifest(cookbook_config)
         end
+        
+        package
+      end
+      
+      def build(path=nil, cookbook=nil)
+        env = Utils.load_config(path)
+        package = init(env, cookbook)
         
         package.build_all
         package.close
@@ -100,22 +102,13 @@ module Linecook
       tempfiles.find {|tempfile| tempfile.path == source_path }
     end
     
-    def build(build_path, source_path=nil)
-      case
-      when built?(build_path)
-        raise "already built: #{build_path}"
-        
-      when source_path
-        register(source_path, build_path)
-        
-      else
-        tempfile = Tempfile.new File.basename(build_path)
-
-        register(tempfile.path, build_path)
-        tempfiles << tempfile
-
-        tempfile
-      end
+    def tempfile(build_path)
+      tempfile = Tempfile.new File.basename(build_path)
+      
+      register(tempfile.path, build_path)
+      tempfiles << tempfile
+      
+      tempfile
     end
     
     def build_path(source_path)
@@ -129,10 +122,30 @@ module Linecook
     
     def build_all
       recipes.each do |recipe_name, target_name|
-        Recipe.new(target_name, self).evaluate(recipe_name)
+        build_recipe(target_name) { evaluate(recipe_name) }
       end
       
       self
+    end
+    
+    def recipe(target_name='recipe')
+      target = tempfile(target_name)
+      Recipe.new(target, self)
+    end
+    
+    def build_recipe(target_name, content=nil, &block)
+      recipe = self.recipe(target_name)
+      
+      recipe.instance_eval(content) if content
+      recipe.instance_eval(&block)  if block
+      
+      recipe.close
+      recipe
+    end
+    
+    def content(build_path)
+      path = source_path(build_path)
+      path ? File.read(path) : nil
     end
     
     def export(dir, options={})

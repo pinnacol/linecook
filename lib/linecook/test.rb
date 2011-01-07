@@ -1,5 +1,5 @@
 require 'linecook/cookbook'
-require 'linecook/recipe'
+require 'linecook/package'
 require 'linecook/test/file_test'
 require 'linecook/test/shell_test'
 require 'linecook/test/regexp_escape'
@@ -11,59 +11,48 @@ module Linecook
     include ShellTest
     
     attr_writer :cookbook
-    attr_writer :script
-    attr_writer :recipe
+    attr_writer :package
+    
+    def cookbook_dir
+      user_dir
+    end
     
     def cookbook
-      @cookbook ||= Cookbook.init(user_dir)
+      @cookbook ||= Cookbook.init(cookbook_dir)
     end
     
-    def manifest
-      @manifest ||= cookbook.manifest
+    def setup_package(env={})
+      @package = Package.init(env, cookbook)
     end
     
-    def use_method_dir_manifest
-      @manifest = Hash.new do |hash, relative_path|
-        path = File.join(method_dir, relative_path.to_s)
-        hash[relative_path] = File.exists?(path) ? path : nil
-      end
-    end
-    
-    def default_env
-      {Package::CONFIG_KEY => {Package::MANIFEST_KEY => manifest}}
-    end
-    
-    def recipe
-      @recipe ||= Recipe.new('recipe', default_env)
+    def package
+      @package ||= setup_package
     end
     
     def build(env={})
-      env = Utils.deep_merge(default_env, env)
-      Package.new(env).build_all.export File.join(method_dir, 'scripts')
+      package = Package.init(env, cookbook)
+      package.build_all
+      package.export File.join(method_dir, 'scripts')
+    end
+    
+    def setup_recipe
+      @recipe = package.recipe
+    end
+    
+    def recipe
+      @recipe ||= setup_recipe
     end
     
     def assert_recipe(expected, &block)
-      recipe.instance_eval(&block)
-      assert_output_equal expected, recipe.result
+      recipe = setup_recipe
+      assert_output_equal expected, recipe.result(&block)
+      recipe
     end
     
     def assert_recipe_match(expected, &block)
-      recipe.instance_eval(&block)
-      assert_alike expected, recipe.result
-    end
-
-    def assert_content(expected, build_path)
-      registry = recipe.close.registry
-
-      assert_equal true, registry.has_key?(build_path), "not in registry: #{build_path}"
-      assert_output_equal expected, File.read(registry[build_path]), build_path
-    end
-    
-    def assert_content_match(expected, build_path)
-      registry = recipe.close.registry
-
-      assert_equal true, registry.has_key?(build_path), "not in registry: #{build_path}"
-      assert_alike expected, File.read(registry[build_path]), build_path
+      recipe = setup_recipe
+      assert_alike expected, recipe.result(&block)
+      recipe
     end
   end
 end

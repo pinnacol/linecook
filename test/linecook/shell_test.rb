@@ -5,7 +5,7 @@ require 'linecook/test'
 class ShellTest < Test::Unit::TestCase
   include Linecook::Test
   
-  def recipe
+  def setup_recipe
     super.extend Linecook::Shell
   end
   
