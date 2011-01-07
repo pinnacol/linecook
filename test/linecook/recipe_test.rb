@@ -94,12 +94,10 @@ class RecipeTest < Test::Unit::TestCase
 
   def file_path_registers_file_from_files_dir
     file('files/example.txt') {|io| io << 'content'}
-
+    
     path = recipe.file_path('example.txt')
     assert_equal 'recipe.d/example.txt', path
-
-    source_path = recipe.registry.invert[path]
-    assert_equal 'content', File.read(source_path)
+    assert_equal 'content', package.content(path)
   end
   
   #

@@ -63,9 +63,13 @@ module Linecook
         target
       end
       
-      def file(relative_path, &block)
+      def file(relative_path, content=nil, &block)
         target = prepare(relative_path)
-        block ? File.open(target, 'w', &block) : FileUtils.touch(target)
+        FileUtils.touch(target)
+        
+        File.open(target, 'w') {|io| io << content } if content
+        File.open(target, 'a', &block) if block
+        
         target
       end
     

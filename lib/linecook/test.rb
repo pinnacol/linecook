@@ -31,8 +31,9 @@ module Linecook
     
     def build(env={})
       package = Package.init(env, cookbook)
-      package.build_all
+      package.build
       package.export File.join(method_dir, 'scripts')
+      package
     end
     
     def setup_recipe

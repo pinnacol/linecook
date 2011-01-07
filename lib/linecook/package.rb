@@ -19,7 +19,7 @@ module Linecook
         env = Utils.load_config(path)
         package = init(env, cookbook)
         
-        package.build_all
+        package.build
         package.close
         package
       end
@@ -68,73 +68,107 @@ module Linecook
       normalize(RECIPES_KEY)
     end
     
-    def register(source_path, build_path=nil)
+    def register!(source_path, target_path)
       source_path = File.expand_path(source_path)
-      build_path ||= File.basename(source_path)
+      
+      if registered?(source_path)
+        raise "already registered: #{source_path.inspect}"
+      end
+      
+      registry[target_path] = source_path
+      reverse_registry[source_path] = target_path
+      
+      target_path
+    end
+    
+    def register(source_path, target_path=nil)
+      source_path = File.expand_path(source_path)
+      target_path ||= File.basename(source_path)
       
       count = 0
       registry.each_key do |path|
-        if path.kind_of?(String) && path.index(build_path) == 0
+        if path.kind_of?(String) && path.index(target_path) == 0
           count += 1
         end
       end
       
       if count > 0
-        build_path = "#{build_path}.#{count}"
+        target_path = "#{target_path}.#{count}"
       end
       
-      registry[build_path] = source_path
-      reverse_registry[source_path.to_sym] = build_path
-      
-      build_path
+      register!(source_path, target_path)
     end
     
     def registered?(source_path)
       source_path = File.expand_path(source_path)
-      reverse_registry.has_key?(source_path.to_sym)
+      reverse_registry.has_key?(source_path)
     end
     
-    def built?(build_path)
-      registry.has_key?(build_path)
+    def register_path(target_path)
+      registry[target_path]
+    end
+    
+    def source?(path)
+      manifest.has_key?(path)
+    end
+    
+    def source_path(*relative_path)
+      path = File.join(*relative_path)
+      manifest[path] or raise "no such file in manifest: #{path.inspect}"
+    end
+    
+    def target?(target_path)
+      registry.has_key?(target_path)
+    end
+    
+    def target_path(source_path)
+      source_path = File.expand_path(source_path)
+      reverse_registry[source_path]
     end
     
     def tempfile?(source_path)
       tempfiles.find {|tempfile| tempfile.path == source_path }
     end
     
-    def tempfile(build_path)
-      tempfile = Tempfile.new File.basename(build_path)
+    def tempfile(target_path)
+      tempfile = Tempfile.new File.basename(target_path)
       
-      register(tempfile.path, build_path)
+      register(tempfile.path, target_path)
       tempfiles << tempfile
       
       tempfile
     end
     
-    def build_path(source_path)
-      source_path = File.expand_path(source_path)
-      reverse_registry[source_path.to_sym]
-    end
-    
-    def source_path(build_path)
-      registry[build_path]
-    end
-    
-    def build_all
-      recipes.each do |recipe_name, target_name|
-        build_recipe(target_name) { evaluate(recipe_name) }
-      end
+    def tempfile!(target_path)
+      tempfile = Tempfile.new File.basename(target_path)
       
-      self
+      register!(tempfile.path, target_path)
+      tempfiles << tempfile
+      
+      tempfile
     end
     
-    def recipe(target_name='recipe')
-      target = tempfile(target_name)
+    def recipe(target_path='recipe')
+      target = tempfile(target_path)
       Recipe.new(target, self)
     end
     
-    def build_recipe(target_name, content=nil, &block)
-      recipe = self.recipe(target_name)
+    def build_file(file_name, target_path)
+      register!(source_path('files', file_name), target_path)
+    end
+    
+    def build_template(template_name, target_path)
+      source = source_path('templates', "#{template_name}.erb")
+      
+      target = tempfile!(target_path)
+      target << Template.build(File.read(source), env, source)
+      
+      target.close
+      target
+    end
+    
+    def build_recipe(target_path='recipe', content=nil, &block)
+      recipe = self.recipe(target_path)
       
       recipe.instance_eval(content) if content
       recipe.instance_eval(&block)  if block
@@ -143,9 +177,32 @@ module Linecook
       recipe
     end
     
-    def content(build_path)
-      path = source_path(build_path)
+    def build
+      files.each do |file_name, target_path|
+        build_file(file_name, target_path)
+      end
+      
+      templates.each do |template_name, target_path|
+        build_template(template_name, target_path)
+      end
+      
+      recipes.each do |recipe_name, target_path|
+        build_recipe(target_path) { evaluate(recipe_name) }
+      end
+      
+      self
+    end
+    
+    def content(target_path)
+      path = register_path(target_path)
       path ? File.read(path) : nil
+    end
+    
+    def close
+      tempfiles.each do |tempfile|
+        tempfile.close unless tempfile.closed?
+      end
+      self
     end
     
     def export(dir, options={})
@@ -157,31 +214,27 @@ module Linecook
       
       allow_move = options[:allow_move]
       
-      results = {}
-      registry.each_pair do |build_path, source_path|
-        target_path = File.join(dir, build_path)
-        target_dir  = File.dirname(target_path)
+      registry.each_key do |target_path|
+        export_path = File.join(dir, target_path)
+        export_dir  = File.dirname(export_path)
         
-        unless File.exists?(target_dir)
-          FileUtils.mkdir_p(target_dir)
+        unless File.exists?(export_dir)
+          FileUtils.mkdir_p(export_dir)
         end
+        
+        source_path = registry[target_path]
         
         if allow_move && tempfile?(source_path)
-          FileUtils.mv(source_path, target_path)
+          FileUtils.mv(source_path, export_path)
         else
-          FileUtils.cp(source_path, target_path)
+          FileUtils.cp(source_path, export_path)
         end
         
-        results[build_path] = target_path
+        registry[target_path] = export_path
       end
-      results
-    end
-    
-    def close
-      tempfiles.each do |tempfile|
-        tempfile.close unless tempfile.closed?
-      end
-      self
+      
+      tempfiles.clear
+      registry
     end
     
     private

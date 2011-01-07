@@ -12,16 +12,15 @@ module Linecook
     end
     
     def source_path(*relative_path)
-      path = File.join(*relative_path)
-      @package.manifest[path] or raise "no such file in manifest: #{path.inspect}"
+      @package.source_path(*relative_path)
     end
     
     def target_name
-      @package.build_path(target.path)
+      @package.target_path(target.path)
     end
     
     def target_path(source_path)
-      @package.build_path(source_path) ||
+      @package.target_path(source_path) ||
       @package.register(source_path, File.join("#{target_name}.d", File.basename(source_path)))
     end
     
@@ -70,7 +69,7 @@ module Linecook
     
     def recipe_path(recipe_name, target_name = recipe_name)
       source_path = 
-        @package.built?(target_name) ?
+        @package.target?(target_name) ?
         @package.source_path(target_name) :
         @package.build_recipe(target_name) { evaluate(recipe_name) }.target.path
       
