@@ -15,19 +15,22 @@ module Linecook
       @package.target_path(target.path)
     end
     
-    def target_path(source_path)
-      @package.target_path(source_path) ||
-      @package.register(File.join("#{target_name}.d", File.basename(source_path)), source_path)
+    def target_dir_name
+      "#{target_name}.d"
+    end
+    
+    def target_path(target_path)
+      target_path
     end
     
     def target_file(name, content=nil)
-      tempfile = @package.tempfile File.join("#{target_name}.d", name)
+      tempfile = @package.tempfile File.join(target_dir_name, name)
       
       tempfile << content if content
       yield(tempfile) if block_given?
       
       tempfile.close
-      target_path tempfile.path
+      target_path @package.target_path(tempfile.path)
     end
     
     def attrs
@@ -54,7 +57,8 @@ module Linecook
     end
     
     def file_path(file_name)
-      target_path @package.file_path(file_name)
+      file_path = @package.file_path(file_name)
+      target_path @package.register(File.join(target_dir_name, file_name), file_path)
     end
     
     def capture_path(name, &block)
@@ -63,12 +67,11 @@ module Linecook
     end
     
     def recipe_path(recipe_name, target_name = recipe_name)
-      source_path = 
-        @package.registered_target?(target_name) ?
-        @package.source_path(target_name) :
-        @package.build_recipe(target_name) { evaluate(recipe_name) }.target.path
+      unless @package.registered_target?(target_name)
+        @package.build_recipe(target_name) { evaluate(recipe_name) }
+      end
       
-      target_path source_path
+      target_path target_name
     end
     
     def template_path(template_name, locals={})
