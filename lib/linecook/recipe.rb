@@ -21,7 +21,7 @@ module Linecook
     
     def target_path(source_path)
       @package.target_path(source_path) ||
-      @package.register(source_path, File.join("#{target_name}.d", File.basename(source_path)))
+      @package.register(File.join("#{target_name}.d", File.basename(source_path)), source_path)
     end
     
     def target_file(name, content=nil)

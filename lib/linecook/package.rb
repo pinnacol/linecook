@@ -68,11 +68,14 @@ module Linecook
       normalize(RECIPES_KEY)
     end
     
-    def register!(source_path, target_path)
+    # Registers the source_path to target_path in the registry and
+    # revese_registry.  Raises an error if the source_path is already
+    # registered.
+    def register!(target_path, source_path)
       source_path = File.expand_path(source_path)
       
-      if registered?(source_path)
-        raise "already registered: #{source_path.inspect}"
+      if target?(target_path) && register_path(target_path) != source_path
+        raise "already registered: #{target_path.inspect}"
       end
       
       registry[target_path] = source_path
@@ -81,9 +84,8 @@ module Linecook
       target_path
     end
     
-    def register(source_path, target_path=nil)
+    def register(target_path, source_path)
       source_path = File.expand_path(source_path)
-      target_path ||= File.basename(source_path)
       
       count = 0
       registry.each_key do |path|
@@ -96,7 +98,7 @@ module Linecook
         target_path = "#{target_path}.#{count}"
       end
       
-      register!(source_path, target_path)
+      register!(target_path, source_path)
     end
     
     def registered?(source_path)
@@ -133,7 +135,7 @@ module Linecook
     def tempfile(target_path)
       tempfile = Tempfile.new File.basename(target_path)
       
-      register(tempfile.path, target_path)
+      register(target_path, tempfile.path)
       tempfiles << tempfile
       
       tempfile
@@ -142,7 +144,7 @@ module Linecook
     def tempfile!(target_path)
       tempfile = Tempfile.new File.basename(target_path)
       
-      register!(tempfile.path, target_path)
+      register!(target_path, tempfile.path)
       tempfiles << tempfile
       
       tempfile
@@ -154,7 +156,7 @@ module Linecook
     end
     
     def build_file(file_name, target_path)
-      register!(source_path('files', file_name), target_path)
+      register! target_path, source_path('files', file_name)
     end
     
     def build_template(template_name, target_path)
