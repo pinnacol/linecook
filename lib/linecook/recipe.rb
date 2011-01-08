@@ -61,22 +61,22 @@ module Linecook
       target_path @package.register(File.join(target_dir_name, file_name), file_path)
     end
     
-    def capture_path(name, &block)
-      content = capture(false) { instance_eval(&block) }
-      target_file(name, content)
+    def template_path(template_name, locals={})
+      path = @package.template_path(template_name)
+      target_file template_name, Template.build(File.read(path), locals, path)
     end
     
     def recipe_path(recipe_name, target_name = recipe_name)
       unless @package.registered_target?(target_name)
-        @package.build_recipe(target_name) { evaluate(recipe_name) }
+        @package.build_recipe(recipe_name, target_name)
       end
       
       target_path target_name
     end
     
-    def template_path(template_name, locals={})
-      path = @package.template_path(template_name)
-      target_file template_name, Template.build(File.read(path), locals, path)
+    def capture_path(name, &block)
+      content = capture(false) { instance_eval(&block) }
+      target_file(name, content)
     end
   end
 end

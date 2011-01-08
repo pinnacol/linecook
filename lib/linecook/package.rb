@@ -192,8 +192,14 @@ module Linecook
       Recipe.new(target, self)
     end
     
+    def recipe!(target_path)
+      target = tempfile!(target_path)
+      Recipe.new(target, self)
+    end
+    
     def build_file(file_name, target_path)
       register! target_path, file_path(file_name)
+      self
     end
     
     def build_template(template_name, target_path)
@@ -203,17 +209,14 @@ module Linecook
       target << Template.build(File.read(source), env, source)
       
       target.close
-      target
+      self
     end
     
-    def build_recipe(target_path='recipe', content=nil, &block)
-      recipe = self.recipe(target_path)
-      
-      recipe.instance_eval(content) if content
-      recipe.instance_eval(&block)  if block
-      
+    def build_recipe(recipe_name, target_path)
+      recipe = self.recipe!(target_path)
+      recipe.evaluate(recipe_name)
       recipe.close
-      recipe
+      self
     end
     
     def build
@@ -226,7 +229,7 @@ module Linecook
       end
       
       recipes.each do |recipe_name, target_path|
-        build_recipe(target_path) { evaluate(recipe_name) }
+        build_recipe(recipe_name, target_path)
       end
       
       self
