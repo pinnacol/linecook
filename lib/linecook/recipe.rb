@@ -11,10 +11,6 @@ module Linecook
       @attributes  = Attributes.new(@package.env)
     end
     
-    def source_path(*relative_path)
-      @package.source_path(*relative_path)
-    end
-    
     def target_name
       @package.target_path(target.path)
     end
@@ -39,7 +35,7 @@ module Linecook
     end
     
     def attributes(attributes_name)
-      path = source_path('attributes', "#{attributes_name}.rb")
+      path = @package.attributes_path(attributes_name)
       
       @attributes.instance_eval(File.read(path), path)
       @attributes.reset(false)
@@ -52,14 +48,13 @@ module Linecook
     end
     
     def evaluate(recipe_name=target_name)
-      path = source_path('recipes', "#{recipe_name}.rb")
+      path = @package.recipe_path(recipe_name)
       instance_eval(File.read(path), path)
       self
     end
     
     def file_path(file_name)
-      path = source_path('files', file_name)
-      target_path path
+      target_path @package.file_path(file_name)
     end
     
     def capture_path(name, &block)
@@ -69,7 +64,7 @@ module Linecook
     
     def recipe_path(recipe_name, target_name = recipe_name)
       source_path = 
-        @package.target?(target_name) ?
+        @package.registered_target?(target_name) ?
         @package.source_path(target_name) :
         @package.build_recipe(target_name) { evaluate(recipe_name) }.target.path
       
@@ -77,7 +72,7 @@ module Linecook
     end
     
     def template_path(template_name, locals={})
-      path = source_path('templates', "#{template_name}.erb")
+      path = @package.template_path(template_name)
       target_file template_name, Template.build(File.read(path), locals, path)
     end
   end

@@ -77,4 +77,122 @@ class PackageTest < Test::Unit::TestCase
     package.register!('target/path', 'source/a')
     assert_nothing_raised { package.register!('target/path', 'source/a') }
   end
+  
+  #
+  # register test
+  #
+  
+  def test_register_increments_target_path_if_already_registered
+    source_path_a = File.expand_path('source/a')
+    source_path_b = File.expand_path('source/b')
+    
+    assert_equal 'target/path',   package.register('target/path', source_path_a)
+    assert_equal 'target/path.1', package.register('target/path', source_path_b)
+    
+    assert_equal source_path_a, package.registry['target/path']
+    assert_equal source_path_b, package.registry['target/path.1']
+  end
+  
+  #
+  # registered_target check test
+  #
+  
+  def test_registered_target_check_returns_true_if_the_target_is_registered
+    assert_equal false, package.registered_target?('target/path')
+    package.register('target/path', 'source/path')
+    assert_equal true, package.registered_target?('target/path')
+  end
+  
+  #
+  # registered_source check test
+  #
+  
+  def test_registered_source_check_returns_true_if_the_source_is_registered
+    assert_equal false, package.registered_source?('source/path')
+    package.register('target/path', 'source/path')
+    assert_equal true, package.registered_source?('source/path')
+  end
+  
+  #
+  # target_path test
+  #
+  
+  def test_target_path_returns_the_latest_target_path_registerd_to_source
+    assert_equal nil, package.target_path('source/path')
+    
+    package.register('target/path/a', 'source/path')
+    assert_equal 'target/path/a', package.target_path('source/path')
+    
+    package.register('target/path/b', 'source/path')
+    assert_equal 'target/path/b', package.target_path('source/path')
+  end
+  
+  #
+  # source_path test
+  #
+  
+  def test_source_path_returns_the_source_path_registerd_to_target
+    assert_equal nil, package.source_path('target/path')
+    
+    package.register('target/path', 'source/path')
+    assert_equal File.expand_path('source/path'), package.source_path('target/path')
+  end
+  
+  #
+  # resource_path test
+  #
+  
+  def test_resource_path_returns_corresponding_path_in_manifest
+    package.manifest['path'] = 'source/path'
+    assert_equal 'source/path', package.resource_path('path')
+  end
+  
+  def test_resource_path_joins_path_segments
+    package.manifest['nest/path'] = 'source/path'
+    assert_equal 'source/path', package.resource_path('nest', 'path')
+  end
+  
+  def test_resource_path_raises_error_for_unregistered_path
+    err = assert_raises(RuntimeError) { package.resource_path('unknown/path') }
+    assert_equal 'no such resource in manifest: "unknown/path"', err.message
+  end
+  
+  #
+  # tempfile test
+  #
+  
+  def test_tempfile_creates_registers_and_returns_a_new_tempfile
+    tempfile = package.tempfile('target/path')
+    
+    assert_equal Tempfile, tempfile.class
+    assert_equal false, tempfile.closed?
+    assert_equal 'target/path', package.target_path(tempfile.path)
+  end
+  
+  def test_tempfile_increments_target_path_as_needed
+    a = package.tempfile('target/path')
+    b = package.tempfile('target/path')
+    
+    assert_equal 'target/path', package.target_path(a.path)
+    assert_equal 'target/path.1', package.target_path(b.path)
+  end
+  
+  #
+  # tempfile! test
+  #
+  
+  def test_tempfile_bang_raises_error_if_target_path_is_already_registered
+    package.register('target/path', 'source/b')
+    err = assert_raises(RuntimeError) { package.tempfile!('target/path') }
+    assert_equal 'already registered: "target/path"', err.message
+  end
+  
+  #
+  # tempfile_check test
+  #
+  
+  def test_tempfile_check_returns_true_if_the_source_is_from_a_tempfile_generated_by_self
+    assert_equal false, package.tempfile?('source/path')
+    assert_equal true, package.tempfile?(package.tempfile.path)
+  end
 end
