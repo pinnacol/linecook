@@ -16,7 +16,8 @@ module Linecook
         {
            MANIFEST_KEY => {},
            PATHS_KEY    => ['.'],
-           GEMS_KEY     => gems
+           GEMS_KEY     => gems,
+           REWRITE_KEY  => {}
          }
       end
       
@@ -34,6 +35,7 @@ module Linecook
     MANIFEST_KEY  = 'manifest'
     PATHS_KEY     = 'paths'
     GEMS_KEY      = 'gems'
+    REWRITE_KEY   = 'rewrite'
     
     PATTERNS  = [
       File.join('attributes', '**', '*.rb'),
@@ -74,6 +76,23 @@ module Linecook
       
       if overrides = config[MANIFEST_KEY]
         manifest.merge! overrides
+      end
+      
+      rewrites = config[REWRITE_KEY]
+      replacements = {}
+      
+      rewrites.each_pair do |pattern, substitution|
+        manifest.keys.each do |key|
+          replacement = key.sub(pattern, substitution)
+          next if key == replacement
+          raise "multiple replacements for: #{key}" if replacements.has_key?(key)
+          
+          replacements[key] = replacement
+        end
+      end
+      
+      replacements.each do |key, replacement|
+        manifest[replacement] = manifest.delete(key)
       end
       
       manifest

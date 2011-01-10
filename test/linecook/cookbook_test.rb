@@ -81,4 +81,19 @@ class CookbookTest < Test::Unit::TestCase
       }
     )
   end
+  
+  def test_manifest_rewrites_resource_paths
+    assert_equal MANIFEST, manifest(
+      'paths'    => [],
+      'rewrite'  => {
+        '/post.' => '.',
+        '/pre/'  => '/'
+      },
+      'manifest' => {
+        'files/a.txt' => File.join(DIR_ONE, 'files/a.txt'),
+        'files/b/post.txt' => File.join(DIR_TWO, 'files/b.txt'),
+        'files/pre/c.txt' => File.join(DIR_TWO, 'files/c.txt')
+      }
+    )
+  end
 end
