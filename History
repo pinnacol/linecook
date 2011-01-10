@@ -1,3 +1,8 @@
+== 0.7.0 2011/01/10
+
+* removed shell helpers (to linebook)
+* reworked internals for saner testing
+
 == 0.6.2 2011/01/06
 
 * added helper command to build a single helper
