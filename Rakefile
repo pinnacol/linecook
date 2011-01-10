@@ -94,34 +94,6 @@ task :bundle => :submodules do
 end
 
 #
-# Linecook tasks
-#
-
-lib_dir     = File.expand_path("../lib", __FILE__)
-helpers_dir = File.expand_path("../helpers", __FILE__)
-helper_code = File.expand_path("../lib/linecook/helper.rb", __FILE__)
-
-sources = {}
-Dir.glob("#{helpers_dir}/**/*").each do |source|
-  next if File.directory?(source)
-  (sources[File.dirname(source)] ||= []) << source
-end
-
-sources.each_pair do |dir, sources|
-  name = dir[(helpers_dir.length + 1)..-1]
-  target = File.join(lib_dir, 'linecook', "#{name}.rb")
-  
-  file target => sources + [dir, helper_code] do
-    sh "bundle exec linecook helper '#{name}' --namespace linecook --force"
-  end
-  
-  task :helpers => target
-end
-
-desc "generate helpers"
-task :helpers => :bundle
-
-#
 # Test tasks
 #
 
@@ -129,7 +101,7 @@ desc 'Default: Run tests.'
 task :default => :test
 
 desc 'Run the tests'
-task :test => [:bundle, :helpers] do
+task :test => :bundle do
   tests = Dir.glob('test/**/*_test.rb')
   
   if ENV['RCOV'] == 'true'
