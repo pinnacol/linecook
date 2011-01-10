@@ -78,11 +78,23 @@ class RecipeTest < Test::Unit::TestCase
   # capture_path test
   #
   
-  def test_capture_path_creates_file_from_block
+  def test_capture_path_creates_file_from_recipe_block
     path = recipe.capture_path('example.sh') { target << 'content'}
     
     assert_equal 'recipe.d/example.sh', path
     assert_equal 'content', package.content(path)
+  end
+  
+  def test_nested_capture_path_produces_new_recipe_context_each_time
+    recipe.capture_path('a') do 
+      target << 'A'
+      capture_path('b') do 
+        target << 'B'
+      end
+    end
+    
+    assert_equal 'A', package.content('recipe.d/a')
+    assert_equal 'B', package.content('recipe.d/b')
   end
   
   #

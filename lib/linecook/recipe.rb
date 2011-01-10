@@ -5,18 +5,15 @@ module Linecook
   class Recipe < Template
     alias target erbout
     
+    attr_reader :target_name
+    attr_reader :target_dir_name
+    
     def initialize(target, package)
       @erbout      = target
       @package     = package
       @attributes  = Attributes.new(@package.env)
-    end
-    
-    def target_name
-      @package.target_path(target.path)
-    end
-    
-    def target_dir_name
-      "#{target_name}.d"
+      @target_name = @package.target_path(target.path)
+      @target_dir_name = "#{target_name}.d"
     end
     
     def target_path(target_path=target_name)
