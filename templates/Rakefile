@@ -8,7 +8,10 @@ require 'rake/rdoctask'
 require 'rake/gempackagetask'
 
 def gemspec
-  @gemspec ||= eval(File.read('<%= project_name %>.gemspec'), TOPLEVEL_BINDING)
+  @gemspec ||= begin
+    gemspec_path = File.expand_path('../<%= project_name %>.gemspec', __FILE__)
+    eval(File.read(gemspec_path), TOPLEVEL_BINDING)
+  end
 end
 
 Rake::GemPackageTask.new(gemspec) do |pkg|
@@ -101,7 +104,8 @@ task :helpers => helpers + [:bundle]
 # Linecook Scripts
 #
 
-scripts      = Dir.glob("scripts/*.yml")
+scripts_dir = File.expand_path("../scripts", __FILE__)
+scripts      = Dir.glob("#{scripts_dir}/*.yml")
 dependencies = Dir.glob('{attributes,files,recipes,templates}/**/*')
 
 scripts.each do |source|

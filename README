@@ -4,7 +4,7 @@ A shell script generator.
 
 == Description
 
-Linecook lets you generate shell scripts using an extensible set of tiny ERB
+Linecook helps you generate shell scripts using an extensible set of tiny ERB
 helpers. The helpers output a shell script that you can use to (for example)
 provision a server.
 
@@ -48,7 +48,7 @@ Make some helpers.
 
 Define default attributes.
 
-  [recipes/example.rb]
+  [attributes/example.rb]
   attrs['example']['n'] = 3
   attrs['example']['color'] = 'blue'
 
@@ -66,8 +66,8 @@ Define a script using the recipe.
 
   [scripts/example.yml]
   linecook:
-    recipe_name: example
-    script_name: example.sh
+    recipes:
+    - example
   example:
     n: 100
 
