@@ -8,16 +8,24 @@ module Linecook
     # ::desc generates a helper
     class Helper < Command
       config :cookbook_dir, '.', :short => :d       # the cookbook directory
-      config :namespace, 'linebook', :short => :n   # the helper namespace
+      config :namespace, nil, :short => :n          # the helper namespace
       config :force, false, :short => :f, &c.flag   # force creation
       
       include Utils
+      
+      def valid?(const_name)
+        const_name =~ /\A(?:::)?[A-Z]\w*(?:::[A-Z]\w*)*\z/
+      end
       
       def process(name, *sources)
         name = underscore(name)
         
         const_path = namespace ? File.join(namespace, name) : name
         const_name = camelize(const_path)
+        
+        unless valid?(const_name)
+          raise "invalid constant name: #{const_name.inspect}"
+        end
         
         sources = default_sources(name) if sources.empty?
         target  = File.expand_path(File.join('lib', "#{const_path}.rb"), cookbook_dir)

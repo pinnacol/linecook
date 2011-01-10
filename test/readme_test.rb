@@ -42,7 +42,7 @@ attrs['example']['color'] = 'blue'
 })
 
     file('recipes/example.rb', %q{
-helpers "linebook/example"
+helpers "example"
 attributes "example"
 
 attrs['example']['n'].times do
