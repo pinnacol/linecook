@@ -1,11 +1,10 @@
 require 'rake'
+require 'rake/rdoctask'
+require 'rake/gempackagetask'
 
 #
 # Gem tasks
 #
-
-require 'rake/rdoctask'
-require 'rake/gempackagetask'
 
 def gemspec
   @gemspec ||= begin
