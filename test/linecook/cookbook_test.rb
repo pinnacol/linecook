@@ -34,66 +34,69 @@ class CookbookTest < Test::Unit::TestCase
   # manifest test
   #
   
-  def manifest(config)
-    config['gems'] ||= []  # prevent assesment of default gems
-    cookbook = Cookbook.new(method_dir, config)
-    cookbook.extend MockSpecs
-    cookbook.manifest
+  def test_manifest_searches_for_files_along_pwd_by_default
+    example = file('files/example.txt')
+    
+    cookbook = Cookbook.new(method_dir)
+    assert_equal({'files/example.txt' => example}, cookbook.manifest)
   end
   
   def test_manifest_returns_manifest_of_matching_files_along_paths
-    assert_equal MANIFEST, manifest(
-      'paths' => [DIR_ONE, DIR_TWO]
-    )
+    cookbook = Cookbook.new(method_dir, 'paths' => [DIR_ONE, DIR_TWO])
+    assert_equal MANIFEST, cookbook.manifest
   end
   
   def test_manifest_splits_paths
-    assert_equal MANIFEST, manifest(
-      'paths' => "#{DIR_ONE}:#{DIR_TWO}"
-    )
+    cookbook = Cookbook.new(method_dir, 'paths' => "#{DIR_ONE}:#{DIR_TWO}")
+    assert_equal MANIFEST, cookbook.manifest
   end
   
   def test_manifest_resolves_paths_from_gems
-    assert_equal MANIFEST, manifest(
-      'gems' => ['one', 'two']
-    )
+    cookbook = Cookbook.new(method_dir, 'gems' => ['one', 'two'])
+    cookbook.extend MockSpecs
+    
+    assert_equal MANIFEST, cookbook.manifest
   end
   
   def test_manifest_splits_gems
-    assert_equal MANIFEST, manifest(
-      'gems' => 'one:two'
-    )
+    cookbook = Cookbook.new(method_dir, 'gems' => 'one:two')
+    cookbook.extend MockSpecs
+    
+    assert_equal MANIFEST, cookbook.manifest
   end
   
   def test_manifest_searches_gems_then_paths
-    assert_equal MANIFEST, manifest(
-      'paths' => [DIR_TWO],
-      'gems'  => ['one']
-    )
+    cookbook = Cookbook.new(method_dir, 'paths' => [DIR_TWO], 'gems'  => ['one'])
+    cookbook.extend MockSpecs
+    
+    assert_equal MANIFEST, cookbook.manifest
   end
   
   def test_manifest_overrides_results_with_config_manifest
-    assert_equal MANIFEST, manifest(
+    cookbook = Cookbook.new(method_dir, 
       'paths'    => [DIR_ONE],
       'manifest' => {
         'files/b.txt' => File.join(DIR_TWO, 'files/b.txt'),
         'files/c.txt' => File.join(DIR_TWO, 'files/c.txt')
       }
     )
+    
+    assert_equal MANIFEST, cookbook.manifest
   end
   
   def test_manifest_rewrites_resource_paths
-    assert_equal MANIFEST, manifest(
-      'paths'    => [],
+    cookbook = Cookbook.new(method_dir, 
       'rewrite'  => {
         '/post.' => '.',
         '/pre/'  => '/'
       },
       'manifest' => {
-        'files/a.txt' => File.join(DIR_ONE, 'files/a.txt'),
+        'files/a.txt'      => File.join(DIR_ONE, 'files/a.txt'),
         'files/b/post.txt' => File.join(DIR_TWO, 'files/b.txt'),
-        'files/pre/c.txt' => File.join(DIR_TWO, 'files/c.txt')
+        'files/pre/c.txt'  => File.join(DIR_TWO, 'files/c.txt')
       }
     )
+    
+    assert_equal MANIFEST, cookbook.manifest
   end
 end

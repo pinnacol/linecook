@@ -46,39 +46,40 @@ module Linecook
     ]
     
     attr_reader :dir
-    attr_reader :default_config
+    attr_reader :config
     
-    def initialize(dir='.', default_config={})
-      @dir = File.expand_path(dir)
-      @default_config = self.class.default.merge(default_config)
+    def initialize(dir='.', config={})
+      @dir    = File.expand_path(dir)
+      @config = self.class.default.merge(config)
     end
     
-    def manifest(config={})
-      manifest = {}
-      config = default_config.merge(config || {})
+    def paths
+      split config[PATHS_KEY]
+    end
+    
+    def gems
+      split config[GEMS_KEY]
+    end
+    
+    def rewrites
+      config[REWRITE_KEY]
+    end
+    
+    def overrides
+      config[MANIFEST_KEY]
+    end
+    
+    def full_gem_paths
+      return gems if gems.empty?
+      specs = latest_specs
       
-      paths = split config[PATHS_KEY]
-      gems  = split config[GEMS_KEY]
-      
-      (full_gem_paths(gems) + paths).each do |path|
-        path  = File.expand_path(path, dir)
-        start = path.length + 1
-        
-        PATTERNS.each do |pattern|
-          Dir.glob(File.join(path, pattern)).each do |full_path|
-            next unless File.file?(full_path)
-            
-            rel_path = full_path[start, full_path.length - start]
-            manifest[rel_path] = full_path
-          end
-        end
+      gems.collect do |name| 
+        spec = specs[name] or raise "no such gem: #{name.inspect}"
+        spec.full_gem_path
       end
-      
-      if overrides = config[MANIFEST_KEY]
-        manifest.merge! overrides
-      end
-      
-      rewrites = config[REWRITE_KEY]
+    end
+    
+    def rewrite(manifest)
       replacements = {}
       
       rewrites.each_pair do |pattern, substitution|
@@ -98,6 +99,42 @@ module Linecook
       manifest
     end
     
+    def raw_manifest
+      manifest = {}
+      
+      (full_gem_paths + paths).each do |path|
+        path  = File.expand_path(path, dir)
+        start = path.length + 1
+        
+        PATTERNS.each do |pattern|
+          Dir.glob(File.join(path, pattern)).each do |full_path|
+            next unless File.file?(full_path)
+            
+            rel_path = full_path[start, full_path.length - start]
+            manifest[rel_path] = full_path
+          end
+        end
+      end
+      
+      manifest
+    end
+    
+    def manifest
+      manifest = raw_manifest
+      
+      if overrides
+        manifest.merge! overrides
+      end
+      
+      rewrite(manifest)
+    end
+    
+    def merge(config={})
+      duplicate = dup
+      dup.config.merge!(config)
+      dup
+    end
+    
     private
     
     def split(obj) # :nodoc:
@@ -110,16 +147,6 @@ module Linecook
         latest[spec.name] = spec
       end
       latest
-    end
-    
-    def full_gem_paths(gems) # :nodoc:
-      return gems if gems.empty?
-      specs = latest_specs
-      
-      gems.collect do |name| 
-        spec = specs[name] or raise "no such gem: #{name.inspect}"
-        spec.full_gem_path
-      end
     end
   end
 end

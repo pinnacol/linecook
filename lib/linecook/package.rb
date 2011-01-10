@@ -9,7 +9,7 @@ module Linecook
         
         if cookbook
           cookbook_config = package.cookbook_config
-          package.config[MANIFEST_KEY] ||= cookbook.manifest(cookbook_config)
+          package.config[MANIFEST_KEY] ||= cookbook.merge(cookbook_config).manifest
         end
         
         package
@@ -202,27 +202,27 @@ module Linecook
       manifest[path] or raise "no such resource in manifest: #{path.inspect}"
     end
     
-    # Returns the resource_path the named attributes file (adds '.rb' extname).
+    # Returns the resource_path the named attributes file (ex 'attributes/name.rb').
     def attributes_path(attributes_name)
       resource_path('attributes', "#{attributes_name}.rb")
     end
     
-    # Returns the helper_path the named recipe file (adds '.rb' extname).
+    # Returns the helper_path the named recipe file (ex 'lib/name.rb').
     def helper_path(helper_name)
       resource_path('lib', "#{helper_name}.rb")
     end
     
-    # Returns the resource_path the named file.
+    # Returns the resource_path the named file (ex 'files/name')
     def file_path(file_name)
       resource_path('files', file_name)
     end
     
-    # Returns the resource_path the named template file (adds '.erb' extname).
+    # Returns the resource_path the named template file (ex 'templates/name.erb').
     def template_path(template_name)
       resource_path('templates', "#{template_name}.erb")
     end
     
-    # Returns the resource_path the named recipe file (adds '.rb' extname).
+    # Returns the resource_path the named recipe file (ex 'recipes/name.rb').
     def recipe_path(recipe_name)
       resource_path('recipes', "#{recipe_name}.rb")
     end
