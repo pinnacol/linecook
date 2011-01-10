@@ -264,21 +264,31 @@ module Linecook
       Recipe.new(target, self)
     end
     
+    # Looks up the file with the specified name using file_path and registers
+    # it to target_path.  Raises an error if the target is already registered.
+    # Returns self.
     def build_file(file_name, target_path)
       register! target_path, file_path(file_name)
       self
     end
     
-    def build_template(template_name, target_path)
+    # Looks up the template with the specified name using template_path,
+    # builds, and registers it to target_path.  The locals will be set for
+    # access in the template context.  Raises an error if the target is
+    # already registered. Returns self.
+    def build_template(template_name, target_path, locals=env)
       source = template_path(template_name)
       
       target = tempfile!(target_path)
-      target << Template.build(File.read(source), env, source)
+      target << Template.build(File.read(source), locals, source)
       
       target.close
       self
     end
     
+    # Looks up the recipe with the specified name using recipe_path, evaluates
+    # it, and registers the result to target_path.  Raises an error if the
+    # target is already registered. Returns self.
     def build_recipe(recipe_name, target_path)
       recipe = self.recipe!(target_path)
       recipe.evaluate(recipe_name)
@@ -286,6 +296,7 @@ module Linecook
       self
     end
     
+    # Builds the files, templates, and recipes for self.  Returns self.
     def build
       files.each do |file_name, target_path|
         build_file(file_name, target_path)
@@ -302,11 +313,14 @@ module Linecook
       self
     end
     
+    # Returns the content of the source_path for target_path, as registered in
+    # self.  Returns nil if the target is not registered.
     def content(target_path)
       path = registry[target_path]
       path ? File.read(path) : nil
     end
     
+    # Closes all tempfiles and returns self.
     def close
       tempfiles.each do |tempfile|
         tempfile.close unless tempfile.closed?
@@ -314,6 +328,11 @@ module Linecook
       self
     end
     
+    # Closes self and exports the registry to dir by copying or moving the
+    # registered source paths to the target path under dir.  By default
+    # tempfiles are moved while all other files are copied.
+    #
+    # Returns registry, which is re-written to reflect the new source paths.
     def export(dir, options={})
       close
       

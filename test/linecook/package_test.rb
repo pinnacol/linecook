@@ -1,12 +1,15 @@
 require File.expand_path('../../test_helper', __FILE__)
 require 'linecook/package'
+require 'linecook/test/file_test'
 
 class PackageTest < Test::Unit::TestCase
+  include Linecook::Test::FileTest
   Package = Linecook::Package
   
   attr_accessor :package
   
   def setup
+    super
     @package = Package.new
   end
   
@@ -244,5 +247,149 @@ class PackageTest < Test::Unit::TestCase
     package.register('target/path', 'source/path')
     err = assert_raises(RuntimeError) { package.recipe!('target/path') }
     assert_equal 'already registered: "target/path"', err.message
+  end
+  
+  #
+  # build_file test
+  #
+  
+  def test_build_file_looks_up_and_registers_the_specified_file
+    package.manifest['files/name'] = file('example') {|io| io << 'content' }
+    
+    package.build_file('name', 'target/path')
+    assert_equal 'content', package.content('target/path')
+  end
+  
+  def test_build_file_raises_error_if_no_such_file_is_in_manifest
+    err = assert_raises(RuntimeError) { package.build_file('name', 'target/path') }
+    assert_equal 'no such resource in manifest: "files/name"', err.message
+  end
+  
+  def test_build_file_raises_error_if_the_target_is_already_registered
+    package.manifest['files/name'] = 'file/path'
+    package.register('target/path', 'source/path')
+    
+    err = assert_raises(RuntimeError) { package.build_file('name', 'target/path') }
+    assert_equal 'already registered: "target/path"', err.message
+  end
+  
+  def test_build_file_returns_package
+    package.manifest['files/name'] = file('example') {|io| io << 'content' }
+    assert_equal package, package.build_file('name', 'target/path')
+  end
+  
+  #
+  # build_template test
+  #
+  
+  def test_build_template_looks_up_builds_and_registers_the_specified_template
+    package.manifest['templates/name.erb'] = file('example') {|io| io << 'got: <%= key %>'}
+    
+    package.build_template('name', 'target/path', 'key' => 'value')
+    assert_equal 'got: value', package.content('target/path')
+  end
+  
+  def test_build_template_uses_env_as_locals_by_default
+    package.manifest['templates/name.erb'] = file('example') {|io| io << 'got: <%= key %>'}
+    
+    package.env['key'] = 'value'
+    package.build_template('name', 'target/path')
+    assert_equal 'got: value', package.content('target/path')
+  end
+  
+  def test_build_template_raises_error_if_no_such_template_is_in_manifest
+    err = assert_raises(RuntimeError) { package.build_template('name', 'target/path') }
+    assert_equal 'no such resource in manifest: "templates/name.erb"', err.message
+  end
+  
+  def test_build_template_raises_error_if_the_target_is_already_registered
+    package.manifest['templates/name.erb'] = 'template/path'
+    package.register('target/path', 'source/path')
+    
+    err = assert_raises(RuntimeError) { package.build_template('name', 'target/path') }
+    assert_equal 'already registered: "target/path"', err.message
+  end
+  
+  def test_build_template_returns_package
+    package.manifest['templates/name.erb'] = file('example') {|io| io << ''}
+    assert_equal package, package.build_template('name', 'target/path')
+  end
+  
+  #
+  # build_recipe test
+  #
+  
+  def test_build_recipe_looks_up_evaluates_and_registers_the_specified_recipe
+    package.manifest['recipes/name.rb'] = file('example') {|io| io << 'target << "content"'}
+    
+    package.build_recipe('name', 'target/path')
+    assert_equal 'content', package.content('target/path')
+  end
+  
+  def test_build_recipe_raises_error_if_no_such_recipe_is_in_manifest
+    err = assert_raises(RuntimeError) { package.build_recipe('name', 'target/path') }
+    assert_equal 'no such resource in manifest: "recipes/name.rb"', err.message
+  end
+  
+  def test_build_recipe_raises_error_if_the_target_is_already_registered
+    package.manifest['recipes/name.rb'] = file('example') {|io| io << 'target << "content"'}
+    package.register('target/path', 'source/path')
+    
+    err = assert_raises(RuntimeError) { package.build_recipe('name', 'target/path') }
+    assert_equal 'already registered: "target/path"', err.message
+  end
+  
+  def test_build_recipe_returns_package
+    package.manifest['recipes/name.rb'] = file('example') {|io| io << ''}
+    assert_equal package, package.build_recipe('name', 'target/path')
+  end
+  
+  #
+  # content test
+  #
+  
+  def test_content_returns_the_contents_of_the_target
+    tempfile = Tempfile.new('example')
+    tempfile << 'content'
+    tempfile.close
+    
+    package.register 'target/path', tempfile.path
+    assert_equal 'content', package.content('target/path')
+  end
+  
+  def test_content_returns_nil_for_unregistered_target
+    assert_equal nil, package.content('not/registered')
+  end
+  
+  #
+  # export test
+  #
+  
+  def test_export_copies_source_files_to_dir_as_specified_in_registry
+    original_source = file('example') {|io| io << 'content'}
+    
+    package.registry['target/path'] = original_source
+    package.export path('export/dir')
+    
+    assert_equal 'content', File.read(original_source)
+    assert_equal 'content', File.read(path('export/dir/target/path'))
+  end
+  
+  def test_export_moves_tempfiles_specified_in_registry
+    tempfile = package.tempfile('target/path')
+    tempfile << 'content'
+    
+    package.export path('export/dir')
+    
+    assert_equal false, File.exists?(tempfile.path)
+    assert_equal 'content', File.read(path('export/dir/target/path'))
+  end
+  
+  def test_export_rewrites_and_returns_registry_with_new_source_paths
+    tempfile = package.tempfile('target/path')
+    assert_equal tempfile.path, package.registry['target/path']
+    
+    registry = package.export path('export/dir')
+    assert_equal path('export/dir/target/path'), registry['target/path']
   end
 end
