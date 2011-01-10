@@ -26,24 +26,36 @@ class PackageTest < Test::Unit::TestCase
   end
   
   #
-  # recipes test
+  # resources test
   #
   
-  def test_recipes_returns_recipes_in_configs
-    hash = {}
-    package = Package.new(Package::CONFIG_KEY => {Package::RECIPES_KEY => hash})
-    assert_equal hash.object_id, package.recipes.object_id
+  def test_resources_documentation
+    package = Package.new('linecook' => {'recipes' => 'a:b:c'})
+    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.resources('recipes'))
   end
   
-  def test_recipes_initializes_to_empty_hash_if_unset
-    assert_equal({}, package.recipes)
+  def test_resources_returns_resources_of_the_specified_type_in_configs
+    hash = {}
+    package = Package.new(Package::CONFIG_KEY => {Package::RECIPES_KEY => hash})
+    assert_equal hash.object_id, package.resources(Package::RECIPES_KEY).object_id
+  end
+  
+  def test_resources_initializes_to_empty_hash_if_unset
+    assert_equal({}, package.resources(Package::RECIPES_KEY))
     assert_equal({}, package.env[Package::CONFIG_KEY][Package::RECIPES_KEY])
   end
   
-  def test_recipes_expands_array_recipes_into_a_redundant_hash
+  def test_resources_expands_array_into_a_redundant_hash
     package = Package.new(Package::CONFIG_KEY => {Package::RECIPES_KEY => ['a', 'b', 'c']})
     
-    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.recipes)
+    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.resources(Package::RECIPES_KEY))
+    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.env[Package::CONFIG_KEY][Package::RECIPES_KEY])
+  end
+  
+  def test_resources_splits_string_into_a_redundant_hash_along_colons
+    package = Package.new(Package::CONFIG_KEY => {Package::RECIPES_KEY => 'a:b:c'})
+    
+    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.resources(Package::RECIPES_KEY))
     assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.env[Package::CONFIG_KEY][Package::RECIPES_KEY])
   end
   
@@ -194,5 +206,43 @@ class PackageTest < Test::Unit::TestCase
   def test_tempfile_check_returns_true_if_the_source_is_from_a_tempfile_generated_by_self
     assert_equal false, package.tempfile?('source/path')
     assert_equal true, package.tempfile?(package.tempfile.path)
+  end
+  
+  #
+  # recipe test
+  #
+  
+  def test_recipe_returns_a_new_recipe_that_builds_into_self
+    recipe = package.recipe
+    recipe.target << 'content'
+    recipe.close
+    
+    assert_equal 'content', package.content(recipe.target_name)
+  end
+  
+  def test_recipe_increments_target_path_as_needed
+    a = package.recipe('target/path')
+    b = package.recipe('target/path')
+    
+    assert_equal 'target/path',   a.target_path
+    assert_equal 'target/path.1', b.target_path
+  end
+  
+  def test_recipes_close_with_package
+    recipe = package.recipe
+    assert_equal false, recipe.closed?
+    
+    package.close
+    assert_equal true, recipe.closed?
+  end
+  
+  #
+  # recipe! test
+  #
+  
+  def test_recipe_bang_raises_error_if_target_path_is_already_registered
+    package.register('target/path', 'source/path')
+    err = assert_raises(RuntimeError) { package.recipe!('target/path') }
+    assert_equal 'already registered: "target/path"', err.message
   end
 end

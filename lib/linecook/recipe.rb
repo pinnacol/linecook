@@ -19,7 +19,7 @@ module Linecook
       "#{target_name}.d"
     end
     
-    def target_path(target_path)
+    def target_path(target_path=target_name)
       target_path
     end
     
