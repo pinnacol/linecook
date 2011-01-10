@@ -207,6 +207,11 @@ module Linecook
       resource_path('attributes', "#{attributes_name}.rb")
     end
     
+    # Returns the helper_path the named recipe file (adds '.rb' extname).
+    def helper_path(helper_name)
+      resource_path('lib', "#{helper_name}.rb")
+    end
+    
     # Returns the resource_path the named file.
     def file_path(file_name)
       resource_path('files', file_name)

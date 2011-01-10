@@ -16,8 +16,7 @@ module Linecook
         {
            MANIFEST_KEY => {},
            PATHS_KEY    => ['.'],
-           GEMS_KEY     => gems,
-           ALIASES_KEY  => {}
+           GEMS_KEY     => gems
          }
       end
       
@@ -35,11 +34,11 @@ module Linecook
     MANIFEST_KEY  = 'manifest'
     PATHS_KEY     = 'paths'
     GEMS_KEY      = 'gems'
-    ALIASES_KEY   = 'aliases'
     
     PATTERNS  = [
       File.join('attributes', '**', '*.rb'),
       File.join('files',      '**', '*'),
+      File.join('lib',        '**', '*.rb'),
       File.join('recipes',    '**', '*.rb'),
       File.join('templates',  '**', '*.erb')
     ]

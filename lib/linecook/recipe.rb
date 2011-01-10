@@ -46,7 +46,7 @@ module Linecook
     end
     
     def helpers(helper_name)
-      require Utils.underscore(helper_name)
+      require @package.helper_path(helper_name)
       extend Utils.constantize(helper_name)
     end
     

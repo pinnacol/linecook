@@ -56,17 +56,10 @@ class RecipeTest < Test::Unit::TestCase
       end
     }}
     
-    lib_path = path('lib')
-    begin
-      $:.unshift lib_path
-      
-      assert_equal false, recipe.respond_to?(:help)
-      recipe.helpers "recipe_test/require_helper"
-      assert_equal true, recipe.respond_to?(:help)
-      
-    ensure
-      $:.delete lib_path
-    end
+    assert_equal false, recipe.respond_to?(:help)
+    
+    recipe.helpers "recipe_test/require_helper"
+    assert_equal true, recipe.respond_to?(:help)
   end
 
   #
