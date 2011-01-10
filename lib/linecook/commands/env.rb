@@ -13,7 +13,10 @@ module Linecook
       config :path, nil                             # package path
       
       def process(*keys)
-        current = Linecook::Cookbook.init(cookbook_dir).env(path)
+        cookbook = Linecook::Cookbook.init(cookbook_dir)
+        package  = Linecook::Package.load(path, cookbook)
+        
+        current = package.env
         keys.each {|key| current = current[key] if current }
         
         YAML.dump(current, $stdout)

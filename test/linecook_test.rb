@@ -91,4 +91,15 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal [example_dir], Dir.glob(path('parent/*'))
     assert_equal [], Dir.glob(path('parent/current/*'))
   end
+  
+  #
+  # env test
+  #
+  
+  def test_env_prints_the_current_env
+    result = sh "ruby #{LINE_COOK} env"
+    result = YAML.load(result)
+    
+    assert_equal ['manifest', 'cookbook'], result['linecook'].keys
+  end
 end
