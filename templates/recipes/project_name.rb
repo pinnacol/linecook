@@ -1,10 +1,7 @@
 #############################################################################
-helpers 'linecook/shell'
 helpers 'linebook/<%= project_name %>'
 attributes '<%= project_name %>'
 #############################################################################
-
-shebang '/bin/bash'
 
 # Write to the script target using 'script'
 target.puts '# An example script.'

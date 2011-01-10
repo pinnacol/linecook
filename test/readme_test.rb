@@ -66,7 +66,7 @@ example:
       }
     end
     
-    sh "rake scripts"
+    sh "rake scripts 2>&1 > /dev/null"
     
     sh_test %Q{
       % bash '#{path('scripts/example/example')}'
