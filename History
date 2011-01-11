@@ -1,3 +1,10 @@
+== 0.8.0 2011/01/11
+
+* now detect helpers using lazydoc (::helper)
+* bugfix env command didn't work
+* bugfix for using nested capture path
+* now nest resources in manifest by type
+
 == 0.7.0 2011/01/10
 
 * removed shell helpers (to linebook)
