@@ -100,6 +100,6 @@ class LinecookTest < Test::Unit::TestCase
     result = sh "ruby #{LINE_COOK} env"
     result = YAML.load(result)
     
-    assert_equal ['manifest', 'cookbook'], result['linecook'].keys
+    assert_equal({}, result['linecook']['manifest'])
   end
 end

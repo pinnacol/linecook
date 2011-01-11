@@ -72,6 +72,7 @@ module Linecook
       nest(*nestings) { yield }
     end
     
+    # :::-
     MODULE_TEMPLATE_LINE = __LINE__ + 2
     MODULE_TEMPLATE = "self." + ERB.new(<<-DOC, nil, '<>').src
 require 'erb'
@@ -121,5 +122,6 @@ end
 
 <%= sections[:footer] %>
 DOC
+   # :::+
   end
 end
