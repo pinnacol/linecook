@@ -213,7 +213,7 @@ module Linecook
     
     # Returns the helper_path the named recipe file (ex 'lib/name.rb').
     def helper_path(helper_name)
-      resource_path('lib', helper_name)
+      resource_path('helpers', helper_name)
     end
     
     # Returns the resource_path the named file (ex 'files/name')

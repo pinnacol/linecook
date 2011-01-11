@@ -38,11 +38,11 @@ module Linecook
     REWRITE_KEY   = 'rewrite'
     
     PATTERNS  = {
-      'attributes' => '.rb',
-      'files'      => nil,
-      'lib'        => '.rb',
-      'recipes'    => '.rb',
-      'templates'  => '.erb'
+      'attributes' => ['attributes', '.rb'],
+      'files'      => ['files'],
+      'helpers'    => ['lib', '.rb'],
+      'recipes'    => ['recipes', '.rb'],
+      'templates'  => ['templates', '.erb']
     }
     
     attr_reader :dir
@@ -103,8 +103,8 @@ module Linecook
       manifest = Hash.new {|hash, key| hash[key] = {} }
       
       paths.each do |path|
-        PATTERNS.each_pair do |type, extname|
-          resource_dir = File.expand_path(File.join(path, type), dir)
+        PATTERNS.each_pair do |type, (dirname, extname)|
+          resource_dir = File.expand_path(File.join(path, dirname), dir)
           pattern = File.join(resource_dir, "**/*#{extname}")
           start = resource_dir.length + 1
           
