@@ -43,8 +43,7 @@ module Linecook
     end
     
     def helpers(helper_name)
-      require @package.helper_path(helper_name)
-      extend Utils.constantize(helper_name)
+      extend @package.helper(helper_name)
     end
     
     def evaluate(recipe_name=target_name)

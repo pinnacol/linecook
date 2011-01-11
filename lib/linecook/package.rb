@@ -72,7 +72,7 @@ module Linecook
     # Returns the manifest in config, as keyed by MANIFEST_KEY. Defaults to an
     # empty hash.
     def manifest
-      config[MANIFEST_KEY] ||= {}
+      config[MANIFEST_KEY] ||= Hash.new {|hash, key| hash[key] = {} }
     end
     
     # Returns a hash of (source, target) pairs identifying which of the
@@ -194,25 +194,26 @@ module Linecook
     end
     
     # Returns true if there is a path for the specified resource in manifest.
-    def resource?(*segments)
-      manifest.has_key? File.join(*segments)
+    def resource?(type, path)
+      resources = manifest[type]
+      resources && resources.has_key?(path)
     end
     
     # Returns the path to the resource in manfiest.  Raises an error if there
     # is no such resource.
-    def resource_path(*segments)
-      path = File.join(*segments)
-      manifest[path] or raise "no such resource in manifest: #{path.inspect}"
+    def resource_path(type, path)
+      resources = manifest[type] || {}
+      resources[path] or raise "no such resource in manifest: #{type.inspect} #{path.inspect}"
     end
     
     # Returns the resource_path the named attributes file (ex 'attributes/name.rb').
     def attributes_path(attributes_name)
-      resource_path('attributes', "#{attributes_name}.rb")
+      resource_path('attributes', attributes_name)
     end
     
     # Returns the helper_path the named recipe file (ex 'lib/name.rb').
     def helper_path(helper_name)
-      resource_path('lib', "#{helper_name}.rb")
+      resource_path('lib', helper_name)
     end
     
     # Returns the resource_path the named file (ex 'files/name')
@@ -222,12 +223,12 @@ module Linecook
     
     # Returns the resource_path the named template file (ex 'templates/name.erb').
     def template_path(template_name)
-      resource_path('templates', "#{template_name}.erb")
+      resource_path('templates', template_name)
     end
     
     # Returns the resource_path the named recipe file (ex 'recipes/name.rb').
     def recipe_path(recipe_name)
-      resource_path('recipes', "#{recipe_name}.rb")
+      resource_path('recipes', recipe_name)
     end
     
     # Generates a tempfile for the target path and registers it with self. As
@@ -270,6 +271,15 @@ module Linecook
     def recipe!(target_path)
       target = tempfile!(target_path)
       Recipe.new(target, self)
+    end
+    
+    def helper_const(helper_name)
+      Utils.camelize(helper_name)
+    end
+    
+    def helper(helper_name)
+      require helper_path(helper_name)
+      Utils.constantize helper_const(helper_name)
     end
     
     # Looks up the file with the specified name using file_path and registers

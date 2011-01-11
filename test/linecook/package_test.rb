@@ -158,18 +158,13 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_resource_path_returns_corresponding_path_in_manifest
-    package.manifest['path'] = 'source/path'
-    assert_equal 'source/path', package.resource_path('path')
-  end
-  
-  def test_resource_path_joins_path_segments
-    package.manifest['nest/path'] = 'source/path'
-    assert_equal 'source/path', package.resource_path('nest', 'path')
+    package.manifest['type']['path'] = 'source/path'
+    assert_equal 'source/path', package.resource_path('type', 'path')
   end
   
   def test_resource_path_raises_error_for_unregistered_path
-    err = assert_raises(RuntimeError) { package.resource_path('unknown/path') }
-    assert_equal 'no such resource in manifest: "unknown/path"', err.message
+    err = assert_raises(RuntimeError) { package.resource_path('type', 'unknown/path') }
+    assert_equal 'no such resource in manifest: "type" "unknown/path"', err.message
   end
   
   #
@@ -254,7 +249,7 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_build_file_looks_up_and_registers_the_specified_file
-    package.manifest['files/name'] = file('example') {|io| io << 'content' }
+    package.manifest['files']['name'] = file('example') {|io| io << 'content' }
     
     package.build_file('name', 'target/path')
     assert_equal 'content', package.content('target/path')
@@ -262,11 +257,11 @@ class PackageTest < Test::Unit::TestCase
   
   def test_build_file_raises_error_if_no_such_file_is_in_manifest
     err = assert_raises(RuntimeError) { package.build_file('name', 'target/path') }
-    assert_equal 'no such resource in manifest: "files/name"', err.message
+    assert_equal 'no such resource in manifest: "files" "name"', err.message
   end
   
   def test_build_file_raises_error_if_the_target_is_already_registered
-    package.manifest['files/name'] = 'file/path'
+    package.manifest['files']['name'] = 'file/path'
     package.register('target/path', 'source/path')
     
     err = assert_raises(RuntimeError) { package.build_file('name', 'target/path') }
@@ -274,7 +269,7 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_build_file_returns_package
-    package.manifest['files/name'] = file('example') {|io| io << 'content' }
+    package.manifest['files']['name'] = file('example') {|io| io << 'content' }
     assert_equal package, package.build_file('name', 'target/path')
   end
   
@@ -283,14 +278,14 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_build_template_looks_up_builds_and_registers_the_specified_template
-    package.manifest['templates/name.erb'] = file('example') {|io| io << 'got: <%= key %>'}
+    package.manifest['templates']['name'] = file('example') {|io| io << 'got: <%= key %>'}
     
     package.build_template('name', 'target/path', 'key' => 'value')
     assert_equal 'got: value', package.content('target/path')
   end
   
   def test_build_template_uses_env_as_locals_by_default
-    package.manifest['templates/name.erb'] = file('example') {|io| io << 'got: <%= key %>'}
+    package.manifest['templates']['name'] = file('example') {|io| io << 'got: <%= key %>'}
     
     package.env['key'] = 'value'
     package.build_template('name', 'target/path')
@@ -299,11 +294,11 @@ class PackageTest < Test::Unit::TestCase
   
   def test_build_template_raises_error_if_no_such_template_is_in_manifest
     err = assert_raises(RuntimeError) { package.build_template('name', 'target/path') }
-    assert_equal 'no such resource in manifest: "templates/name.erb"', err.message
+    assert_equal 'no such resource in manifest: "templates" "name"', err.message
   end
   
   def test_build_template_raises_error_if_the_target_is_already_registered
-    package.manifest['templates/name.erb'] = 'template/path'
+    package.manifest['templates']['name'] = 'template/path'
     package.register('target/path', 'source/path')
     
     err = assert_raises(RuntimeError) { package.build_template('name', 'target/path') }
@@ -311,7 +306,7 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_build_template_returns_package
-    package.manifest['templates/name.erb'] = file('example') {|io| io << ''}
+    package.manifest['templates']['name'] = file('example') {|io| io << ''}
     assert_equal package, package.build_template('name', 'target/path')
   end
   
@@ -320,7 +315,7 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_build_recipe_looks_up_evaluates_and_registers_the_specified_recipe
-    package.manifest['recipes/name.rb'] = file('example') {|io| io << 'target << "content"'}
+    package.manifest['recipes']['name'] = file('example') {|io| io << 'target << "content"'}
     
     package.build_recipe('name', 'target/path')
     assert_equal 'content', package.content('target/path')
@@ -328,11 +323,11 @@ class PackageTest < Test::Unit::TestCase
   
   def test_build_recipe_raises_error_if_no_such_recipe_is_in_manifest
     err = assert_raises(RuntimeError) { package.build_recipe('name', 'target/path') }
-    assert_equal 'no such resource in manifest: "recipes/name.rb"', err.message
+    assert_equal 'no such resource in manifest: "recipes" "name"', err.message
   end
   
   def test_build_recipe_raises_error_if_the_target_is_already_registered
-    package.manifest['recipes/name.rb'] = file('example') {|io| io << 'target << "content"'}
+    package.manifest['recipes']['name'] = file('example') {|io| io << 'target << "content"'}
     package.register('target/path', 'source/path')
     
     err = assert_raises(RuntimeError) { package.build_recipe('name', 'target/path') }
@@ -340,7 +335,7 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_build_recipe_returns_package
-    package.manifest['recipes/name.rb'] = file('example') {|io| io << ''}
+    package.manifest['recipes']['name'] = file('example') {|io| io << ''}
     assert_equal package, package.build_recipe('name', 'target/path')
   end
   

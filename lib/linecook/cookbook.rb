@@ -37,13 +37,13 @@ module Linecook
     GEMS_KEY      = 'gems'
     REWRITE_KEY   = 'rewrite'
     
-    PATTERNS  = [
-      File.join('attributes', '**', '*.rb'),
-      File.join('files',      '**', '*'),
-      File.join('lib',        '**', '*.rb'),
-      File.join('recipes',    '**', '*.rb'),
-      File.join('templates',  '**', '*.erb')
-    ]
+    PATTERNS  = {
+      'attributes' => '.rb',
+      'files'      => nil,
+      'lib'        => '.rb',
+      'recipes'    => '.rb',
+      'templates'  => '.erb'
+    }
     
     attr_reader :dir
     attr_reader :config
@@ -99,19 +99,22 @@ module Linecook
       manifest
     end
     
-    def raw_manifest
-      manifest = {}
+    def glob(*paths)
+      manifest = Hash.new {|hash, key| hash[key] = {} }
       
-      (full_gem_paths + paths).each do |path|
-        path  = File.expand_path(path, dir)
-        start = path.length + 1
-        
-        PATTERNS.each do |pattern|
-          Dir.glob(File.join(path, pattern)).each do |full_path|
+      paths.each do |path|
+        PATTERNS.each_pair do |type, extname|
+          resource_dir = File.expand_path(File.join(path, type), dir)
+          pattern = File.join(resource_dir, "**/*#{extname}")
+          start = resource_dir.length + 1
+          
+          Dir.glob(pattern).each do |full_path|
             next unless File.file?(full_path)
             
-            rel_path = full_path[start, full_path.length - start]
-            manifest[rel_path] = full_path
+            name = full_path[start, full_path.length - start]
+            name.chomp!(extname) if extname
+            
+            manifest[type][name] = full_path
           end
         end
       end
@@ -120,13 +123,17 @@ module Linecook
     end
     
     def manifest
-      manifest = raw_manifest
+      manifest = glob(*(full_gem_paths + paths))
       
       if overrides
-        manifest.merge! overrides
+        manifest = Utils.deep_merge(manifest, overrides)
       end
       
-      rewrite(manifest)
+      manifest.each_key do |key|
+        manifest[key] = rewrite manifest[key]
+      end
+      
+      manifest
     end
     
     def merge(config={})

@@ -10,9 +10,11 @@ class CookbookTest < Test::Unit::TestCase
   DIR_TWO = File.expand_path('../../fixtures/dir_two', __FILE__)
   
   MANIFEST = {
-    'files/a.txt' => File.join(DIR_ONE, 'files/a.txt'),
-    'files/b.txt' => File.join(DIR_TWO, 'files/b.txt'),
-    'files/c.txt' => File.join(DIR_TWO, 'files/c.txt')
+    'files' => {
+      'a.txt' => File.join(DIR_ONE, 'files/a.txt'),
+      'b.txt' => File.join(DIR_TWO, 'files/b.txt'),
+      'c.txt' => File.join(DIR_TWO, 'files/c.txt')
+    }
   }
   
   #
@@ -38,7 +40,7 @@ class CookbookTest < Test::Unit::TestCase
     example = file('files/example.txt')
     
     cookbook = Cookbook.new(method_dir)
-    assert_equal({'files/example.txt' => example}, cookbook.manifest)
+    assert_equal({'files' => {'example.txt' => example}}, cookbook.manifest)
   end
   
   def test_manifest_returns_manifest_of_matching_files_along_paths
@@ -76,8 +78,10 @@ class CookbookTest < Test::Unit::TestCase
     cookbook = Cookbook.new(method_dir, 
       'paths'    => [DIR_ONE],
       'manifest' => {
-        'files/b.txt' => File.join(DIR_TWO, 'files/b.txt'),
-        'files/c.txt' => File.join(DIR_TWO, 'files/c.txt')
+        'files' => {
+          'b.txt' => File.join(DIR_TWO, 'files/b.txt'),
+          'c.txt' => File.join(DIR_TWO, 'files/c.txt')
+        }
       }
     )
     
@@ -88,12 +92,14 @@ class CookbookTest < Test::Unit::TestCase
     cookbook = Cookbook.new(method_dir, 
       'rewrite'  => {
         '/post.' => '.',
-        '/pre/'  => '/'
+        'pre/'   => ''
       },
       'manifest' => {
-        'files/a.txt'      => File.join(DIR_ONE, 'files/a.txt'),
-        'files/b/post.txt' => File.join(DIR_TWO, 'files/b.txt'),
-        'files/pre/c.txt'  => File.join(DIR_TWO, 'files/c.txt')
+        'files' => {
+          'a.txt'      => File.join(DIR_ONE, 'files/a.txt'),
+          'b/post.txt' => File.join(DIR_TWO, 'files/b.txt'),
+          'pre/c.txt'  => File.join(DIR_TWO, 'files/c.txt')
+        }
       }
     )
     
