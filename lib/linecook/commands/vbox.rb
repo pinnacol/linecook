@@ -6,7 +6,7 @@ module Linecook
       config :type, 'headless'
       
       def process(vmname='vbox')
-        unless `VBoxManage -q list runningvms`.include?(VMNAME)
+        unless `VBoxManage -q list runningvms`.include?(vmname)
           sh "VBoxManage -q startvm #{vmname} --type #{type}"
         end
       end
@@ -23,11 +23,9 @@ module Linecook
     
     # Linecook::Commands::Reset::desc reset vm to a snapshot
     class Reset < Command
-      
       config :type, 'headless'
-      config :snapshot, 'BASE'
       
-      def process(vmname='vbox')
+      def process(snapshot='base', vmname='vbox')
         if `VBoxManage -q list runningvms`.include?(vmname)
           sh "VBoxManage -q controlvm #{vmname} poweroff"
         end
@@ -61,7 +59,7 @@ module Linecook
       
       config :port, 2222, &c.integer
       config :user, 'vbox'
-      config :keypath, File.expand_path('../../../../vbox/ssh/id_rsa', __FILE__)
+      config :keypath, File.expand_path('vbox/ssh/id_rsa')
       
       def process(cmd=nil)
         # To prevent ssh errors, protect the private key

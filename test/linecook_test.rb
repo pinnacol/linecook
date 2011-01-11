@@ -102,4 +102,19 @@ class LinecookTest < Test::Unit::TestCase
     
     assert_equal({}, result['linecook']['manifest'])
   end
+  
+  #
+  # vbox test
+  #
+  
+  def test_vbox_
+    keypath = File.expand_path('../../../templates/vbox/ssh/id_rsa')
+    sh "ruby #{LINE_COOK} reset"
+    sh_test %Q{
+      % ruby #{LINE_COOK} ssh --keypath '#{keypath}' 'echo hello'
+      Warning: Permanently added '[localhost]:2222' (RSA) to the list of known hosts.\r
+      hello
+    }
+    sh "ruby #{LINE_COOK} stop"
+  end
 end
