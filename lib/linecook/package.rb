@@ -10,6 +10,7 @@ module Linecook
         if cookbook
           cookbook_config = package.cookbook_config
           package.config[MANIFEST_KEY] ||= cookbook.merge(cookbook_config).manifest
+          package.cookbook_config.replace cookbook.config
         end
         
         package
