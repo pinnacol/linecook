@@ -1,4 +1,5 @@
 require 'linecook/utils'
+require 'lazydoc'
 
 module Linecook
   class Cookbook
@@ -40,7 +41,6 @@ module Linecook
     PATTERNS  = {
       'attributes' => ['attributes', '.rb'],
       'files'      => ['files'],
-      'helpers'    => ['lib', '.rb'],
       'recipes'    => ['recipes', '.rb'],
       'templates'  => ['templates', '.erb']
     }
@@ -106,16 +106,20 @@ module Linecook
         PATTERNS.each_pair do |type, (dirname, extname)|
           resource_dir = File.expand_path(File.join(path, dirname), dir)
           pattern = File.join(resource_dir, "**/*#{extname}")
-          start = resource_dir.length + 1
           
           Dir.glob(pattern).each do |full_path|
             next unless File.file?(full_path)
             
-            name = full_path[start, full_path.length - start]
+            name = relative_path(resource_dir, full_path)
             name.chomp!(extname) if extname
             
             manifest[type][name] = full_path
           end
+        end
+        
+        helpers = scan_helpers File.expand_path(File.join(path, 'lib'), dir)
+        unless helpers.empty?
+          manifest['helpers'].merge! helpers
         end
       end
       
@@ -143,6 +147,27 @@ module Linecook
     end
     
     private
+    
+    def scan_helpers(dir) # :nodoc:
+      constants = {}
+      
+      pattern = File.join(dir, '**/*.rb')
+      Dir.glob(pattern).each do |path|
+        Lazydoc::Document.scan(File.read(path)) do |const_name, type, summary|
+          next unless type == 'helper'
+          
+          const_name = relative_path(dir, path).chomp('.rb') if const_name.empty?
+          constants[Utils.underscore(const_name)] = path
+        end
+      end
+      
+      constants
+    end
+    
+    def relative_path(dir, path) # :nodoc:
+      start = dir.length + 1
+      path[start, path.length - start]
+    end
     
     def split(obj) # :nodoc:
       obj.kind_of?(String) ? obj.split(':') : obj
