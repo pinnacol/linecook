@@ -8,9 +8,11 @@ module Linecook
         package = new(env)
         
         if cookbook
-          cookbook_config = package.cookbook_config
-          package.config[MANIFEST_KEY] ||= cookbook.merge(cookbook_config).manifest
-          package.cookbook_config.replace cookbook.config
+          if cookbook_config = package.cookbook_config
+            cookbook = cookbook.merge(cookbook_config)
+          end
+          
+          package.config[MANIFEST_KEY] ||= cookbook.manifest
         end
         
         package
@@ -67,7 +69,7 @@ module Linecook
     # Returns the cookbook configs in config, as keyed by COOKBOOK_CONFIG_KEY.
     # Defaults to an empty hash.
     def cookbook_config
-      config[COOKBOOK_CONFIG_KEY] ||= {}
+      config[COOKBOOK_CONFIG_KEY]
     end
     
     # Returns the manifest in config, as keyed by MANIFEST_KEY. Defaults to an
