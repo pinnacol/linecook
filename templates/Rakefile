@@ -97,7 +97,7 @@ sources.each_pair do |dir, sources|
 end
 
 desc "generate helpers"
-task :helpers => helpers + [:bundle]
+task :helpers => [:bundle] + helpers
 
 #
 # Linecook Scripts
@@ -117,14 +117,15 @@ scripts.each do |source|
     end
     
     desc "generate the script: #{name}"
-    task name => target
+    task name => [:bundle, target]
   end
   
-  task :scripts => target
+  task :scripts => "scripts:#{name}"
 end
 
 desc "generate scripts"
 task :scripts
+
 
 #
 # Test tasks
