@@ -46,6 +46,10 @@ module Linecook
       extend @package.helper(helper_name)
     end
     
+    def variable(name)
+      @package.variable(name)
+    end
+    
     def evaluate(recipe_name=target_name)
       path = @package.recipe_path(recipe_name)
       instance_eval(File.read(path), path)
