@@ -53,11 +53,15 @@ module Linecook
     # redundant but useful for various lookups.
     attr_reader :reverse_registry
     
+    # A hash of counters used by variable.
+    attr_reader :counters
+    
     def initialize(env={})
       @env = env
       @tempfiles = []
       @registry = {}
       @reverse_registry = {}
+      @counters = Hash.new(0)
     end
     
     # Returns the linecook configs in env, as keyed by CONFIG_KEY.  Defaults
@@ -274,6 +278,13 @@ module Linecook
     def helper(helper_name)
       require Utils.underscore(helper_name)
       Utils.constantize(helper_name)
+    end
+    
+    # Returns a package-unique variable with base 'name'.
+    def variable(name)
+      count = counters[name]
+      counters[name] += 1
+      "#{name}#{count}"
     end
     
     # Looks up the file with the specified name using file_path and registers

@@ -245,6 +245,16 @@ class PackageTest < Test::Unit::TestCase
   end
   
   #
+  # variable test
+  #
+  
+  def test_variable_increments_and_returns_name
+    assert_equal 'a0', package.variable('a')
+    assert_equal 'a1', package.variable('a')
+    assert_equal 'b0', package.variable('b')
+  end
+  
+  #
   # build_file test
   #
   
