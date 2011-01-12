@@ -1,3 +1,8 @@
+== 0.9.1 2011/01/12
+
+* added script_test test method
+* added auto-incrementing variables to recipe
+
 == 0.9.0 2011/01/12
 
 * added 'share' command to setup a vbox share
