@@ -71,9 +71,9 @@ module Linecook
           end
         end
 
-        # Link up scripts into vbox
-        source = File.join(project_dir, 'scripts')
-        target = File.join(project_dir, 'vbox/scripts')
+        # Link up packages into vbox
+        source = File.join(project_dir, 'packages')
+        target = File.join(project_dir, 'vbox/packages')
         FileUtils.ln_s source, target
       end
     end

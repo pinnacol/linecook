@@ -4,18 +4,20 @@ A shell script generator.
 
 == Description
 
-Linecook helps you generate shell scripts using an extensible set of tiny ERB
-helpers. The helpers output a shell script that you can use to (for example)
-provision a server.
+Linecook generates shell scripts using an extensible set of tiny ERB helpers.
+The shell scripts and associated resources (files, subscripts, etc) make up
+packages that can be used, for example, to provision servers.
 
 The workflow is like this:
 
 * define helpers
-* write a recipe using the helpers
-* generate a script from the recipe
+* write recipes using the helpers
+* generate packages from the recipes
 
-Linecook provides very basic helpers for POSIX shells and a command-line tool
-for generating scripts and running them on a test vm.
+Linecook provides a command-line tool for generating helpers, packages, and
+for running a test vm. Helpers and recipes can be shared as gems; the basic
+shell helpers are available through
+{linebook-shell}[http://http://rubygems.org/gems/linebook-shell/].
 
 == Usage
 
@@ -62,24 +64,28 @@ Use them in a recipe.
     echo "I will not manually configure my server", :color => attrs['example']['color']
   end
 
-Define a script using the recipe.
+Define a package that uses the recipe.
 
-  [scripts/example.yml]
+  [packages/example.yml]
   linecook:
     recipes:
     - example
   example:
     n: 100
 
-Generate a script from the helpers, attributes, and recipe.
+Generate a package from the helpers, attributes, and recipe. The result will
+be a helper module in the 'lib' directory, generated from the definitions
+under the 'helpers' directory, and a package under the packages directory,
+generated from the example.yml file.
 
-  % rake scripts
+  % rake packages
 
-Start the VM and run the scripts (see the docs for setting up a VM).
+Start the VM and run the script in the package (see the
+{docs}[link:templates/README] for setting up a VM).
 
   % rake vbox:start
   % rake vbox:ssh 
-  vm: bash /vbox/scripts/example.sh
+  vm: bash /vbox/packages/example/example
   vm: exit
 
 Stop the VM.

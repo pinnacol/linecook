@@ -100,32 +100,31 @@ desc "generate helpers"
 task :helpers => [:bundle] + helpers
 
 #
-# Linecook Scripts
+# Linecook Packages
 #
 
-scripts_dir = File.expand_path("../scripts", __FILE__)
-scripts      = Dir.glob("#{scripts_dir}/*.yml")
+packages_dir = File.expand_path("../packages", __FILE__)
+packages     = Dir.glob("#{packages_dir}/*.yml")
 dependencies = Dir.glob('{attributes,files,recipes,templates}/**/*')
 
-scripts.each do |source|
+packages.each do |source|
   target = source.chomp('.yml')
   name   = File.basename(target)
   
-  namespace :scripts do
+  namespace :packages do
     file target => dependencies + [source] + helpers do
       sh "bundle exec linecook package '#{source}' '#{target}' --force"
     end
     
-    desc "generate the script: #{name}"
+    desc "generate the package: #{name}"
     task name => [:bundle, target]
   end
   
-  task :scripts => "scripts:#{name}"
+  task :packages => "packages:#{name}"
 end
 
-desc "generate scripts"
-task :scripts
-
+desc "generate packages"
+task :packages
 
 #
 # Test tasks
