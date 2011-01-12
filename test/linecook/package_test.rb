@@ -254,6 +254,12 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'b0', package.variable('b')
   end
   
+  def test_variable_converts_name_to_a_string
+    assert_equal 'a0', package.variable('a')
+    assert_equal 'a1', package.variable(:a)
+    assert_equal 'a2', package.variable('a')
+  end
+  
   #
   # build_file test
   #

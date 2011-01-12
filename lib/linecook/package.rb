@@ -282,8 +282,11 @@ module Linecook
     
     # Returns a package-unique variable with base 'name'.
     def variable(name)
+      name  = name.to_s
+      
       count = counters[name]
       counters[name] += 1
+      
       "#{name}#{count}"
     end
     
