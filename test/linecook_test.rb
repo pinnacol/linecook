@@ -15,21 +15,18 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal 0, $?.exitstatus, output
     
     Dir.chdir(example_dir) do
-      File.open('Gemfile', 'w') do |io|
+      gemfile = File.expand_path('Gemfile')
+      File.open(gemfile, 'w') do |io|
         io.puts %Q{
           path '#{LINE_COOK_DIR}', :glob => 'linecook.gemspec'
-          gem 'linecook'
-          path '.', :glob => '*.gemspec'
-          gem 'example'
+          gemspec
         }
       end
       
-      gemfile_path = File.expand_path('Gemfile')
-      
-      output = `BUNDLE_GEMFILE='#{gemfile_path}' bundle exec linecook helpers`
+      output = `BUNDLE_GEMFILE='#{gemfile}' bundle exec linecook helpers`
       assert_equal 0, $?.exitstatus, output
       
-      output = `BUNDLE_GEMFILE='#{gemfile_path}' bundle exec linecook package packages/example.yml`
+      output = `BUNDLE_GEMFILE='#{gemfile}' bundle exec linecook package packages/example.yml`
       assert_equal 0, $?.exitstatus, output
       assert_equal true, File.exists?('packages/example/example'), output
       

@@ -116,11 +116,6 @@ module Linecook
             manifest[type][name] = full_path
           end
         end
-        
-        helpers = scan_helpers File.expand_path(File.join(path, 'lib'), dir)
-        unless helpers.empty?
-          manifest['helpers'].merge! helpers
-        end
       end
       
       manifest
@@ -147,22 +142,6 @@ module Linecook
     end
     
     private
-    
-    def scan_helpers(dir) # :nodoc:
-      constants = {}
-      
-      pattern = File.join(dir, '**/*.rb')
-      Dir.glob(pattern).each do |path|
-        Lazydoc::Document.scan(File.read(path)) do |const_name, type, summary|
-          next unless type == 'helper'
-          
-          const_name = relative_path(dir, path).chomp('.rb') if const_name.empty?
-          constants[Utils.underscore(const_name)] = path
-        end
-      end
-      
-      constants
-    end
     
     def relative_path(dir, path) # :nodoc:
       start = dir.length + 1

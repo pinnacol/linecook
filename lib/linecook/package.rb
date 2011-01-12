@@ -214,11 +214,6 @@ module Linecook
       resource_path('attributes', attributes_name)
     end
     
-    # Returns the helper_path the named recipe file (ex 'lib/name.rb').
-    def helper_path(helper_name)
-      resource_path('helpers', helper_name)
-    end
-    
     # Returns the resource_path the named file (ex 'files/name')
     def file_path(file_name)
       resource_path('files', file_name)
@@ -276,13 +271,9 @@ module Linecook
       Recipe.new(target, self)
     end
     
-    def helper_const(helper_name)
-      Utils.camelize(helper_name)
-    end
-    
     def helper(helper_name)
-      require helper_path(helper_name)
-      Utils.constantize helper_const(helper_name)
+      require Utils.underscore(helper_name)
+      Utils.constantize(helper_name)
     end
     
     # Looks up the file with the specified name using file_path and registers

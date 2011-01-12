@@ -58,15 +58,15 @@ example:
   n: 5
 })
 
-    File.open(path('Gemfile'), 'w') do |io|
+    gemfile = path('Gemfile')
+    File.open(gemfile, 'w') do |io|
       io.puts %Q{
         path '#{LINE_COOK_DIR}', :glob => 'linecook.gemspec'
-        gem 'linecook'
-        path '.'
+        gemspec
       }
     end
     
-    sh "rake packages 2>&1 > /dev/null"
+    sh "BUNDLE_GEMFILE='#{gemfile}' rake packages 2>&1 > /dev/null"
     
     sh_test %Q{
       % bash '#{path('packages/example/example')}'

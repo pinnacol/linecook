@@ -49,7 +49,6 @@ class RecipeTest < Test::Unit::TestCase
   
   def test_helpers_requires_helper_and_extends_self_with_helper_module
     file('lib/recipe_test/require_helper.rb') {|io| io << %q{
-      # ::helper
       class RecipeTest
         module RequireHelper
           def help; end
@@ -57,9 +56,16 @@ class RecipeTest < Test::Unit::TestCase
       end
     }}
     
-    assert_equal false, recipe.respond_to?(:help)
-    recipe.helpers "recipe_test/require_helper"
-    assert_equal true, recipe.respond_to?(:help)
+    lib_dir = path('lib')
+    begin
+      $:.unshift lib_dir
+      
+      assert_equal false, recipe.respond_to?(:help)
+      recipe.helpers "recipe_test/require_helper"
+      assert_equal true, recipe.respond_to?(:help)
+    ensure
+      $:.delete lib_dir
+    end
   end
 
   #
