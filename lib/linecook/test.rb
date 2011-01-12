@@ -32,7 +32,7 @@ module Linecook
     def build(env={})
       package = Package.init(env, cookbook)
       package.build
-      package.export File.join(method_dir, 'scripts')
+      package.export File.join(method_dir, 'packages')
       package
     end
     
@@ -54,6 +54,21 @@ module Linecook
       recipe = setup_recipe
       assert_alike expected, recipe.result(&block)
       recipe
+    end
+    
+    def script(&block)
+      recipe = setup_recipe
+      recipe.result(&block)
+      
+      registry = package.export File.join(method_dir, 'packages')
+      registry[recipe.target_name]
+    end
+    
+    def script_test(cmd, variable='SCRIPT', &block)
+      path = script(&block)
+      with_env variable => path do
+        sh_test(cmd)
+      end
     end
   end
 end

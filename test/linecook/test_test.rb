@@ -33,6 +33,19 @@ class LinecookTestTest < Test::Unit::TestCase
   end
   
   #
+  # script_test
+  #
+  
+  def test_script_test_builds_and_script_from_recipe_and_compares_output_to_expected
+    script_test %q{
+      % sh $SCRIPT
+      hello world
+    } do
+      target.puts 'echo hello world'
+    end
+  end
+  
+  #
   # assert_output_equal test
   #
 
