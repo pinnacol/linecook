@@ -1,11 +1,8 @@
 = README
 
-Linecook provides support to develop scripts using VirtualBox, an open-source
-product to setup and manage virtual machines. Nothing says you have to use
-VirtualBox during development and obviously you can take the shell scripts
-produced by Linecook and run them wherever.
-
-These are instructions for setting up a generic Ubuntu VM for development.
+Linecook provides support to develop scripts on a virtual machine managed by
+VirtualBox. Nothing says you have to use VirtualBox during development, but if
+you want to, these are instructions for setting up a generic Ubuntu VM.
 
 1. Download and Install VirtualBox (http://www.virtualbox.org)
 2. Download a Ubuntu ISO (http://www.ubuntu.com/server/get-ubuntu/download)
@@ -43,9 +40,11 @@ Setup Permissions (allows vbox to run sudo without password):
   #
   # then exit (write out changes as prompted)
 
-Setup guest additions (note they are in the application package on
-osx http://forums.virtualbox.org/viewtopic.php?f=8&t=10286) See also:
-http://forums.virtualbox.org/viewtopic.php?t=15868.
+Setup guest additions. On OSX guest additions are located in the application
+package; see these
+{two}[http://forums.virtualbox.org/viewtopic.php?f=8&t=10286]
+{topics}[http://forums.virtualbox.org/viewtopic.php?t=15868] on the virtual
+box forum.
 
   (cd/dvd device): add the VBoxGuestAdditions.iso
   vm: sudo apt-get install linux-headers-$(uname -r) build-essential ssh openssh-server
@@ -83,6 +82,19 @@ You can now ssh to the box (from the project dir):
 
   ht: chmod 0600 vbox/ssh/id_rsa
   ht: ssh -p 2222 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i vbox/ssh/id_rsa vbox@localhost
+
+Linecook provides a shortcut for ssh:
+
+  ht: linecook ssh
+
+Linecook also provides commands to manage the vm. The most useful command are
+these, which can be used to incrementally develop recipes.
+
+  # take a snapshot
+  ht: linecook snapshot example
+  
+  # reset the vm to a known snapshot (default 'base')
+  ht: linecook reset example
 
 To cleanup the port forwarding (run later):
 

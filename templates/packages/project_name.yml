@@ -1,7 +1,7 @@
-# Configure Linecook
+# Configure the package.
 linecook:
   recipes: [<%= project_name %>]
 
-# Set attributes for the script
+# Attributes set here override those in the attributes directory.
 <%= project_name %>:
   numbers: [7, 8, 9]
