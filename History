@@ -1,3 +1,10 @@
+== 0.9.0 2011/01/12
+
+* added 'share' command to setup a vbox share
+* converted 'scripts' to 'packages' in scaffold/rake tasks
+* removed helpers from manifest, now require directly
+* corrected documentation
+
 == 0.8.3 2011/01/11
 
 * bug fixes

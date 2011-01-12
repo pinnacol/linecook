@@ -63,9 +63,9 @@ Gem::Specification.new do |s|
     templates/files/file.txt
     templates/helpers/project_name/cat.erb
     templates/helpers/project_name/echo.erb
+    templates/packages/project_name.yml
     templates/project_name.gemspec
     templates/recipes/project_name.rb
-    templates/scripts/project_name.yml
     templates/templates/template.txt.erb
     templates/test/test_helper.rb
     templates/vbox/setup/virtual_box
