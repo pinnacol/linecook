@@ -79,5 +79,16 @@ module Linecook
         Process.wait(pid) if pid
       end
     end
+    
+    # Linecook::Commands::Share::desc setup a vbox share
+    class Share < Ssh
+      def process(path='vbox', vmname='vbox')
+        path = File.expand_path(path)
+        name = Time.now.strftime("vbox-#{File.basename(path)}-%Y%m%d%H%M%S")
+        
+        `VBoxManage sharedfolder add '#{vmname}' --name '#{name}' --hostpath '#{path}' --transient`
+        super "sudo mount -t vboxsf -o uid=1000,gid=100 '#{name}' /vbox"
+      end
+    end
   end
 end
