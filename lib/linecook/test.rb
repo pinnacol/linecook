@@ -37,7 +37,7 @@ module Linecook
     end
     
     def setup_recipe
-      @recipe = package.recipe
+      @recipe = package.reset.recipe
     end
     
     def recipe

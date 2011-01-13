@@ -45,6 +45,22 @@ class LinecookTestTest < Test::Unit::TestCase
     end
   end
   
+  def test_script_test_resets_package
+    script_test %q{
+      % sh $SCRIPT
+      hello world
+    } do
+      target.puts 'echo hello world'
+    end
+    
+    script_test %q{
+      % sh $SCRIPT
+      goodnight moon
+    } do
+      target.puts 'echo goodnight moon'
+    end
+  end
+  
   #
   # assert_output_equal test
   #

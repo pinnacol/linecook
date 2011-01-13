@@ -354,6 +354,15 @@ module Linecook
       self
     end
     
+    def reset
+      close
+      tempfiles.clear
+      registry.clear
+      reverse_registry.clear
+      counters.clear
+      self
+    end
+    
     # Closes self and exports the registry to dir by copying or moving the
     # registered source paths to the target path under dir.  By default
     # tempfiles are moved while all other files are copied.
