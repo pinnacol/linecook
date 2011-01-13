@@ -98,16 +98,13 @@ END_OF_TEMPLATE
 
 <% desc.each do |line| %>
 # <%= line %>
-<% end %><% unless type == '.rb' %>
-# ==== <%= name.upcase %> ERB
-<% body.each_line do |line| %>
-#   <%= line.chomp %>
-<% end %>
 <% end %>
 def <%= method_name(name) %><%= signature %>
 <% if type == '.rb' %>
 <%= body %>
 <% else %>
+  <% body.each_line do |line| %>
+  # <%= line.chomp %><% end %>
   eval(<%= name.upcase %>, binding, __FILE__, <%= name.upcase %>_LINE)
   nil<% end %>
 end
