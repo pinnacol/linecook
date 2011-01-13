@@ -6,7 +6,9 @@ module Linecook
   class Template
     class << self
       def build(template, locals, template_path=nil)
-        ERB.new(template).result(OpenStruct.new(locals).send(:binding))
+        erb = ERB.new(template)
+        erb.filename = template_path if template_path
+        erb.result(OpenStruct.new(locals).send(:binding))
       end
     end
     
