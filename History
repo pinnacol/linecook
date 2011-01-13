@@ -1,3 +1,8 @@
+== 0.9.3 2011/01/13
+
+* bug fixes in commands
+* added configuration of default vmname
+
 == 0.9.2 2011/01/13
 
 * added package reset to script tests
