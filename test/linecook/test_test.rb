@@ -61,6 +61,15 @@ class LinecookTestTest < Test::Unit::TestCase
     end
   end
   
+  def test_script_test_executes_in_packages_dir_under_method_root
+    script_test %Q{
+      % sh $SCRIPT
+      #{path('packages')}
+    } do
+      target.puts 'pwd'
+    end
+  end
+  
   #
   # assert_output_equal test
   #

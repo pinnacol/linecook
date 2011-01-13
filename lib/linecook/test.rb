@@ -56,18 +56,22 @@ module Linecook
       recipe
     end
     
-    def script(&block)
+    def script(export_dir=method_dir, &block)
       recipe = setup_recipe
       recipe.result(&block)
       
-      registry = package.export File.join(method_dir, 'packages')
+      registry = package.export export_dir
       registry[recipe.target_name]
     end
     
     def script_test(cmd, variable='SCRIPT', &block)
-      path = script(&block)
-      with_env variable => path do
-        sh_test(cmd)
+      export_dir = path('packages')
+      path = script(export_dir, &block)
+      
+      Dir.chdir(export_dir) do
+        with_env variable => path do
+          sh_test(cmd)
+        end
       end
     end
   end
