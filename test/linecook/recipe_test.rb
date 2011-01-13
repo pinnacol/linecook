@@ -129,4 +129,28 @@ class RecipeTest < Test::Unit::TestCase
     assert_equal 'recipe.d/example.txt', path
     assert_equal 'got value', package.content(path)
   end
+  
+  def test_template_path_adds_attrs_to_locals
+    file('templates/example.txt.erb') do |io|
+      io << "got <%= attrs['key'] %><%= key %>"
+    end
+    
+    recipe.attrs['key'] = 'val'
+    path = recipe.template_path('example.txt', :key => 'ue')
+    
+    assert_equal 'recipe.d/example.txt', path
+    assert_equal 'got value', package.content(path)
+  end
+  
+  def test_template_path_respects_attrs_manually_added_to_locals
+    file('templates/example.txt.erb') do |io|
+      io << "got <%= attrs['key'] %><%= key %>"
+    end
+    
+    recipe.attrs['key'] = 'ignored'
+    path = recipe.template_path('example.txt', :key => 'ue', :attrs => {'key' => 'val'})
+    
+    assert_equal 'recipe.d/example.txt', path
+    assert_equal 'got value', package.content(path)
+  end
 end
