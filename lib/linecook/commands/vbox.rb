@@ -60,7 +60,7 @@ module Linecook
       
       config :port, 2222, &c.integer
       config :user, 'vbox'
-      config :keypath, File.expand_path('vbox/ssh/id_rsa')
+      config :keypath, File.expand_path('../../../../templates/vbox/ssh/id_rsa', __FILE__)
       
       def process(cmd=nil)
         # To prevent ssh errors, protect the private key
