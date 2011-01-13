@@ -74,6 +74,7 @@ end
 # Linecook Helpers
 #
 
+force       = ENV['FORCE'] == 'true'
 lib_dir     = File.expand_path("../lib", __FILE__)
 helpers_dir = File.expand_path("../helpers", __FILE__)
 
@@ -89,6 +90,7 @@ sources.each_pair do |dir, sources|
   name = dir[(helpers_dir.length + 1)..-1]
   target = File.join(lib_dir, "#{name}.rb")
   
+  FileUtils.rm(target) if force
   file target => sources + [dir] do
     sh "bundle exec linecook helper '#{name}' --force"
   end
