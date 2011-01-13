@@ -42,6 +42,7 @@ Gem::Specification.new do |s|
     lib/linecook/commands/helpers.rb
     lib/linecook/commands/init.rb
     lib/linecook/commands/package.rb
+    lib/linecook/commands/preview.rb
     lib/linecook/commands/vbox.rb
     lib/linecook/cookbook.rb
     lib/linecook/helper.rb

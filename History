@@ -1,3 +1,8 @@
+== 0.9.2 2011/01/13
+
+* added package reset to script tests
+* added preview command
+
 == 0.9.1 2011/01/12
 
 * added script_test test method
