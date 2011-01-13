@@ -32,7 +32,6 @@ module Linecook
         puts "\033[0;34m--[#{name}]\033[0m"
         puts package.content(name)
         puts "\033[0;34m--[#{name}]--\033[0m"
-        puts package.content(name)
       end
     end
   end
