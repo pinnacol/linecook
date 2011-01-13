@@ -6,30 +6,28 @@ require 'yaml'
 module Linecook
   module Commands
     
-    # ::desc generates a package
-    #
-    # Generates a package.
-    #
+    # ::desc preview recipe output
     class Preview < Command
       config :cookbook_dir, '.', :short => :d       # the cookbook directory
       config :force, false, :short => :f, &c.flag   # force creation
-      
-      def process(recipe_name, source=nil)
+      config :source, nil                           # the package file
+      config :filter, '.' do |filter|               # a target filter
+        Regexp.new(filter)
+      end
+
+      def process(*recipes)
         cookbook = Linecook::Cookbook.init(cookbook_dir)
         package  = Linecook::Package.load(source, cookbook)
-        
-        package.recipes.clear
-        package.recipes[recipe_name] = recipe_name
-        
+
+        package.config['recipes'] = recipes
         package.build
-        display(package, recipe_name)
-        
+
         package.registry.keys.sort.each do |name|
-          next if name == recipe_name
+          next unless name =~ filter
           display(package, name)
         end
       end
-      
+
       def display(package, name)
         puts "\033[0;34m--[#{name}]\033[0m"
         puts package.content(name)
