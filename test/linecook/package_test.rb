@@ -368,6 +368,15 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'content', package.content('target/path')
   end
   
+  def test_content_returns_the_specified_length_and_offset
+    tempfile = Tempfile.new('example')
+    tempfile << 'content'
+    tempfile.close
+    
+    package.register 'target/path', tempfile.path
+    assert_equal 'nte', package.content('target/path', 3, 2)
+  end
+  
   def test_content_returns_nil_for_unregistered_target
     assert_equal nil, package.content('not/registered')
   end

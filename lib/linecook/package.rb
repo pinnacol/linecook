@@ -341,9 +341,9 @@ module Linecook
     
     # Returns the content of the source_path for target_path, as registered in
     # self.  Returns nil if the target is not registered.
-    def content(target_path)
+    def content(target_path, length=nil, offset=nil)
       path = registry[target_path]
-      path ? File.read(path) : nil
+      path ? File.read(path, length, offset) : nil
     end
     
     # Closes all tempfiles and returns self.
