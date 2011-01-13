@@ -13,7 +13,7 @@ module Linecook
         helpers_dir = File.expand_path('helpers', cookbook_dir)
 
         sources = {}
-        Dir.glob("#{helpers_dir}/**/*").each do |source|
+        Dir.glob("#{helpers_dir}/*/**/*").each do |source|
           next if File.directory?(source)
           (sources[File.dirname(source)] ||= []) << source
         end

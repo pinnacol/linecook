@@ -52,7 +52,7 @@ module Linecook
       end
       
       def default_sources(name)
-        Dir.glob File.join(cookbook_dir, 'helpers', name, '**/*')
+        Dir.glob File.join(cookbook_dir, 'helpers', name, '*')
       end
     end
   end
