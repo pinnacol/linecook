@@ -1,11 +1,12 @@
 module Linecook
   module Commands
+    VBOX = ENV['vbox'] || 'vbox'
     
     # Linecook::Commands::Start::desc start the vm
     class Start < Command
       config :type, 'headless'
       
-      def process(vmname='vbox')
+      def process(vmname=VBOX)
         unless `VBoxManage -q list runningvms`.include?(vmname)
           sh "VBoxManage -q startvm #{vmname} --type #{type}"
         end
@@ -14,7 +15,7 @@ module Linecook
     
     # Linecook::Commands::Stop::desc stop the vm
     class Stop < Command
-      def process(vmname='vbox')
+      def process(vmname=VBOX)
         if `VBoxManage -q list runningvms`.include?(vmname)
           sh "VBoxManage -q controlvm #{vmname} poweroff"
         end
@@ -25,7 +26,7 @@ module Linecook
     class Reset < Command
       config :type, 'headless'
       
-      def process(snapshot='base', vmname='vbox')
+      def process(snapshot='base', vmname=VBOX)
         if `VBoxManage -q list runningvms`.include?(vmname)
           sh "VBoxManage -q controlvm #{vmname} poweroff"
         end
@@ -37,7 +38,7 @@ module Linecook
     
     # Linecook::Commands::Snapshot::desc take a snapshop
     class Snapshot < Command
-      def process(snapshot, vmname='vbox')
+      def process(snapshot, vmname=VBOX)
         `VBoxManage -q snapshot #{vmname} delete #{snapshot.upcase} > /dev/null`
         sh "VBoxManage -q snapshot #{vmname} take #{snapshot.upcase}"
       end
@@ -45,7 +46,7 @@ module Linecook
     
     # Linecook::Commands::State::desc print the vm state
     class State < Command
-      def process(vmname='vbox')
+      def process(vmname=VBOX)
         if `VBoxManage -q list runningvms`.include?(vmname)
           puts "running"
         else
@@ -82,7 +83,7 @@ module Linecook
     
     # Linecook::Commands::Share::desc setup a vbox share
     class Share < Ssh
-      def process(path='vbox', vmname='vbox')
+      def process(path='vbox', vmname=VBOX)
         path = File.expand_path(path)
         name = Time.now.strftime("vbox-#{File.basename(path)}-%Y%m%d%H%M%S")
         
