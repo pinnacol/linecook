@@ -1,3 +1,9 @@
+== 0.9.4 2011/01/13
+
+* improved preview functionality
+* made script_test run scripts in export dir
+* made recipe add attrs to template locals
+
 == 0.9.3 2011/01/13
 
 * bug fixes in commands
