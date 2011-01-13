@@ -1,3 +1,11 @@
+== 0.9.5 2011/01/13
+
+* removed double-print of preview
+* added more configs to filter preview results
+* moved helper template docs into the method
+* added selection of a range of content from packages
+* added FORCE to scaffold Rakefile to force helper/package creation
+
 == 0.9.4 2011/01/13
 
 * improved preview functionality
