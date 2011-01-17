@@ -80,35 +80,41 @@ module Linecook
       end
     end
     
+    def virtual_machine(options={})
+      name = options[:vmname] || 'vbox'
+      vbox = Vbox.new(name)
+      
+      # if snapshot = options[:snapshot]
+      #   `#{vbox.stop}` if vbox.running?
+      #   `#{vbox.reset(snapshot)}`
+      #   `#{vbox.start}`
+      # end
+      
+      vbox
+    end
+    
     def vbox_test(cmd, options={}, &block)
       options = {
         :vmname => 'vbox',
-        :snapshot => 'base',
-        :export_dir => path('packages')
+        :export_dir => path('packages'),
+        :quiet => true
       }.merge(options)
       
       build(options, &block)
       
-      vbox = Vbox.new options[:vmname]
-      begin
-        vbox.stop if vbox.running?
-        vbox.reset options[:snapshot]
-        vbox.start
-        vbox.share options[:export_dir]
-        
-        commands(cmd, options).each do |command, status, expected|
-          result = vbox.ssh(command, options)
-        
-          if status
-            assert_equal status, $?.exitstatus
-          end
-        
-          unless expected.empty?
-            assert_equal(expected.join, result, command)
-          end
+      vbox = virtual_machine(options)
+      `#{vbox.share(options[:export_dir], options)}`
+      
+      commands(cmd, options).each do |command, status, expected|
+        result = `#{vbox.ssh(command, options)}`
+      
+        if status
+          assert_equal status, $?.exitstatus
         end
-      ensure
-        vbox.stop if vbox.running?
+      
+        unless expected.empty?
+          assert_equal(expected.join, result, command)
+        end
       end
     end
   end

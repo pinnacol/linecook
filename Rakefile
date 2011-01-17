@@ -94,14 +94,28 @@ task :bundle => :submodules do
 end
 
 #
+# VM Tasks
+#
+
+namespace :vm do
+  task :setup do
+    sh 'bundle exec linecook reset'
+  end
+  
+  task :teardown do
+    sh 'bundle exec linecook stop'
+  end
+end
+
+#
 # Test tasks
 #
 
 desc 'Default: Run tests.'
 task :default => :test
 
-desc 'Run the tests'
-task :test => :bundle do
+desc 'Run the tests assuming the vm is running'
+task :quicktest => :bundle do
   tests = Dir.glob('test/**/*_test.rb')
   
   if ENV['RCOV'] == 'true'
@@ -109,6 +123,16 @@ task :test => :bundle do
     sh('rcov', '-w', '--text-report', '--exclude', '^/', *tests)
   else
     sh('ruby', '-w', '-e', 'ARGV.dup.each {|test| load test}', *tests)
+  end
+end
+
+desc 'Run the tests'
+task :test do
+  begin
+    Rake::Task["vm:setup"].invoke
+    Rake::Task["quicktest"].invoke
+  ensure
+    Rake::Task["vm:teardown"].execute(nil)
   end
 end
 

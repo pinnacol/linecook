@@ -4,49 +4,48 @@ module Linecook
   module Commands
     VBOX = Vbox::DEFAULT_VM_NAME
     
-    class VboxCommand < Command
-      def control(vmname)
-        yield Vbox.new(vmname)
-        exit $?.exitstatus
-      end
-    end
-    
     # Linecook::Commands::Start::desc start the vm
-    class Start < VboxCommand
+    class Start < Command
       config :type, 'headless'
       
       def process(vmname=VBOX)
-        control(vmname) {|vbox| vbox.start(type) unless vbox.running? }
-      end
-    end
-    
-    # Linecook::Commands::Stop::desc stop the vm
-    class Stop < VboxCommand
-      def process(vmname=VBOX)
-        control(vmname) {|vbox| vbox.stop if vbox.running? }
-      end
-    end
-    
-    # Linecook::Commands::Reset::desc reset vm to a snapshot
-    class Reset < VboxCommand
-      config :type, 'headless'
-      
-      def process(snapshot='base', vmname=VBOX)
-        control(vmname) do |vbox|
-          vbox.stop if vbox.running?
-          
-          vbox.reset(snapshot)
-          exit $?.exitstatus unless $? == 0
-          
-          vbox.start(type)
+        vbox = Vbox.new(vmname)
+        
+        unless vbox.running?
+          system vbox.start(type)
         end
       end
     end
     
+    # Linecook::Commands::Stop::desc stop the vm
+    class Stop < Command
+      def process(vmname=VBOX)
+        vbox = Vbox.new(vmname)
+
+        if vbox.running?
+          system vbox.stop
+        end
+      end
+    end
+    
+    # Linecook::Commands::Reset::desc reset vm to a snapshot
+    class Reset < Command
+      config :type, 'headless'
+      
+      def process(snapshot='base', vmname=VBOX)
+        vbox = Vbox.new(vmname)
+
+        system vbox.stop if vbox.running?
+        system vbox.reset(snapshot)
+        system vbox.start(type)
+      end
+    end
+    
     # Linecook::Commands::Snapshot::desc take a snapshop
-    class Snapshot < VboxCommand
+    class Snapshot < Command
       def process(snapshot, vmname=VBOX)
-        control(vmname) {|vbox| vbox.snapshot(snapshot) }
+        vbox = Vbox.new(vmname)
+        system vbox.snapshot(snapshot)
       end
     end
     
@@ -59,7 +58,7 @@ module Linecook
     end
     
     # Linecook::Commands::Ssh::desc ssh to vm
-    class Ssh < VboxCommand
+    class Ssh < Command
       
       config :port, 2222, &c.integer
       config :user, 'vbox'
@@ -67,14 +66,29 @@ module Linecook
       config :keypath, File.expand_path('../../../../templates/vbox/ssh/id_rsa', __FILE__)
       
       def process(cmd=nil)
-        control(vmname) {|vbox| vbox.ssh!(cmd, config) }
+        vbox = Vbox.new(vmname)
+        ssh = vbox.ssh(cmd, config)
+      
+        # Patterned after vagrant/ssh.rb (circa 0.6.6)
+        # Some hackery going on here. On Mac OS X Leopard (10.5), exec fails
+        # (GH-51). As a workaround, we fork and wait. On all other platforms, we
+        # simply exec.
+    
+        platform = RUBY_PLATFORM.to_s.downcase
+        pid = nil
+        pid = fork if platform.include?("darwin9") || platform.include?("darwin8")
+        Kernel.exec(ssh)  if pid.nil?
+        Process.wait(pid) if pid
+        
+        exit $?.exitstatus
       end
     end
     
     # Linecook::Commands::Share::desc setup a vbox share
-    class Share < VboxCommand
+    class Share < Command
       def process(path='vbox', vmname=VBOX)
-        control(vmname) {|vbox| vbox.share(path) }
+        vbox = Vbox.new(vmname)
+        system vbox.share(path)
       end
     end
   end

@@ -132,14 +132,28 @@ desc "generate packages"
 task :packages
 
 #
+# VM Tasks
+#
+
+namespace :vm do
+  task :setup => :bundle do
+    sh 'bundle exec linecook reset'
+  end
+  
+  task :teardown => :bundle do
+    sh 'bundle exec linecook stop'
+  end
+end
+
+#
 # Test tasks
 #
 
 desc 'Default: Run tests.'
 task :default => :test
 
-desc 'Run the tests'
-task :test => :helpers do
+desc 'Run the tests assuming the vm is running'
+task :quicktest => [:helpers] do
   tests = Dir.glob('test/**/*_test.rb')
   
   if ENV['RCOV'] == 'true'
@@ -147,6 +161,16 @@ task :test => :helpers do
     sh('rcov', '-w', '--text-report', '--exclude', '^/', *tests)
   else
     sh('ruby', '-w', '-e', 'ARGV.dup.each {|test| load test}', *tests)
+  end
+end
+
+desc 'Run the tests'
+task :test do
+  begin
+    Rake::Task["vm:setup"].invoke
+    Rake::Task["quicktest"].invoke
+  ensure
+    Rake::Task["vm:teardown"].execute(nil)
   end
 end
 

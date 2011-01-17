@@ -104,14 +104,14 @@ class LinecookTest < Test::Unit::TestCase
   # vbox test
   #
   
-  def test_vbox_commands
-    sh "ruby #{LINE_COOK} reset"
-    sh_test %Q{
-      % ruby #{LINE_COOK} ssh 'echo hello' 2>/dev/null
-      hello
-    }
-    sh "ruby #{LINE_COOK} stop"
-  end
+  # def test_vbox_commands
+  #   sh "ruby #{LINE_COOK} reset"
+  #   sh_test %Q{
+  #     % ruby #{LINE_COOK} ssh 'echo hello' 2>/dev/null
+  #     hello
+  #   }
+  #   sh "ruby #{LINE_COOK} stop"
+  # end
   
   def test_end_to_end
     vbox_test %Q{
@@ -119,6 +119,15 @@ class LinecookTest < Test::Unit::TestCase
       hello
     } do
       target.puts 'echo hello'
+    end
+  end
+  
+  def test_end_to_end_two
+    vbox_test %Q{
+      % bash /vbox/recipe
+      goonight moon
+    } do
+      target.puts 'echo goonight moon'
     end
   end
 end
