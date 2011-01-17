@@ -78,6 +78,8 @@ module Linecook
         pid = fork if platform.include?("darwin9") || platform.include?("darwin8")
         Kernel.exec(ssh)  if pid.nil?
         Process.wait(pid) if pid
+        
+        exit $?.exitstatus
       end
     end
     
