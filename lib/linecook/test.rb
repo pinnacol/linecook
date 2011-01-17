@@ -29,15 +29,8 @@ module Linecook
       @package ||= setup_package
     end
     
-    def build(env={})
-      package = Package.init(env, cookbook)
-      package.build
-      package.export File.join(method_dir, 'packages')
-      package
-    end
-    
-    def setup_recipe
-      @recipe = package.reset.recipe
+    def setup_recipe(target_path='recipe')
+      @recipe = package.reset.recipe(target_path)
     end
     
     def recipe
@@ -56,17 +49,31 @@ module Linecook
       recipe
     end
     
-    def script(export_dir=method_dir, &block)
-      recipe = setup_recipe
+    def script(options={}, &block)
+      options = {
+        :target_path => 'recipe',
+        :export_dir  => path('packages')
+      }.merge!(options)
+      
+      target_path = options[:target_path]
+      export_dir  = options[:export_dir]
+      
+      recipe = setup_recipe(target_path)
       recipe.result(&block)
       
-      registry = package.export export_dir
-      registry[recipe.target_name]
+      registry = package.export(export_dir)
+      registry[target_path]
     end
     
-    def script_test(cmd, variable='SCRIPT', &block)
-      export_dir = path('packages')
-      path = script(export_dir, &block)
+    def script_test(cmd, options={}, &block)
+      options = {
+        :variable   => 'SCRIPT',
+        :export_dir => path('packages')
+      }.merge!(options)
+      
+      path = script(options, &block)
+      export_dir = options[:export_dir]
+      variable   = options[:variable]
       
       Dir.chdir(export_dir) do
         with_env variable => path do

@@ -9,27 +9,16 @@ class LinecookTestTest < Test::Unit::TestCase
   end
   
   #
-  # build test
+  # setup_package test
   #
   
-  def test_build_builds_script_to_method_dir
+  def test_setup_package_and_package_testing
     file('recipes/example.rb') {|io| io << "target << Array.new(attrs['n'], 'success').join(',')"}
-    package = build('linecook' => {'recipes' => 'example'}, 'n' => 3)
+    
+    setup_package 'linecook' => {'recipes' => 'example'}, 'n' => 3
+    package.build
+    
     assert_equal "success,success,success", package.content('example')
-  end
-  
-  def test_build_includes_files_in_result
-    file('files/example.txt', 'content')
-    
-    package = build('linecook' => {'files' => 'example.txt'})
-    assert_equal "content", package.content('example.txt')
-  end
-  
-  def test_build_templates_and_includes_templates_in_result
-    file('templates/example.txt.erb', "<%= Array.new(n, 'success').join(',') %>")
-    
-    package = build('linecook' => {'templates' => 'example.txt'}, 'n' => 3)
-    assert_equal "success,success,success", package.content('example.txt')
   end
   
   #
