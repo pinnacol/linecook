@@ -105,13 +105,28 @@ class LinecookTest < Test::Unit::TestCase
   #
   
   def test_vbox_
-    keypath = File.expand_path('../../../templates/vbox/ssh/id_rsa')
     sh "ruby #{LINE_COOK} reset"
     sh_test %Q{
-      % ruby #{LINE_COOK} ssh --keypath '#{keypath}' 'echo hello'
+      % ruby #{LINE_COOK} ssh 'echo hello'
       Warning: Permanently added '[localhost]:2222' (RSA) to the list of known hosts.\r
       hello
     }
     sh "ruby #{LINE_COOK} stop"
+  end
+  
+  def test_end_to_end
+    script_test %Q{
+      % ruby #{LINE_COOK} reset
+      % ruby #{LINE_COOK} share "$TEST_PACKAGE_DIR"
+      % ruby #{LINE_COOK} ssh "bash /vbox/$TEST_SCRIPT_PATH"
+      Warning: Permanently added '[localhost]:2222' (RSA) to the list of known hosts.\r
+      hello
+      % ruby #{LINE_COOK} ssh "ls /vbox"
+      Warning: Permanently added '[localhost]:2222' (RSA) to the list of known hosts.\r
+      recipe
+      % ruby #{LINE_COOK} stop
+    } do
+      target.puts 'echo hello'
+    end
   end
 end

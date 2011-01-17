@@ -27,7 +27,7 @@ class LinecookTestTest < Test::Unit::TestCase
   
   def test_script_test_builds_and_script_from_recipe_and_compares_output_to_expected
     script_test %q{
-      % sh $SCRIPT
+      % sh "$TEST_SCRIPT_PATH"
       hello world
     } do
       target.puts 'echo hello world'
@@ -36,14 +36,14 @@ class LinecookTestTest < Test::Unit::TestCase
   
   def test_script_test_resets_package
     script_test %q{
-      % sh $SCRIPT
+      % sh "$TEST_SCRIPT_PATH"
       hello world
     } do
       target.puts 'echo hello world'
     end
     
     script_test %q{
-      % sh $SCRIPT
+      % sh "$TEST_SCRIPT_PATH"
       goodnight moon
     } do
       target.puts 'echo goodnight moon'
@@ -52,7 +52,7 @@ class LinecookTestTest < Test::Unit::TestCase
   
   def test_script_test_executes_in_packages_dir_under_method_root
     script_test %Q{
-      % sh $SCRIPT
+      % sh "$TEST_SCRIPT_PATH"
       #{path('packages')}
     } do
       target.puts 'pwd'

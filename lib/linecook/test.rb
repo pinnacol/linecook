@@ -61,23 +61,53 @@ module Linecook
       recipe = setup_recipe(target_path)
       recipe.result(&block)
       
-      registry = package.export(export_dir)
-      registry[target_path]
+      package.export(export_dir)
+      target_path
     end
     
     def script_test(cmd, options={}, &block)
       options = {
-        :variable   => 'SCRIPT',
-        :export_dir => path('packages')
+        :script_variable  => 'TEST_SCRIPT_PATH',
+        :package_variable => 'TEST_PACKAGE_DIR',
+        :export_dir       => path('packages')
       }.merge!(options)
       
       path = script(options, &block)
       export_dir = options[:export_dir]
-      variable   = options[:variable]
       
       Dir.chdir(export_dir) do
-        with_env variable => path do
-          sh_test(cmd)
+        with_env(
+          options[:script_variable]  => path,
+          options[:package_variable] => export_dir
+        ) do
+          options = sh_test_options.merge(options)
+
+          # strip indentiation if possible
+          if cmd =~ /\A(?:\s*?\n)?( *)(.*?\n.*)\z/m
+            indent, body = $1, $2
+
+            if indent.length > 0 && options[:indents]
+              cmd = body.gsub(/^ {0,#{indent.length}}/, '')
+            end
+          end
+
+          cmd_pattern = options[:cmd_pattern]
+          cmds, current = [], []
+
+          cmd.each_line do |line|
+            if line.index(cmd_pattern) == 0
+              current = []
+              cmds << [line, current]
+            else
+              current << line
+            end
+          end
+
+          cmds.collect do |cmd, expected|
+            result = sh(cmd, options)
+            assert_equal(expected.join, result, cmd) unless expected.empty?
+            result
+          end
         end
       end
     end
