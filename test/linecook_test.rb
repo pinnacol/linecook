@@ -108,7 +108,6 @@ class LinecookTest < Test::Unit::TestCase
     sh "ruby #{LINE_COOK} reset"
     sh_test %Q{
       % ruby #{LINE_COOK} ssh 'echo hello'
-      Warning: Permanently added '[localhost]:2222' (RSA) to the list of known hosts.\r
       hello
     }
     sh "ruby #{LINE_COOK} stop"
@@ -119,10 +118,8 @@ class LinecookTest < Test::Unit::TestCase
       % ruby #{LINE_COOK} reset
       % ruby #{LINE_COOK} share "$TEST_PACKAGE_DIR"
       % ruby #{LINE_COOK} ssh "bash /vbox/$TEST_SCRIPT_PATH"
-      Warning: Permanently added '[localhost]:2222' (RSA) to the list of known hosts.\r
       hello
       % ruby #{LINE_COOK} ssh "ls /vbox"
-      Warning: Permanently added '[localhost]:2222' (RSA) to the list of known hosts.\r
       recipe
       % ruby #{LINE_COOK} stop
     } do
