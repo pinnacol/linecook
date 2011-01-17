@@ -107,7 +107,7 @@ class LinecookTest < Test::Unit::TestCase
   def test_vbox_
     sh "ruby #{LINE_COOK} reset"
     sh_test %Q{
-      % ruby #{LINE_COOK} ssh 'echo hello'
+      % ruby #{LINE_COOK} ssh 'echo hello' 2>/dev/null
       hello
     }
     sh "ruby #{LINE_COOK} stop"
@@ -117,9 +117,9 @@ class LinecookTest < Test::Unit::TestCase
     script_test %Q{
       % ruby #{LINE_COOK} reset
       % ruby #{LINE_COOK} share "$TEST_PACKAGE_DIR"
-      % ruby #{LINE_COOK} ssh "bash /vbox/$TEST_SCRIPT_PATH"
+      % ruby #{LINE_COOK} ssh "bash /vbox/$TEST_SCRIPT_PATH" 2>/dev/null
       hello
-      % ruby #{LINE_COOK} ssh "ls /vbox"
+      % ruby #{LINE_COOK} ssh "ls /vbox" 2>/dev/null
       recipe
       % ruby #{LINE_COOK} stop
     } do

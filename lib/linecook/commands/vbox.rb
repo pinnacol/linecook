@@ -68,7 +68,7 @@ module Linecook
 
         # Patterned after vagrant/ssh.rb (circa 0.6.6)
         platform = RUBY_PLATFORM.to_s.downcase
-        ssh = "ssh -q -p #{port} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i #{keypath} #{user}@localhost #{cmd}"
+        ssh = "ssh -p #{port} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i #{keypath} #{user}@localhost #{cmd}"
 
         # Some hackery going on here. On Mac OS X Leopard (10.5), exec fails
         # (GH-51). As a workaround, we fork and wait. On all other platforms, we
