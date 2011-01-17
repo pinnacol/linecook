@@ -1,96 +1,80 @@
+require 'linecook/vbox'
+
 module Linecook
   module Commands
-    VBOX = ENV['vbox'] || 'vbox'
+    VBOX = Vbox::DEFAULT_VM_NAME
+    
+    class VboxCommand < Command
+      def control(vmname)
+        yield Vbox.new(vmname)
+        exit $?.exitstatus
+      end
+    end
     
     # Linecook::Commands::Start::desc start the vm
-    class Start < Command
+    class Start < VboxCommand
       config :type, 'headless'
       
       def process(vmname=VBOX)
-        unless `VBoxManage -q list runningvms`.include?(vmname)
-          sh "VBoxManage -q startvm #{vmname} --type #{type}"
-        end
+        control(vmname) {|vbox| vbox.start(type) unless vbox.running? }
       end
     end
     
     # Linecook::Commands::Stop::desc stop the vm
-    class Stop < Command
+    class Stop < VboxCommand
       def process(vmname=VBOX)
-        if `VBoxManage -q list runningvms`.include?(vmname)
-          sh "VBoxManage -q controlvm #{vmname} poweroff"
-        end
+        control(vmname) {|vbox| vbox.stop if vbox.running? }
       end
     end
     
     # Linecook::Commands::Reset::desc reset vm to a snapshot
-    class Reset < Command
+    class Reset < VboxCommand
       config :type, 'headless'
       
       def process(snapshot='base', vmname=VBOX)
-        if `VBoxManage -q list runningvms`.include?(vmname)
-          sh "VBoxManage -q controlvm #{vmname} poweroff"
+        control(vmname) do |vbox|
+          vbox.stop if vbox.running?
+          
+          vbox.reset(snapshot)
+          exit $?.exitstatus unless $? == 0
+          
+          vbox.start(type)
         end
-
-        sh "VBoxManage -q snapshot #{vmname} restore #{snapshot.upcase}"
-        sh "VBoxManage -q startvm #{vmname} --type #{type}"
       end
     end
     
     # Linecook::Commands::Snapshot::desc take a snapshop
-    class Snapshot < Command
+    class Snapshot < VboxCommand
       def process(snapshot, vmname=VBOX)
-        `VBoxManage -q snapshot #{vmname} delete #{snapshot.upcase} > /dev/null`
-        sh "VBoxManage -q snapshot #{vmname} take #{snapshot.upcase}"
+        control(vmname) {|vbox| vbox.snapshot(snapshot) }
       end
     end
     
     # Linecook::Commands::State::desc print the vm state
     class State < Command
       def process(vmname=VBOX)
-        if `VBoxManage -q list runningvms`.include?(vmname)
-          puts "running"
-        else
-          puts "stopped"
-        end
+        vbox = Vbox.new(vmname)
+        puts(vbox.running? ? "running" : "stopped")
       end
     end
     
     # Linecook::Commands::Ssh::desc ssh to vm
-    class Ssh < Command
+    class Ssh < VboxCommand
       
       config :port, 2222, &c.integer
       config :user, 'vbox'
+      config :vmname, VBOX
       config :keypath, File.expand_path('../../../../templates/vbox/ssh/id_rsa', __FILE__)
       
       def process(cmd=nil)
-        # To prevent ssh errors, protect the private key
-        FileUtils.chmod(0600, keypath)
-
-        # Patterned after vagrant/ssh.rb (circa 0.6.6)
-        platform = RUBY_PLATFORM.to_s.downcase
-        ssh = "ssh -p #{port} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i #{keypath} #{user}@localhost #{cmd}"
-
-        # Some hackery going on here. On Mac OS X Leopard (10.5), exec fails
-        # (GH-51). As a workaround, we fork and wait. On all other platforms, we
-        # simply exec.
-
-        pid = nil
-        pid = fork if platform.include?("darwin9") || platform.include?("darwin8")
-        Kernel.exec(ssh)  if pid.nil?
-        Process.wait(pid) if pid
-        
-        exit $?.exitstatus
+        control(vmname) {|vbox| vbox.ssh!(cmd, config) }
       end
     end
     
     # Linecook::Commands::Share::desc setup a vbox share
-    class Share < Ssh
+    class Share < VboxCommand
       def process(path='vbox', vmname=VBOX)
-        path = File.expand_path(path)
-        name = Time.now.strftime("vbox-#{File.basename(path)}-%Y%m%d%H%M%S")
-        
-        `VBoxManage sharedfolder add '#{vmname}' --name '#{name}' --hostpath '#{path}' --transient`
-        super "sudo mount -t vboxsf -o uid=1000,gid=100 '#{name}' /vbox"
+        control(vmname) {|vbox| vbox.share(path) }
       end
     end
   end
