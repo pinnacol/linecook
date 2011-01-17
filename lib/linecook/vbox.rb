@@ -39,7 +39,6 @@ module Linecook
       
       # To prevent ssh errors, protect the private key
       FileUtils.chmod(0600, options[:keypath])
-      
       `ssh -p #{options[:port]} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i #{options[:keypath]} #{options[:user]}@localhost #{cmd}`
     end
     

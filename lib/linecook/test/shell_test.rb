@@ -186,6 +186,35 @@ module Linecook
         result
       end
 
+      def commands(cmd, options={})
+        options = sh_test_options.merge(options)
+
+        # strip indentiation if possible
+        if cmd =~ /\A(?:\s*?\n)?( *)(.*?\n)(.*)\z/m
+          indent, cmd, expected = $1, $2, $3
+          cmd.strip!
+
+          if indent.length > 0 && options[:indents]
+            expected.gsub!(/^ {0,#{indent.length}}/, '')
+          end
+        end
+        
+        cmd_pattern = options[:cmd_pattern]
+        
+        commands, current = [], []
+        cmd.each_line do |line|
+          if line.index(cmd_pattern) == 0
+            current = []
+            line = line.sub(cmd_pattern, options[:cmd].to_s)
+            commands << [line, 0, current]
+          else
+            current << line
+          end
+        end
+        
+        commands
+      end
+      
       # Similar to sh_test, but matches the output against each of the
       # regexps.  A hash of sh options can be provided as the last argument;
       # it will be merged with the default sh_test_options.

@@ -4,6 +4,7 @@ require 'linecook/test/file_test'
 require 'linecook/test/shell_test'
 require 'linecook/test/regexp_escape'
 require 'linecook/utils'
+require 'linecook/vbox'
 
 module Linecook
   module Test
@@ -49,66 +50,65 @@ module Linecook
       recipe
     end
     
-    def script(options={}, &block)
+    def build(options={}, &block)
       options = {
+        :env         => {},
         :target_path => 'recipe',
         :export_dir  => path('packages')
-      }.merge!(options)
+      }.merge(options)
       
-      target_path = options[:target_path]
-      export_dir  = options[:export_dir]
+      setup_package options[:env]
       
-      recipe = setup_recipe(target_path)
-      recipe.result(&block)
+      if block_given?
+        recipe = setup_recipe options[:target_path]
+        recipe.result(&block)
+      end
       
-      package.export(export_dir)
-      target_path
+      package.export options[:export_dir]
+      package
     end
     
     def script_test(cmd, options={}, &block)
       options = {
-        :script_variable  => 'TEST_SCRIPT_PATH',
-        :package_variable => 'TEST_PACKAGE_DIR',
-        :export_dir       => path('packages')
-      }.merge!(options)
+        :export_dir => path('packages')
+      }.merge(options)
       
-      path = script(options, &block)
-      export_dir = options[:export_dir]
+      build(options, &block)
       
-      Dir.chdir(export_dir) do
-        with_env(
-          options[:script_variable]  => path,
-          options[:package_variable] => export_dir
-        ) do
-          options = sh_test_options.merge(options)
-
-          # strip indentiation if possible
-          if cmd =~ /\A(?:\s*?\n)?( *)(.*?\n.*)\z/m
-            indent, body = $1, $2
-
-            if indent.length > 0 && options[:indents]
-              cmd = body.gsub(/^ {0,#{indent.length}}/, '')
-            end
+      Dir.chdir(options[:export_dir]) do
+        sh_test(cmd, options)
+      end
+    end
+    
+    def vbox_test(cmd, options={}, &block)
+      options = {
+        :vmname => 'vbox',
+        :snapshot => 'base',
+        :export_dir => path('packages')
+      }.merge(options)
+      
+      build(options, &block)
+      
+      vbox = Vbox.new options[:vmname]
+      begin
+        vbox.stop if vbox.running?
+        vbox.reset options[:snapshot]
+        vbox.start
+        vbox.share options[:export_dir]
+        
+        commands(cmd, options).each do |command, status, expected|
+          result = vbox.ssh(command, options)
+        
+          if status
+            assert_equal status, $?.exitstatus
           end
-
-          cmd_pattern = options[:cmd_pattern]
-          cmds, current = [], []
-
-          cmd.each_line do |line|
-            if line.index(cmd_pattern) == 0
-              current = []
-              cmds << [line, current]
-            else
-              current << line
-            end
-          end
-
-          cmds.collect do |cmd, expected|
-            result = sh(cmd, options)
-            assert_equal(expected.join, result, cmd) unless expected.empty?
-            result
+        
+          unless expected.empty?
+            assert_equal(expected.join, result, command)
           end
         end
+      ensure
+        vbox.stop if vbox.running?
       end
     end
   end
