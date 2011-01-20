@@ -115,16 +115,16 @@ class LinecookTest < Test::Unit::TestCase
   
   def test_end_to_end
     vbox_test %Q{
-      % bash /vbox/recipe
-      hello
+      % bash #{method_name}/recipe
+      hello world
     } do
-      target.puts 'echo hello'
+      target.puts 'echo hello world'
     end
   end
   
   def test_end_to_end_two
     vbox_test %Q{
-      % bash /vbox/recipe
+      % bash #{method_name}/recipe
       goonight moon
     } do
       target.puts 'echo goonight moon'
