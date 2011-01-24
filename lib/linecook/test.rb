@@ -93,7 +93,7 @@ module Linecook
       
       source = file('test') do |io|
         io.puts %Q{
-function assert_status_equal {
+assert_status_equal () {
   expected=$1; actual=$2; lineno=$3
 
   if [ $actual -ne $expected ]
@@ -103,18 +103,20 @@ function assert_status_equal {
   fi
 }
 
-function assert_output_equal {
+assert_output_equal () {
   expected=$(cat); actual=$1; lineno=$2
 
   if [ "$actual" != "$expected" ]
   then
     echo "[$0:$lineno] unequal output"
-    diff <(cat <<< "$expected") <(cat <<< "$actual")
+    echo -e "$expected" > "$0_$2_expected.txt"
+    echo -e "$actual"   > "$0_$2_actual.txt"
+    diff "$0_$2_expected.txt" "$0_$2_actual.txt"
     exit 1
   fi
 }
 
-function assert_equal {
+assert_equal () {
   assert_status_equal $1 $? $3 && 
   assert_output_equal "$2" $3
 }
@@ -132,7 +134,7 @@ stdout
       end
       
       sh("scp -q -F '#{options[:config_file]}' '#{source}' '#{options[:ssh_host]}:#{method_name}_test'")
-      result = sh("ssh -q -F '#{options[:config_file]}' '#{options[:ssh_host]}' -- bash #{method_name}_test")
+      result = sh("ssh -q -F '#{options[:config_file]}' '#{options[:ssh_host]}' -- sh #{method_name}_test")
       assert_equal 0, $?.exitstatus, result
     end
   end
