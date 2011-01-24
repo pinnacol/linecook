@@ -91,8 +91,49 @@ module Linecook
       source, target = path('packages'), method_name
       sh("scp -q -r -F '#{options[:config_file]}' '#{source}' '#{options[:ssh_host]}:#{target}'")
       
-      options[:prefix] = "ssh -q -F '#{options[:config_file]}' '#{options[:ssh_host]}' -- #{options[:prefix]}"
-      sh_test(cmd, options)
+      source = file('test') do |io|
+        io.puts %Q{
+function assert_status_equal {
+  expected=$1; actual=$2; lineno=$3
+
+  if [ $actual -ne $expected ]
+  then 
+    echo "[$0:$lineno] exit status $actual (expected $expected)"
+    exit 1
+  fi
+}
+
+function assert_output_equal {
+  expected=$(cat); actual=$1; lineno=$2
+
+  if [ "$actual" != "$expected" ]
+  then
+    echo "[$0:$lineno] unequal output"
+    diff <(cat <<< "$expected") <(cat <<< "$actual")
+    exit 1
+  fi
+}
+
+function assert_equal {
+  assert_status_equal $1 $? $3 && 
+  assert_output_equal "$2" $3
+}
+}
+
+        parse(cmd, :outdent => true).each do |cmd, output, status|
+          io.puts %Q{
+assert_equal #{status} "$(
+#{cmd}
+)" $LINENO <<stdout
+#{output}
+stdout
+}
+        end
+      end
+      
+      sh("scp -q -F '#{options[:config_file]}' '#{source}' '#{options[:ssh_host]}:#{method_name}_test'")
+      result = sh("ssh -q -F '#{options[:config_file]}' '#{options[:ssh_host]}' -- bash #{method_name}_test")
+      assert_equal 0, $?.exitstatus, result
     end
   end
 end

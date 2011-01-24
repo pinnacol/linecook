@@ -115,7 +115,9 @@ class LinecookTest < Test::Unit::TestCase
   
   def test_end_to_end
     vbox_test %Q{
-      % bash #{method_name}/recipe
+      % bash #{method_name}/recipe | tee one
+      hello world
+      % cat one
       hello world
     } do
       target.puts 'echo hello world'
