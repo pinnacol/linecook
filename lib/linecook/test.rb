@@ -89,13 +89,14 @@ module Linecook
       options = {
         :config_file => File.expand_path('config/ssh', user_dir),
         :host => 'vbox',
+        :test_target_path => 'vbox_test',
         :export_dir => path('packages'),
         :remote_dir => "#{timestamp}-#{method_name}"
       }.merge(options)
       
       package = build(options, &block)
       
-      test = package.tempfile('vbox_test')
+      test = package.tempfile(options[:test_target_path])
       test.puts %Q{
 assert_status_equal () {
   expected=$1; actual=$2; lineno=$3
