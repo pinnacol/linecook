@@ -14,6 +14,10 @@ module Linecook
     attr_writer :cookbook
     attr_writer :package
     
+    def timestamp
+      @timestamp ||= Time.now.strftime("%Y%m%d%H%M%S")
+    end
+    
     def cookbook_dir
       user_dir
     end
@@ -64,7 +68,7 @@ module Linecook
         recipe.result(&block)
       end
       
-      package.export options[:export_dir]
+      package.build
       package
     end
     
@@ -73,7 +77,8 @@ module Linecook
         :export_dir => path('packages')
       }.merge(options)
       
-      build(options, &block)
+      package = build(options, &block)
+      package.export options[:export_dir]
       
       Dir.chdir(options[:export_dir]) do
         sh_test(cmd, options)
@@ -83,16 +88,15 @@ module Linecook
     def vbox_test(cmd, options={}, &block)
       options = {
         :config_file => File.expand_path('config/ssh', user_dir),
-        :ssh_host => 'vbox'
+        :host => 'vbox',
+        :export_dir => path('packages'),
+        :remote_dir => "#{timestamp}-#{method_name}"
       }.merge(options)
       
-      build(options, &block)
+      package = build(options, &block)
       
-      source, target = path('packages'), method_name
-      sh("scp -q -r -F '#{options[:config_file]}' '#{source}' '#{options[:ssh_host]}:#{target}'")
-      
-      source = file('test') do |io|
-        io.puts %Q{
+      test = package.tempfile('vbox_test')
+      test.puts %Q{
 assert_status_equal () {
   expected=$1; actual=$2; lineno=$3
 
@@ -121,20 +125,21 @@ assert_equal () {
   assert_output_equal "$2" $3
 }
 }
-
-        parse(cmd, :outdent => true).each do |cmd, output, status|
-          io.puts %Q{
+      parse(cmd, :outdent => true).each do |cmd, output, status|
+        test.puts %Q{
 assert_equal #{status} "$(
 #{cmd}
 )" $LINENO <<stdout
 #{output}
 stdout
 }
-        end
       end
       
-      sh("scp -q -F '#{options[:config_file]}' '#{source}' '#{options[:ssh_host]}:#{method_name}_test'")
-      result = sh("ssh -q -F '#{options[:config_file]}' '#{options[:ssh_host]}' -- sh #{method_name}_test")
+      package.export options[:export_dir]
+      sh("scp -q -r -F '#{options[:config_file]}' '#{options[:export_dir]}' '#{options[:host]}:#{options[:remote_dir]}'")
+      
+      test_path = package.target_path(test.path)
+      result = sh %Q{ssh -q -F '#{options[:config_file]}' '#{options[:host]}' -- "cd '#{options[:remote_dir]}'; sh '#{test_path}'"}
       assert_equal 0, $?.exitstatus, result
     end
   end
