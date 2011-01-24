@@ -145,43 +145,6 @@ class ShellTestTest < Test::Unit::TestCase
   # sh_test test
   #
 
-  def test_sh_test_documentation
-    opts = {
-      :cmd_pattern => '% argv_inspect',
-      :cmd => 'ruby -e "puts ARGV.inspect"'
-    }
-
-    sh_test %Q{
-% argv_inspect goodnight moon
-["goodnight", "moon"]
-}, opts
-
-    sh_test %Q{
-% argv_inspect hello world
-["hello", "world"]
-}, opts
-
-sh_test %Q{
-% argv_inspect hello world
-["hello", "world"]
-}, opts
-
-sh_test %Q{
-    % argv_inspect hello world
-    ["hello", "world"]
-}, opts
-
-    sh_test %Q{
-    % argv_inspect hello world
-    ["hello", "world"]
-    }, opts
-
-    sh_test %Q{
-ruby -e "puts ENV['SAMPLE']"
-value
-}, :env => {'SAMPLE' => 'value'}
-  end
-
   def test_sh_test_replaces_percent_and_redirects_output_by_default 
     sh_test %Q{
 % ruby -e "STDERR.puts 'on stderr'; STDOUT.puts 'on stdout'"
@@ -242,7 +205,7 @@ echo
     sh_test %Q{
     ruby -e 'print "    \\t\\n      "'
     \t
-      }, :indents => false
+      }, :outdent => false
   end
 
   def test_sh_test_fails_on_mismatch
@@ -255,28 +218,30 @@ echo
   #
 
   def test_sh_match_matches_regexps_to_output
-    opts = {
-      :cmd_pattern => '% argv_inspect',
-      :cmd => 'ruby -e "puts ARGV.inspect"'
+    sh_match %Q{
+      % echo "goodnight
+      > moon"
+      goodnight
+      m:.o+.:n
     }
-
-    sh_match "% argv_inspect goodnight moon",
-    /goodnight/,
-    /mo+n/,
-    opts
-
-    sh_match "echo goodnight moon",
-    /goodnight/,
-    /mo+n/
+    
+    sh_match [
+      ['echo "goodnight\nmoon"', /mo+n/]
+    ]
   end
-
+  
   def test_sh_match_fails_on_mismatch
     assert_raises(Test::Unit::AssertionFailedError) do
-      sh_match "ruby -e ''", /output/
+      sh_match %Q{
+        % ruby -e ''
+        output
+      }
     end
-
+  
     assert_raises(Test::Unit::AssertionFailedError) do
-      sh_match "echo pass", /pas+/, /fail/
+      sh_match [
+        ["echo pass", /fail/]
+      ]
     end
   end
 end

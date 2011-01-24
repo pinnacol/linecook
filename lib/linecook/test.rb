@@ -80,60 +80,19 @@ module Linecook
       end
     end
     
-    def ssh_config_file
-      @ssh_config_file ||= begin
-        default = File.expand_path('config/ssh', user_dir)
-        File.file?(default) ? default : nil
-      end
-    end
-
-    def ssh(cmd, options={})
-      options = {
-        :opts => ssh_config_file ? "-q -F #{ssh_config_file}" : nil,
-        :host => 'vbox'
-      }.merge(options)
-
-      cmd = ['ssh', options[:opts], options[:host], cmd].compact.join(' ')
-
-      sh(cmd, options)
-    end
-    
-    def scp(source, target, options={})
-      options = {
-        :opts => ssh_config_file ? "-q -r -F #{ssh_config_file}" : nil,
-        :host => 'vbox'
-      }.merge(options)
-
-      cmd = ['scp', options[:opts], source, "#{options[:host]}:#{target}"].compact.join(' ')
-
-      sh(cmd, options)
-    end
-    
-    def ssh_test(cmd, options={})
-      options = sh_test_options.merge(options)
-
-      # strip indentiation if possible
-      if cmd =~ /\A(?:\s*?\n)?( *)(.*?\n)(.*)\z/m
-        indent, cmd, expected = $1, $2, $3
-        cmd.strip!
-
-        if indent.length > 0 && options[:indents]
-          expected.gsub!(/^ {0,#{indent.length}}/, '')
-        end
-      end
-
-      result = ssh(cmd, options)
-
-      assert_equal(expected, result, cmd) if expected
-      yield(result) if block_given?
-      result
-    end
-    
     def vbox_test(cmd, options={}, &block)
-      build(options, &block)
-      scp path('packages'), method_name
+      options = {
+        :config_file => File.expand_path('config/ssh', user_dir),
+        :ssh_host => 'vbox'
+      }.merge(options)
       
-      ssh_test(cmd, options)
+      build(options, &block)
+      
+      source, target = path('packages'), method_name
+      sh("scp -q -r -F '#{options[:config_file]}' '#{source}' '#{options[:ssh_host]}:#{target}'")
+      
+      options[:prefix] = "ssh -q -F '#{options[:config_file]}' '#{options[:ssh_host]}' -- #{options[:prefix]}"
+      sh_test(cmd, options)
     end
   end
 end

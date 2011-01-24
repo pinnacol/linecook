@@ -1,6 +1,11 @@
+require 'linecook/test/regexp_escape'
+
 module Linecook
   module Test
     module ShellTest
+      DEFAULT_PS1 = '% '
+      DEFAULT_PS2 = '> '
+      
       def setup
         super
         @notify_method_name = true
@@ -63,40 +68,62 @@ module Linecook
         end
       end
       
-      # Executes the command using IO.popen and returns the stdout content.
-      #
-      # ==== Note
-      # On Windows this method requires the {win32-popen3}[http://rubyforge.org/projects/win32utils]
-      # utility.  If it is not available, it will have to be installed:
-      #
-      #   % gem install win32-open3 
-      # 
+      def parse(str, options={})
+        if options[:outdent]
+          str = outdent_str(str)
+        else
+          str.lstrip!
+        end
+        
+        ps1 = options[:ps1] || DEFAULT_PS1
+        ps1_length = ps1.length
+        
+        ps2 = options[:ps2] || DEFAULT_PS2
+        ps2_length = ps2.length
+        
+        commands = []
+        command, output = nil, nil
+        str.each_line do |line|
+          case
+          when line.index(ps1) == 0
+            commands << [command, output.join, 0] if command
+            
+            command = line[ps1_length, line.length - ps1_length ]
+            output  = []
+            
+          when command.nil?
+            command, output = line, []
+          
+          when line.index(ps2) == 0
+            command << line[ps2_length, line.length - ps2_length]
+            
+          else
+            output << line
+          end
+        end
+        
+        commands << [command, output.join, 0] if command
+        commands
+      end
+      
       def sh(cmd, options={})
         if @notify_method_name && !quiet?
           @notify_method_name = false
           puts
           puts method_name 
         end
-
-        original_cmd = cmd
-        if cmd_pattern = options[:cmd_pattern]
-          cmd = cmd.sub(cmd_pattern, options[:cmd].to_s)
-        end
-
+        
         start = Time.now
-        result = with_env(options[:env], options[:replace_env]) do
-          IO.popen(cmd) do |io|
-            yield(io) if block_given?
-            io.read
-          end
+        result = with_env(options[:env], options[:replace_env]) do 
+          `#{options[:prefix]}#{cmd}#{options[:suffix]}`
         end
-
+        
         finish = Time.now
         elapsed = "%.3f" % [finish-start]
         puts "  (#{elapsed}s) #{verbose? ? cmd : original_cmd}" unless quiet?
         result
       end
-
+      
       # Peforms a shell test.  Shell tests execute the command and yield the
       # $stdout result to the block for validation.  The command is executed
       # through sh, ie using IO.popen.
@@ -166,53 +193,19 @@ module Linecook
       # http://gist.github.com/107363 for a demonstration of ENV
       # variables being inherited by subprocesses.
       # 
-      def sh_test(cmd, options={})
+      def sh_test(commands, options={})
         options = sh_test_options.merge(options)
-
-        # strip indentiation if possible
-        if cmd =~ /\A(?:\s*?\n)?( *)(.*?\n)(.*)\z/m
-          indent, cmd, expected = $1, $2, $3
-          cmd.strip!
-
-          if indent.length > 0 && options[:indents]
-            expected.gsub!(/^ {0,#{indent.length}}/, '')
-          end
-        end
-
-        result = sh(cmd, options)
-
-        assert_equal(expected, result, cmd) if expected
-        yield(result) if block_given?
-        result
-      end
-
-      def commands(cmd, options={})
-        options = sh_test_options.merge(options)
-
-        # strip indentiation if possible
-        if cmd =~ /\A(?:\s*?\n)?( *)(.*?\n)(.*)\z/m
-          indent, cmd, expected = $1, $2, $3
-          cmd.strip!
-
-          if indent.length > 0 && options[:indents]
-            expected.gsub!(/^ {0,#{indent.length}}/, '')
-          end
+        
+        unless commands.kind_of?(Array)
+          commands = parse(commands, options)
         end
         
-        cmd_pattern = options[:cmd_pattern]
-        
-        commands, current = [], []
-        cmd.each_line do |line|
-          if line.index(cmd_pattern) == 0
-            current = []
-            line = line.sub(cmd_pattern, options[:cmd].to_s)
-            commands << [line, 0, current]
-          else
-            current << line
-          end
+        commands.each do |cmd, output, status|
+          result = sh(cmd, options)
+          
+          assert_equal(output, result, cmd) if output
+          assert_equal(status, $?.to_i, cmd) if status
         end
-        
-        commands
       end
       
       # Similar to sh_test, but matches the output against each of the
@@ -221,24 +214,29 @@ module Linecook
       #
       # The output is yielded to the block, if given, for further validation.
       # Returns the sh output.
-      def sh_match(cmd, *regexps)
-        options = regexps.last.kind_of?(Hash) ? regexps.pop : {}
+      def sh_match(commands, options={})
         options = sh_test_options.merge(options)
-        result = sh(cmd, options)
-
-        regexps.each do |regexp|
-          assert_match regexp, result, cmd
+        
+        unless commands.kind_of?(Array)
+          commands = parse(commands, options)
         end
-        yield(result) if block_given?
-        result
+        
+        commands.each do |cmd, output, status|
+          result = sh(cmd, options)
+          
+          assert_alike!(output, result, cmd) if output
+          assert_equal(status, $?.to_i, cmd) if status
+        end
       end
-
+      
       # Returns a hash of default sh_test options.
       def sh_test_options
         {
-          :cmd_pattern => '% ',
-          :cmd => '2>&1 ',
-          :indents => true,
+          :ps1 => DEFAULT_PS1,
+          :ps2 => DEFAULT_PS2,
+          :prefix => '0<&- 2>&1 ',
+          :suffix => '',
+          :outdent => true,
           :env => {},
           :replace_env => false
         }
@@ -268,7 +266,7 @@ module Linecook
       #
       # Use the assert_output_equal! method to prevent indentation stripping.
       def assert_output_equal(a, b, msg=nil)
-        a = strip_indent(a)
+        a = outdent_str(a)
         assert_output_equal!(a, b, msg)
       end
 
@@ -313,7 +311,7 @@ module Linecook
       # Use assert_alike! to prevent indentation stripping (conversion to a
       # RegexpEscape is still in effect).
       def assert_alike(a, b, msg=nil)
-        a = strip_indent(a) if a.kind_of?(String)
+        a = outdent_str(a) if a.kind_of?(String)
         assert_alike!(a, b, msg)
       end
 
@@ -338,16 +336,8 @@ module Linecook
       private
 
       # helper for stripping indentation off a string
-      def strip_indent(str) # :nodoc:
-        if str =~ /\A\s*?\n( *)(.*)\z/m
-          indent, str = $1, $2, $3
-
-          if indent.length > 0
-            str.gsub!(/^ {0,#{indent.length}}/, '')
-          end
-        end
-
-        str
+      def outdent_str(str) # :nodoc:
+        str =~ /\A(?:\s*?\n)( *)(.*)\z/m ? $2.gsub!(/^ {0,#{$1.length}}/, '') : str
       end
 
       # helper for formatting escaping whitespace into readable text
@@ -362,7 +352,6 @@ module Linecook
           end
         end
       end
-
     end
   end
 end
