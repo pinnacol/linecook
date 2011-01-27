@@ -54,12 +54,16 @@ module Linecook
       recipe
     end
     
-    def build(options={}, &block)
-      options = {
+    def build_options
+      {
         :env         => {},
         :target_path => 'recipe',
         :export_dir  => path('packages')
-      }.merge(options)
+      }
+    end
+    
+    def build(options={}, &block)
+      options = build_options.merge(options)
       
       setup_package options[:env]
       
@@ -72,26 +76,28 @@ module Linecook
       package
     end
     
-    def script_test(script, options={}, &block)
-      options = {
-        :config_file => File.expand_path('config/ssh', user_dir),
-        :host => 'vbox',
+    def script_test_options
+      build_options.merge(
+        :ssh_config_file => File.expand_path('config/ssh', user_dir),
+        :ssh_host => 'vbox',
         :test_target_path => 'vbox_test',
-        :export_dir => path('packages'),
         :remote_dir => "#{timestamp}-#{method_name}",
         :shell => 'sh'
-      }.merge(options)
-
+      )
+    end
+    
+    def script_test(script, options={}, &block)
+      options = script_test_options.merge(options)
       package = build(options, &block)
 
       test = package.tempfile(options[:test_target_path])
       test << script
       
       package.export options[:export_dir]
-      sh "0<&- 2>&1 scp -q -r -F '#{options[:config_file]}' '#{options[:export_dir]}' '#{options[:host]}:#{options[:remote_dir]}'"
+      sh "0<&- 2>&1 scp -q -r -F '#{options[:ssh_config_file]}' '#{options[:export_dir]}' '#{options[:ssh_host]}:#{options[:remote_dir]}'"
 
       test_path = package.target_path(test.path)
-      result = sh %Q{0<&- 2>&1 ssh -q -F '#{options[:config_file]}' '#{options[:host]}' -- "cd '#{options[:remote_dir]}'; #{options[:shell]} '#{test_path}'"}
+      result = sh %Q{0<&- 2>&1 ssh -q -F '#{options[:ssh_config_file]}' '#{options[:ssh_host]}' -- "cd '#{options[:remote_dir]}'; #{options[:shell]} '#{test_path}'"}
       assert_equal 0, $?.exitstatus, result
     end
     
