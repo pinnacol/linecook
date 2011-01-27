@@ -138,6 +138,7 @@ task :packages
 namespace :vm do
   task :setup => :bundle do
     sh 'bundle exec linecook reset'
+    sh 'bundle exec linecook share vbox'
   end
   
   task :teardown => :bundle do
