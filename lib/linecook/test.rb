@@ -78,7 +78,8 @@ module Linecook
         :host => 'vbox',
         :test_target_path => 'vbox_test',
         :export_dir => path('packages'),
-        :remote_dir => "#{timestamp}-#{method_name}"
+        :remote_dir => "#{timestamp}-#{method_name}",
+        :shell => 'sh'
       }.merge(options)
 
       package = build(options, &block)
@@ -90,7 +91,7 @@ module Linecook
       sh "0<&- 2>&1 scp -q -r -F '#{options[:config_file]}' '#{options[:export_dir]}' '#{options[:host]}:#{options[:remote_dir]}'"
 
       test_path = package.target_path(test.path)
-      result = sh %Q{0<&- 2>&1 ssh -q -F '#{options[:config_file]}' '#{options[:host]}' -- "cd '#{options[:remote_dir]}'; sh '#{test_path}'"}
+      result = sh %Q{0<&- 2>&1 ssh -q -F '#{options[:config_file]}' '#{options[:host]}' -- "cd '#{options[:remote_dir]}'; #{options[:shell]} '#{test_path}'"}
       assert_equal 0, $?.exitstatus, result
     end
     
