@@ -1,0 +1,9 @@
+Host vbox
+
+  HostName localhost
+  User vbox
+  Port 2222
+  IdentityFile vbox/ssh/id_rsa
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  IdentitiesOnly yes

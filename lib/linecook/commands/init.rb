@@ -1,4 +1,5 @@
 require 'linecook/commands/command'
+require 'linecook/utils'
 require 'fileutils'
 require 'erb'
 require 'ostruct'
@@ -42,7 +43,10 @@ module Linecook
       
       def template(project_dir, project_name=nil)
         project_name ||= File.basename(project_dir)
-        context = OpenStruct.new(:project_name => project_name).send(:binding)
+        context = OpenStruct.new(
+          :project_name => project_name,
+          :const_name => Utils.camelize(project_name)
+        ).send(:binding)
         
         #
         # Copy template files into place
@@ -75,6 +79,9 @@ module Linecook
         source = File.join(project_dir, 'packages')
         target = File.join(project_dir, 'vbox/packages')
         FileUtils.ln_s source, target
+        
+        # Set permissions for ssh
+        FileUtils.chmod 0600,  File.join(project_dir, 'vbox/ssh/id_rsa')
       end
     end
   end
