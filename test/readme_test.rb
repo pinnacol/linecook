@@ -79,16 +79,5 @@ example:
       \033[0;34mI will not manually configure my server\033[0m
       \033[0;34mI will not manually configure my server\033[0m
     }
-    
-    # Start the VM and run the scripts (see the docs for setting up a VM).
-    # 
-    #   % rake vbox:start
-    #   % rake vbox:ssh 
-    #   vm: bash /vbox/scripts/example.sh
-    #   vm: exit
-    # 
-    # Stop the VM.
-    # 
-    #   % rake vbox:stop
   end
 end

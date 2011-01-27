@@ -83,14 +83,15 @@ generated from the example.yml file.
 Start the VM and run the script in the package (see the
 {docs}[link:templates/README] for setting up a VM).
 
-  % rake vbox:start
-  % rake vbox:ssh 
+  % linecook start
+  % linecook share vbox
+  % linecook ssh 
   vm: bash /vbox/packages/example/example
   vm: exit
 
 Stop the VM.
 
-  % rake vbox:stop
+  % linecook stop
 
 == Installation
 
