@@ -25,10 +25,18 @@ class LinecookTestTest < Test::Unit::TestCase
   # script_test
   #
   
-  def test_script_test_builds_and_script_from_recipe_and_compares_output_to_expected
+  def test_script_test_passes_if_script_exits_zero
+    script_test "exit 0"
+  end
+  
+  def test_script_test_fails_if_script_exits_non_zero
+    assert_raises(Test::Unit::AssertionFailedError) { script_test "exit 1" }
+  end
+  
+  def test_script_test_builds_package_and_runs_script_from_package_dir
     script_test %q{
-      % sh recipe
-      hello world
+      if [ "$(sh recipe)" = "hello world" ]; then exit 0; fi
+      exit 1
     } do
       target.puts 'echo hello world'
     end
@@ -36,26 +44,17 @@ class LinecookTestTest < Test::Unit::TestCase
   
   def test_script_test_resets_package
     script_test %q{
-      % sh recipe
-      hello world
+      if [ "$(sh recipe)" = "hello world" ]; then exit 0; fi
+      exit 1
     } do
       target.puts 'echo hello world'
     end
     
     script_test %q{
-      % sh recipe
-      goodnight moon
+      if [ "$(sh recipe)" = "goodnight moon" ]; then exit 0; fi
+      exit 1
     } do
       target.puts 'echo goodnight moon'
-    end
-  end
-  
-  def test_script_test_executes_in_packages_dir_under_method_root
-    script_test %Q{
-      % sh recipe
-      #{path('packages')}
-    } do
-      target.puts 'pwd'
     end
   end
   

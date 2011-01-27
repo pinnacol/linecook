@@ -72,20 +72,7 @@ module Linecook
       package
     end
     
-    def script_test(cmd, options={}, &block)
-      options = {
-        :export_dir => path('packages')
-      }.merge(options)
-      
-      package = build(options, &block)
-      package.export options[:export_dir]
-      
-      Dir.chdir(options[:export_dir]) do
-        sh_test(cmd, options)
-      end
-    end
-    
-    def vbox_test(cmd, options={}, &block)
+    def script_test(script, options={}, &block)
       options = {
         :config_file => File.expand_path('config/ssh', user_dir),
         :host => 'vbox',
@@ -93,11 +80,23 @@ module Linecook
         :export_dir => path('packages'),
         :remote_dir => "#{timestamp}-#{method_name}"
       }.merge(options)
-      
+
       package = build(options, &block)
-      
+
       test = package.tempfile(options[:test_target_path])
-      test.puts %Q{
+      test << script
+      
+      package.export options[:export_dir]
+      sh "0<&- 2>&1 scp -q -r -F '#{options[:config_file]}' '#{options[:export_dir]}' '#{options[:host]}:#{options[:remote_dir]}'"
+
+      test_path = package.target_path(test.path)
+      result = sh %Q{0<&- 2>&1 ssh -q -F '#{options[:config_file]}' '#{options[:host]}' -- "cd '#{options[:remote_dir]}'; sh '#{test_path}'"}
+      assert_equal 0, $?.exitstatus, result
+    end
+    
+    def vbox_test(remote_script, options={}, &block)
+      script = []
+      script << %Q{
 assert_status_equal () {
   expected=$1; actual=$2; lineno=$3
 
@@ -126,8 +125,8 @@ assert_equal () {
   assert_output_equal "$2" $3
 }
 }
-      parse(cmd, :outdent => true).each do |cmd, output, status|
-        test.puts %Q{
+      parse(remote_script, :outdent => true).each do |cmd, output, status|
+        script << %Q{
 assert_equal #{status} "$(
 #{cmd}
 )" $LINENO <<stdout
@@ -136,12 +135,7 @@ stdout
 }
       end
       
-      package.export options[:export_dir]
-      sh("scp -q -r -F '#{options[:config_file]}' '#{options[:export_dir]}' '#{options[:host]}:#{options[:remote_dir]}'")
-      
-      test_path = package.target_path(test.path)
-      result = sh %Q{ssh -q -F '#{options[:config_file]}' '#{options[:host]}' -- "cd '#{options[:remote_dir]}'; sh '#{test_path}'"}
-      assert_equal 0, $?.exitstatus, result
+      script_test(script.join("\n"), options, &block)
     end
   end
 end
