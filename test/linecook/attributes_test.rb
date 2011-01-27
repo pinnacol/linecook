@@ -30,11 +30,11 @@ class AttributesTest < Test::Unit::TestCase
   # current test
   #
   
-  def test_current_merges_attrs_and_context
-    attributes.attrs[:a]    = 'A'
-    attributes.attrs[:b]    = '-'
+  def test_current_merges_attrs_and_env
+    attributes.attrs[:a] = 'A'
+    attributes.attrs[:b] = '-'
     
-    attributes.context[:b] = 'B'
+    attributes.env[:b]   = 'B'
     
     assert_equal({
       :a => 'A',
@@ -48,8 +48,8 @@ class AttributesTest < Test::Unit::TestCase
     attributes.attrs[:one][:a] = 'a'
     attributes.attrs[:one][:b] = '-'
     
-    attributes.context[:b] = 'B'
-    attributes.context[:one] = {:b => 'b'}
+    attributes.env[:b]   = 'B'
+    attributes.env[:one] = {:b => 'b'}
     
     assert_equal({
       :a => 'A',
@@ -71,7 +71,7 @@ class AttributesTest < Test::Unit::TestCase
   
   def test_reset_clears_attrs
     attributes.attrs[:a] = 'A'
-    attributes.context[:b] = 'B'
+    attributes.env[:b]   = 'B'
     
     assert_equal({
       :a => 'A',
