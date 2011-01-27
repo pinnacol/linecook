@@ -224,7 +224,14 @@ module Linecook
         commands.each do |cmd, output, status|
           result = sh(cmd, options)
           
-          assert_alike!(output, result, cmd) if output
+          if output
+            if output.kind_of?(String)
+              output = RegexpEscape.new(output)
+            end
+            
+            assert_alike(output, result, cmd)
+          end
+          
           assert_equal(status, $?.to_i, cmd) if status
         end
       end
@@ -244,10 +251,8 @@ module Linecook
 
       # Asserts whether or not the a and b strings are equal, with a more
       # readable output than assert_equal for large strings (especially large
-      # strings with significant whitespace).
-      #
-      # One gotcha is that assert_output_equal lstrips indentation off of 'a',
-      # so that these all pass:
+      # strings with significant whitespace).  Note that assert_output_equal
+      # lstrips indentation off of 'a', so that these all pass:
       #
       #   assert_output_equal %q{
       #   line one
@@ -264,14 +269,9 @@ module Linecook
       #     line two
       #     }, "line one\nline two\n"
       #
-      # Use the assert_output_equal! method to prevent indentation stripping.
       def assert_output_equal(a, b, msg=nil)
         a = outdent_str(a)
-        assert_output_equal!(a, b, msg)
-      end
-
-      # Same as assert_output_equal but without indentation stripping.
-      def assert_output_equal!(a, b, msg=nil)
+        
         if a == b
           assert true
         else
@@ -308,16 +308,10 @@ module Linecook
       #     now!
       #     }, "the time is: #{Time.now}\nnow!\n"
       #
-      # Use assert_alike! to prevent indentation stripping (conversion to a
-      # RegexpEscape is still in effect).
       def assert_alike(a, b, msg=nil)
-        a = outdent_str(a) if a.kind_of?(String)
-        assert_alike!(a, b, msg)
-      end
-
-      # Same as assert_alike but without indentation stripping.
-      def assert_alike!(a, b, msg=nil)
-        a = RegexpEscape.new(a) if a.kind_of?(String)
+        if a.kind_of?(String)
+          a = RegexpEscape.new(outdent_str(a))
+        end
 
         if b =~ a
           assert true
