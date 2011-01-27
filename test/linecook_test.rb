@@ -7,6 +7,17 @@ class LinecookTest < Test::Unit::TestCase
   LINE_COOK_DIR = File.expand_path('../..', __FILE__)
   LINE_COOK = File.join(LINE_COOK_DIR, 'bin/linecook')
   
+  def setup
+    super
+    FileUtils.mkdir_p method_dir
+    Dir.chdir method_dir
+  end
+
+  def teardown
+    Dir.chdir user_dir
+    super
+  end
+  
   def test_linecook_generates_a_cookbook_directory
     example_dir = path('example')
     assert_equal false, File.exists?(example_dir)

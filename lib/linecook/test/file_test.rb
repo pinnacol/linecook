@@ -30,15 +30,10 @@ module Linecook
         super
         @user_dir   = Dir.pwd
         @method_dir = File.expand_path(method_name, self.class.class_dir)
-      
         cleanup method_dir
-        FileUtils.mkdir_p method_dir
-        Dir.chdir method_dir
       end
     
-      def teardown
-        Dir.chdir user_dir
-      
+      def teardown    
         unless ENV["KEEP_OUTPUTS"] == "true"
           cleanup class_dir
         end

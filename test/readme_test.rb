@@ -7,9 +7,12 @@ class ReadmeTest < Test::Unit::TestCase
   LINE_COOK_DIR = File.expand_path('../..', __FILE__)
   LINE_COOK = File.join(LINE_COOK_DIR, 'bin/linecook')
   
-  def test_readme
+  def teardown
     Dir.chdir user_dir
-    FileUtils.rmdir method_dir
+    super
+  end
+  
+  def test_readme
     sh "#{LINE_COOK} init '#{method_dir}'"
     Dir.chdir method_dir
     
