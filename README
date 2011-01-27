@@ -17,7 +17,7 @@ The workflow is like this:
 Linecook provides a command-line tool for generating helpers, packages, and
 for running a test vm. Helpers and recipes can be shared as gems; the basic
 shell helpers are available through
-{linebook-shell}[http://http://rubygems.org/gems/linebook-shell/].
+{Linebook}[http://http://rubygems.org/gems/linebook/].
 
 == Usage
 

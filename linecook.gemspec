@@ -54,12 +54,14 @@ Gem::Specification.new do |s|
     lib/linecook/test/regexp_escape.rb
     lib/linecook/test/shell_test.rb
     lib/linecook/utils.rb
+    lib/linecook/vbox.rb
     lib/linecook/version.rb
     templates/Gemfile
     templates/README
     templates/Rakefile
     templates/_gitignore
     templates/attributes/project_name.rb
+    templates/config/ssh
     templates/cookbook
     templates/files/file.txt
     templates/helpers/project_name/cat.erb
@@ -68,6 +70,7 @@ Gem::Specification.new do |s|
     templates/project_name.gemspec
     templates/recipes/project_name.rb
     templates/templates/template.txt.erb
+    templates/test/project_name_test.rb
     templates/test/test_helper.rb
     templates/vbox/setup/virtual_box
     templates/vbox/ssh/id_rsa

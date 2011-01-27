@@ -1,3 +1,9 @@
+== 0.10.0 2011/01/27
+
+* updated test methods, adding script/vbox test methods
+* reworked helper generation to inline ERB during generation
+* misc bug fixes
+
 == 0.9.5 2011/01/13
 
 * removed double-print of preview
