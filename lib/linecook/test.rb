@@ -79,17 +79,17 @@ module Linecook
       package
     end
     
-    def build_remote(build_options={}, vm_options={}, &block)
-      package = build(build_options, &block)
-      files = package.registry.values
+    def build_remote(options={}, &block)
+      package   = build(options, &block)
+      pkg_files = package.registry.values
       
-      export_dir = File.dirname(files.sort_by {|path| path.length }.first)
-      if files.all? {|path| path.index(export_dir) == 0 }
-        files = [export_dir]
+      export_dir = File.dirname(pkg_files.sort_by {|path| path.length }.first)
+      if pkg_files.all? {|path| path.index(export_dir) == 0 }
+        pkg_files = [export_dir]
       end
       
-      vm_options = setup_vm(vm_options)
-      scp files, vm_options[:vm_method_dir], vm_options
+      vm_setup
+      scp pkg_files, remote_method_dir
       
       package
     end
