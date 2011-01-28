@@ -92,13 +92,14 @@ module Linecook
         ps2_length = ps2.length
         
         commands = []
-        command, output = nil, nil
+        command, output, exit_status = nil, nil, 0
         script.each_line do |line|
           case
           when line.index(ps1) == 0
-            commands << [command, output.join, 0] if command
+            commands << [command, output.join, exit_status] if command
             
             command = line[ps1_length, line.length - ps1_length ]
+            exit_status = $1.to_i if command =~ /# \[(\d+)\]\s*$/
             output  = []
             
           when command.nil?
@@ -112,7 +113,7 @@ module Linecook
           end
         end
         
-        commands << [command, output.join, 0] if command
+        commands << [command, output.join, exit_status] if command
         commands
       end
       
@@ -150,7 +151,7 @@ module Linecook
           result = sh(cmd, options)
           
           _assert_output_equal(output, result, cmd) if output
-          assert_equal(status, $?.to_i, cmd) if status
+          assert_equal(status, $?.exitstatus, cmd)  if status
         end
       end
       
@@ -158,8 +159,8 @@ module Linecook
         parse(script, options).each do |cmd, output, status|
           result = sh(cmd, options)
           
-          _assert_alike(output, result, cmd) if output
-          assert_equal(status, $?.to_i, cmd) if status
+          _assert_alike(output, result, cmd)       if output
+          assert_equal(status, $?.exitstatus, cmd) if status
         end
       end
       
