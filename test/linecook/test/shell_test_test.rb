@@ -240,35 +240,35 @@ echo
   #
 
   def test_assert_output_equal
-    assert_output_equal outdent(%{
+    assert_output_equal %{
     line one
       line two
-    }), "line one\n  line two\n"
+    }, "line one\n  line two\n"
 
-    assert_output_equal outdent(%{
+    assert_output_equal %{
     line one
-      line two}), "line one\n  line two"
+      line two}, "line one\n  line two"
 
-    assert_output_equal outdent(%{  \t   \r
+    assert_output_equal %{  \t   \r
     line one
     line two
-    }), "line one\nline two\n"
+    }, "line one\nline two\n"
 
-    assert_output_equal outdent(%{
+    assert_output_equal %{
     
     
-    }), "\n\n"
+    }, "\n\n"
 
-    assert_output_equal outdent(%{
+    assert_output_equal %{
     
-    }), "\n"
+    }, "\n"
 
-    assert_output_equal outdent(%{  \t   \r
+    assert_output_equal %{  \t   \r
     
-    }), "\n"
+    }, "\n"
 
-    assert_output_equal outdent(%{
-    }), ""
+    assert_output_equal %{
+    }, ""
 
     assert_output_equal %q{}, ""
     assert_output_equal %q{line one

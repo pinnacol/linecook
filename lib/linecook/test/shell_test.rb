@@ -149,7 +149,7 @@ module Linecook
         parse(script, options).each do |cmd, output, status|
           result = sh(cmd, options)
           
-          assert_equal(output, result, cmd)  if output
+          _assert_output_equal(output, result, cmd) if output
           assert_equal(status, $?.to_i, cmd) if status
         end
       end
@@ -158,7 +158,7 @@ module Linecook
         parse(script, options).each do |cmd, output, status|
           result = sh(cmd, options)
           
-          assert_alike(output, result, cmd)  if output
+          _assert_alike(output, result, cmd) if output
           assert_equal(status, $?.to_i, cmd) if status
         end
       end
@@ -167,6 +167,10 @@ module Linecook
       # readable output than assert_equal for large strings (especially large
       # strings with significant whitespace).
       def assert_output_equal(a, b, msg=nil)
+        _assert_output_equal outdent(a), b, msg
+      end
+      
+      def _assert_output_equal(a, b, msg=nil)
         if a == b
           assert true
         else
@@ -187,6 +191,11 @@ module Linecook
       #
       # If a is a string it is turned into a RegexpEscape.
       def assert_alike(a, b, msg=nil)
+        a = outdent(a) if a.kind_of?(String)
+        _assert_alike a, b, msg
+      end
+      
+      def _assert_alike(a, b, msg=nil)
         if a.kind_of?(String)
           a = RegexpEscape.new(a)
         end

@@ -42,13 +42,13 @@ module Linecook
     
     def assert_recipe(expected, &block)
       recipe = setup_recipe
-      assert_output_equal outdent(expected), recipe.result(&block)
+      assert_output_equal expected, recipe.result(&block)
       recipe
     end
     
     def assert_recipe_match(expected, &block)
       recipe = setup_recipe
-      assert_alike outdent(expected), recipe.result(&block)
+      assert_alike expected, recipe.result(&block)
       recipe
     end
     
