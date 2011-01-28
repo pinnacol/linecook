@@ -141,7 +141,7 @@ module Linecook
         
         finish = Time.now
         elapsed = "%.3f" % [finish-start]
-        puts "  (#{elapsed}s) #{verbose? ? cmd : original_cmd}" unless quiet?
+        puts "  (#{elapsed}s) #{cmd}" unless quiet?
         result
       end
       

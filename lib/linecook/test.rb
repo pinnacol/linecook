@@ -1,15 +1,13 @@
 require 'linecook/cookbook'
 require 'linecook/package'
-require 'linecook/test/file_test'
-require 'linecook/test/shell_test'
+require 'linecook/test/vm_test'
 require 'linecook/test/regexp_escape'
 require 'linecook/utils'
 require 'linecook/vbox'
 
 module Linecook
   module Test
-    include FileTest
-    include ShellTest
+    include VmTest
     
     attr_writer :cookbook
     attr_writer :package
@@ -58,7 +56,7 @@ module Linecook
       {
         :env         => {},
         :target_path => 'recipe',
-        :export_dir  => path('packages')
+        :export_dir  => 'packages'
       }
     end
     
@@ -73,76 +71,27 @@ module Linecook
       end
       
       package.build
+      
+      if export_dir = path(options[:export_dir])
+        package.export export_dir
+      end
+      
       package
     end
     
-    def script_test_options
-      build_options.merge(
-        :ssh_config_file => File.expand_path('config/ssh', user_dir),
-        :ssh_host => 'vbox',
-        :test_target_path => 'vbox_test',
-        :remote_dir => "#{timestamp}-#{method_name}",
-        :shell => 'sh'
-      )
-    end
-    
-    def script_test(script, options={}, &block)
-      options = script_test_options.merge(options)
-      package = build(options, &block)
-
-      test = package.tempfile(options[:test_target_path])
-      test << script
+    def build_remote(build_options={}, vm_options={}, &block)
+      package = build(build_options, &block)
+      files = package.registry.values
       
-      package.export options[:export_dir]
-      sh "0<&- 2>&1 scp -q -r -F '#{options[:ssh_config_file]}' '#{options[:export_dir]}' '#{options[:ssh_host]}:#{options[:remote_dir]}'"
-
-      test_path = package.target_path(test.path)
-      result = sh %Q{0<&- 2>&1 ssh -q -F '#{options[:ssh_config_file]}' '#{options[:ssh_host]}' -- "cd '#{options[:remote_dir]}'; #{options[:shell]} '#{test_path}'"}
-      assert_equal 0, $?.exitstatus, result
-    end
-    
-    def vbox_test(remote_script, options={}, &block)
-      script = []
-      script << %Q{
-assert_status_equal () {
-  expected=$1; actual=$2; lineno=$3
-
-  if [ $actual -ne $expected ]
-  then 
-    echo "[$0:$lineno] exit status $actual (expected $expected)"
-    exit 1
-  fi
-}
-
-assert_output_equal () {
-  expected=$(cat); actual=$1; lineno=$2
-
-  if [ "$actual" != "$expected" ]
-  then
-    echo "[$0:$lineno] unequal output"
-    echo -e "$expected" > "$0_$2_expected.txt"
-    echo -e "$actual"   > "$0_$2_actual.txt"
-    diff "$0_$2_expected.txt" "$0_$2_actual.txt"
-    exit 1
-  fi
-}
-
-assert_equal () {
-  assert_status_equal $1 $? $3 && 
-  assert_output_equal "$2" $3
-}
-}
-      parse(remote_script, :outdent => true).each do |cmd, output, status|
-        script << %Q{
-assert_equal #{status} "$(
-#{cmd}
-)" $LINENO <<stdout
-#{output}
-stdout
-}
+      export_dir = File.dirname(files.sort_by {|path| path.length }.first)
+      if files.all? {|path| path.index(export_dir) == 0 }
+        files = [export_dir]
       end
       
-      script_test(script.join("\n"), options, &block)
+      vm_options = setup_vm(vm_options)
+      scp files, vm_options[:vm_method_dir], vm_options
+      
+      package
     end
   end
 end
