@@ -56,7 +56,7 @@ module Linecook
       {
         :env         => {},
         :target_path => 'recipe',
-        :export_dir  => 'packages'
+        :export_dir  => 'package'
       }
     end
     
