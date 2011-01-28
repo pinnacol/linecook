@@ -37,7 +37,7 @@ class CookbookTest < Test::Unit::TestCase
   #
   
   def test_manifest_searches_for_files_along_pwd_by_default
-    example = file('files/example.txt')
+    example = prepare('files/example.txt')
     
     cookbook = Cookbook.new(method_dir)
     assert_equal({'files' => {'example.txt' => example}}, cookbook.manifest)

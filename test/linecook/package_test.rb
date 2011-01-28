@@ -265,7 +265,7 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_build_file_looks_up_and_registers_the_specified_file
-    package.manifest['files']['name'] = file('example') {|io| io << 'content' }
+    package.manifest['files']['name'] = prepare('example') {|io| io << 'content' }
     
     package.build_file('name', 'target/path')
     assert_equal 'content', package.content('target/path')
@@ -285,7 +285,7 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_build_file_returns_package
-    package.manifest['files']['name'] = file('example') {|io| io << 'content' }
+    package.manifest['files']['name'] = prepare('example') {|io| io << 'content' }
     assert_equal package, package.build_file('name', 'target/path')
   end
   
@@ -294,14 +294,14 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_build_template_looks_up_builds_and_registers_the_specified_template
-    package.manifest['templates']['name'] = file('example') {|io| io << 'got: <%= key %>'}
+    package.manifest['templates']['name'] = prepare('example') {|io| io << 'got: <%= key %>'}
     
     package.build_template('name', 'target/path', 'key' => 'value')
     assert_equal 'got: value', package.content('target/path')
   end
   
   def test_build_template_uses_env_as_locals_by_default
-    package.manifest['templates']['name'] = file('example') {|io| io << 'got: <%= key %>'}
+    package.manifest['templates']['name'] = prepare('example') {|io| io << 'got: <%= key %>'}
     
     package.env['key'] = 'value'
     package.build_template('name', 'target/path')
@@ -322,7 +322,7 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_build_template_returns_package
-    package.manifest['templates']['name'] = file('example') {|io| io << ''}
+    package.manifest['templates']['name'] = prepare('example') {|io| io << ''}
     assert_equal package, package.build_template('name', 'target/path')
   end
   
@@ -331,7 +331,7 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_build_recipe_looks_up_evaluates_and_registers_the_specified_recipe
-    package.manifest['recipes']['name'] = file('example') {|io| io << 'target << "content"'}
+    package.manifest['recipes']['name'] = prepare('example') {|io| io << 'target << "content"'}
     
     package.build_recipe('name', 'target/path')
     assert_equal 'content', package.content('target/path')
@@ -343,7 +343,7 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_build_recipe_raises_error_if_the_target_is_already_registered
-    package.manifest['recipes']['name'] = file('example') {|io| io << 'target << "content"'}
+    package.manifest['recipes']['name'] = prepare('example') {|io| io << 'target << "content"'}
     package.register('target/path', 'source/path')
     
     err = assert_raises(RuntimeError) { package.build_recipe('name', 'target/path') }
@@ -351,7 +351,7 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_build_recipe_returns_package
-    package.manifest['recipes']['name'] = file('example') {|io| io << ''}
+    package.manifest['recipes']['name'] = prepare('example') {|io| io << ''}
     assert_equal package, package.build_recipe('name', 'target/path')
   end
   
@@ -386,7 +386,7 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_export_copies_source_files_to_dir_as_specified_in_registry
-    original_source = file('example') {|io| io << 'content'}
+    original_source = prepare('example') {|io| io << 'content'}
     
     package.registry['target/path'] = original_source
     package.export path('export/dir')

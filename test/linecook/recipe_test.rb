@@ -36,7 +36,7 @@ class RecipeTest < Test::Unit::TestCase
   #
 
   def test_attributes_evals_the_attributes_file_in_the_context_of_attributes
-    file('attributes/example.rb') {|io| io << "attrs[:key] = 'value'"}
+    prepare('attributes/example.rb') {|io| io << "attrs[:key] = 'value'"}
     assert_equal nil, recipe.attrs[:key]
 
     recipe.attributes('example')
@@ -48,7 +48,7 @@ class RecipeTest < Test::Unit::TestCase
   #
   
   def test_helpers_requires_helper_and_extends_self_with_helper_module
-    file('lib/recipe_test/require_helper.rb') {|io| io << %q{
+    prepare('lib/recipe_test/require_helper.rb') {|io| io << %q{
       class RecipeTest
         module RequireHelper
           def help; end
@@ -73,7 +73,7 @@ class RecipeTest < Test::Unit::TestCase
   #
 
   def file_path_registers_file_from_files_dir
-    file('files/example.txt') {|io| io << 'content'}
+    prepare('files/example.txt') {|io| io << 'content'}
     
     path = recipe.file_path('example.txt')
     assert_equal 'recipe.d/example.txt', path
@@ -108,7 +108,7 @@ class RecipeTest < Test::Unit::TestCase
   #
 
   def test_recipe_path_evals_the_recipe_file_in_the_context_of_a_new_recipe
-    file('recipes/example.rb') {|io| io << "target.puts 'content'"}
+    prepare('recipes/example.rb') {|io| io << "target.puts 'content'"}
     assert_equal 'example', recipe.recipe_path('example')
     
     assert_equal "", package.content('recipe')
@@ -120,7 +120,7 @@ class RecipeTest < Test::Unit::TestCase
   #
 
   def test_template_path_templates_and_registers_file_from_templates_dir
-    file('templates/example.txt.erb') do |io|
+    prepare('templates/example.txt.erb') do |io|
       io << "got <%= key %>"
     end
     
@@ -131,7 +131,7 @@ class RecipeTest < Test::Unit::TestCase
   end
   
   def test_template_path_adds_attrs_to_locals
-    file('templates/example.txt.erb') do |io|
+    prepare('templates/example.txt.erb') do |io|
       io << "got <%= attrs['key'] %><%= key %>"
     end
     
@@ -143,7 +143,7 @@ class RecipeTest < Test::Unit::TestCase
   end
   
   def test_template_path_respects_attrs_manually_added_to_locals
-    file('templates/example.txt.erb') do |io|
+    prepare('templates/example.txt.erb') do |io|
       io << "got <%= attrs['key'] %><%= key %>"
     end
     

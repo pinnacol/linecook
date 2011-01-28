@@ -16,7 +16,7 @@ class ReadmeTest < Test::Unit::TestCase
     sh "#{LINE_COOK} init '#{method_dir}'"
     Dir.chdir method_dir
     
-    file('helpers/example/_head.rb', %q{
+    prepare('helpers/example/_head.rb', %q{
 COLOR_CODES = Hash[*%W{
   black       0;30   red         0;31
   white       1;37   green       0;32
@@ -24,14 +24,14 @@ COLOR_CODES = Hash[*%W{
 }]
 })
 
-    file('helpers/example/color.erb', %q{
+    prepare('helpers/example/color.erb', %q{
 Adds color to a string.
 (color, str)
 --
 \033[<%= COLOR_CODES[color.to_s] %>m<%= str %>\033[0m
 })
 
-    file('helpers/example/echo.erb', %q{
+    prepare('helpers/example/echo.erb', %q{
 Echo a string in color
 (str, options={})
 color = options[:color]
@@ -39,12 +39,12 @@ color = options[:color]
 echo -e '<%= color ? _color(color, str) : str %>'
 })
 
-    file('attributes/example.rb', %q{
+    prepare('attributes/example.rb', %q{
 attrs['example']['n'] = 3
 attrs['example']['color'] = 'blue'
 })
 
-    file('recipes/example.rb', %q{
+    prepare('recipes/example.rb', %q{
 helpers "example"
 attributes "example"
 
@@ -53,7 +53,7 @@ attrs['example']['n'].times do
 end
 })
 
-    file('packages/example.yml', %q{
+    prepare('packages/example.yml', %q{
 linecook:
   recipes:
   - example

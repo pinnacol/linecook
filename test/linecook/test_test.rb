@@ -13,7 +13,7 @@ class LinecookTestTest < Test::Unit::TestCase
   #
   
   def test_setup_package_and_package_testing
-    file('recipes/example.rb') {|io| io << "target << Array.new(attrs['n'], 'success').join(',')"}
+    prepare('recipes/example.rb') {|io| io << "target << Array.new(attrs['n'], 'success').join(',')"}
     
     setup_package 'linecook' => {'recipes' => 'example'}, 'n' => 3
     package.build
