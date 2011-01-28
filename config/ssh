@@ -7,3 +7,5 @@ Host vbox
   UserKnownHostsFile /dev/null
   StrictHostKeyChecking no
   IdentitiesOnly yes
+  ControlMaster auto
+  ControlPath vbox/ssh/socket-%r@%h:%p
