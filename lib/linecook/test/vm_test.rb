@@ -45,25 +45,17 @@ module Linecook
         vm_options[:remote_method_dir] ||= File.join(remote_class_dir, method_name)
       end
       
-      def vm_setup?
-        vm_options[:setup] == true
-      end
-      
       def vm_setup
-        unless vm_setup?
-          ssh outdent(%Q{
-            sh <<SETUP
-            rm -rf '#{remote_method_dir}'
-            mkdir -p '#{remote_method_dir}'
-            SETUP
-          })
-          
-          vm_options[:setup] = true
-        end
+        ssh outdent(%Q{
+          sh <<SETUP
+          rm -rf '#{remote_method_dir}'
+          mkdir -p '#{remote_method_dir}'
+          SETUP
+        })
       end
       
       def vm_teardown
-        unless !vm_setup? || ENV["KEEP_OUTPUTS"] == "true"
+        unless ENV["KEEP_OUTPUTS"] == "true"
           ssh outdent(%Q{
             sh <<TEARDOWN
             dir='#{remote_method_dir}'
@@ -77,8 +69,6 @@ module Linecook
             done
             TEARDOWN
           })
-          
-          vm_options[:setup] = false
         end
       end
       
