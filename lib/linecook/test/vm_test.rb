@@ -8,29 +8,33 @@ module Linecook
       include ShellTest
       
       REMOTE_DIR = ENV['REMOTE_DIR'] || 'test'
-      SSH_CONFIG_FILE = ENV['SSH_CONFIG_FILE'] || File.expand_path('config/ssh')
-      DEFAULT_VM_OPTIONS = {
-        :ssh_config_file => SSH_CONFIG_FILE,
-        :host            => 'vbox',
-        :remote_test_dir => REMOTE_DIR
-      }
       
       attr_reader :vm_options
       
       def setup
         super
-        @vm_options = DEFAULT_VM_OPTIONS.dup
+        @vm_options = default_vm_options.dup
       end
       
       def ssh(cmd, options={})
         options = vm_options.merge(options)
-        sh("ssh -q -F '#{options[:ssh_config_file]}' '#{options[:host]}' -- #{cmd}", options)
+        
+        Dir.chdir(options[:ssh_dir]) do
+          sh("ssh -q -F '#{options[:ssh_config_file]}' '#{options[:host]}' -- #{cmd}", options)
+        end
       end
       
       def scp(sources, target, options={})
         options = vm_options.merge(options)
-        sources = [sources] unless sources.kind_of?(Array)
-        sh("scp -q -r -F '#{options[:ssh_config_file]}' '#{sources.join("' '")}' '#{options[:host]}:#{target}'", options)
+        
+        Dir.chdir(options[:ssh_dir]) do
+          sources = [sources] unless sources.kind_of?(Array)
+          sh("scp -q -r -F '#{options[:ssh_config_file]}' '#{sources.join("' '")}' '#{options[:host]}:#{target}'", options)
+        end
+      end
+      
+      def ssh_dir
+        vm_options[:ssh_dir]
       end
       
       def remote_test_dir
@@ -72,11 +76,20 @@ module Linecook
         end
       end
       
+      def default_vm_options
+        {
+          :ssh_config_file => 'config/ssh',
+          :ssh_dir         => user_dir,
+          :host            => 'vbox',
+          :remote_test_dir => REMOTE_DIR
+        }
+      end
+      
       def with_vm(options={})
         current = @vm_options
         
         begin
-          @vm_options = DEFAULT_VM_OPTIONS.merge(options)
+          @vm_options = default_vm_options.merge(options)
           vm_setup
           yield
         ensure
@@ -117,6 +130,7 @@ module Linecook
 cd '<%= remote_dir %>'
 cat > '<%= script_name %>' <<'DOC'
 #!/<%= shell %>
+cd '<%= remote_dir %>'
 
 assert_status_equal () {
   expected=$1; actual=$2; lineno=$3

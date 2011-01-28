@@ -21,7 +21,9 @@ module Linecook
         cleanup method_dir
       end
     
-      def teardown    
+      def teardown
+        Dir.chdir(user_dir)
+        
         unless ENV["KEEP_OUTPUTS"] == "true"
           cleanup method_dir, class_dir
         end
