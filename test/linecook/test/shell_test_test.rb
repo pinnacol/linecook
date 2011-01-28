@@ -142,106 +142,96 @@ class ShellTestTest < Test::Unit::TestCase
   end
 
   #
-  # sh_test test
+  # assert_script test
   #
 
-  def test_sh_test_replaces_percent_and_redirects_output_by_default 
-    sh_test %Q{
+  def test_assert_script_replaces_percent_and_redirects_output_by_default 
+    assert_script %Q{
 % ruby -e "STDERR.puts 'on stderr'; STDOUT.puts 'on stdout'"
 on stderr
 on stdout
 }
   end
 
-  def test_sh_test_correctly_matches_no_output
-    sh_test %Q{
+  def test_assert_script_correctly_matches_no_output
+    assert_script %Q{
 ruby -e ""
 }
 
-    sh_test %Q{ruby -e ""}
+    assert_script %Q{ruby -e ""}
   end
 
-  def test_sh_test_correctly_matches_whitespace_output
-    sh_test %Q{
+  def test_assert_script_correctly_matches_whitespace_output
+    assert_script %Q{
 ruby -e 'print "\\t\\n  "'
 \t
   }
-    sh_test %Q{
+    assert_script %Q{
 echo
 
 }
-    sh_test %Q{echo
+    assert_script %Q{echo
 
 }
   end
 
-  def test_sh_test_strips_indents
-    sh_test %Q{
+  def test_assert_script_strips_indents
+    assert_script %Q{
     echo goodnight
     goodnight
     }
 
-    sh_test %Q{ \t   \r
+    assert_script %Q{ \t   \r
     echo goodnight
     goodnight
     }
 
-    sh_test %Q{
+    assert_script %Q{
     ruby -e 'print "\\t\\n  "'
     \t
       }
 
-    sh_test %Q{
+    assert_script %Q{
     echo
 
     }
 
-    sh_test %Q{echo
+    assert_script %Q{echo
 
 }
   end
 
-  def test_sh_test_does_not_strip_indents_unless_specified
-    sh_test %Q{
+  def test_assert_script_does_not_strip_indents_unless_specified
+    assert_script %Q{
     ruby -e 'print "    \\t\\n      "'
     \t
       }, :outdent => false
   end
 
-  def test_sh_test_fails_on_mismatch
-    assert_raises(Test::Unit::AssertionFailedError) { sh_test %Q{ruby -e ""\nflunk} }
-    assert_raises(Test::Unit::AssertionFailedError) { sh_test %Q{echo pass\nflunk} }
+  def test_assert_script_fails_on_mismatch
+    assert_raises(Test::Unit::AssertionFailedError) { assert_script %Q{ruby -e ""\nflunk} }
+    assert_raises(Test::Unit::AssertionFailedError) { assert_script %Q{echo pass\nflunk} }
   end
 
   #
-  # sh_match test
+  # assert_script_match test
   #
 
-  def test_sh_match_matches_regexps_to_output
-    sh_match %Q{
+  def test_assert_script_match_matches_regexps_to_output
+    assert_script_match %Q{
       % echo "goodnight
       > moon"
       goodnight
       m:.o+.:n
     }
-    
-    sh_match [
-      ['echo "goodnight\nmoon"', /mo+n/]
-    ]
   end
   
-  def test_sh_match_fails_on_mismatch
+  def test_assert_script_match_fails_on_mismatch
     assert_raises(Test::Unit::AssertionFailedError) do
-      sh_match %Q{
-        % ruby -e ''
-        output
+      assert_script_match %Q{
+        % echo 'hello world'
+        goodnight m:.o+.:n
       }
-    end
-  
-    assert_raises(Test::Unit::AssertionFailedError) do
-      sh_match [
-        ["echo pass", /fail/]
-      ]
     end
   end
 
@@ -249,53 +239,36 @@ echo
   # assert_output_equal test
   #
 
-  def test_assert_output_equal_documentation
-    assert_output_equal %q{
-line one
-line two
-}, "line one\nline two\n"
-
-    assert_output_equal %q{
-  line one
-  line two
-}, "line one\nline two\n"
-
-    assert_output_equal %q{
-    line one
-    line two
-    }, "line one\nline two\n"
-  end
-
   def test_assert_output_equal
-    assert_output_equal %q{
+    assert_output_equal outdent(%{
     line one
       line two
-    }, "line one\n  line two\n"
+    }), "line one\n  line two\n"
 
-    assert_output_equal %q{
+    assert_output_equal outdent(%{
     line one
-      line two}, "line one\n  line two"
+      line two}), "line one\n  line two"
 
-    assert_output_equal %Q{  \t   \r
+    assert_output_equal outdent(%{  \t   \r
     line one
     line two
-    }, "line one\nline two\n"
+    }), "line one\nline two\n"
 
-    assert_output_equal %q{
+    assert_output_equal outdent(%{
     
     
-    }, "\n\n"
+    }), "\n\n"
 
-    assert_output_equal %q{
+    assert_output_equal outdent(%{
     
-    }, "\n"
+    }), "\n"
 
-    assert_output_equal %Q{  \t   \r
+    assert_output_equal outdent(%{  \t   \r
     
-    }, "\n"
+    }), "\n"
 
-    assert_output_equal %q{
-    }, ""
+    assert_output_equal outdent(%{
+    }), ""
 
     assert_output_equal %q{}, ""
     assert_output_equal %q{line one
@@ -306,23 +279,6 @@ line two
   #
   # assert_alike test
   #
-
-  def test_assert_alike_documentation
-    assert_alike %q{
-the time is: :...:
-now!
-}, "the time is: #{Time.now}\nnow!\n"
-
-    assert_alike %q{
-  the time is: :...:
-  now!
-}, "the time is: #{Time.now}\nnow!\n"
-
-    assert_alike %q{
-    the time is: :...:
-    now!
-    }, "the time is: #{Time.now}\nnow!\n"
-  end
 
   def test_assert_alike
     assert_alike(/abc/, "...abc...")

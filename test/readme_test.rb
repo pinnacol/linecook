@@ -71,7 +71,7 @@ example:
     
     sh "BUNDLE_GEMFILE='#{gemfile}' rake packages 2>&1 > /dev/null"
     
-    sh_test %Q{
+    assert_script %Q{
       % bash '#{path('packages/example/example')}'
       \033[0;34mI will not manually configure my server\033[0m
       \033[0;34mI will not manually configure my server\033[0m

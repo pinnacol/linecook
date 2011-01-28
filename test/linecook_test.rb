@@ -41,7 +41,7 @@ class LinecookTest < Test::Unit::TestCase
       assert_equal 0, $?.exitstatus, output
       assert_equal true, File.exists?('packages/example/example'), output
       
-      sh_test %q{
+      assert_script %q{
         % sh packages/example/example
         a b c
         7 8 9
