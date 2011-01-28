@@ -142,6 +142,10 @@ module Linecook
       resources(RECIPES_KEY)
     end
     
+    def [](target_path)
+      registry[target_path]
+    end
+    
     # Registers the source_path to target_path in the registry and
     # revese_registry.  Raises an error if the source_path is already
     # registered.
