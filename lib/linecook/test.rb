@@ -57,7 +57,7 @@ module Linecook
         :env         => {},
         :target_path => 'recipe',
         :export_dir  => 'package',
-        :chdir       => true
+        :chdir       => method_dir
       }
     end
     
@@ -77,8 +77,8 @@ module Linecook
         package.export export_dir
       end
       
-      if options[:chdir]
-        Dir.chdir(method_dir)
+      if dir = options[:chdir]
+        Dir.chdir(dir)
       end
       
       package
