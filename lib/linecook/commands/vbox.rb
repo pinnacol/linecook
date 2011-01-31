@@ -59,11 +59,12 @@ module Linecook
     
     # Linecook::Commands::Ssh::desc ssh to vm
     class Ssh < Command
+      config :host, VBOX
+      config :config_file, 'config/ssh'
       
-      config :port, 2222, &c.integer
-      config :user, 'vbox'
-      config :vmname, VBOX
-      config :keypath, File.expand_path('../../../../templates/vbox/ssh/id_rsa', __FILE__)
+      def vmname
+        host
+      end
       
       def process(cmd=nil)
         vbox = Vbox.new(vmname)

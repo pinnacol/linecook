@@ -1,7 +1,7 @@
 module Linecook
   class Vbox
     DEFAULT_VM_NAME = ENV['LINECOOK_VM_NAME'] || 'vbox'
-    DEFAULT_KEYPATH = File.expand_path('../../../templates/vbox/ssh/id_rsa', __FILE__)
+    DEFAULT_CONFIG_FILE = 'config/ssh'
     
     attr_reader :vmname
     
@@ -31,15 +31,7 @@ module Linecook
     end
     
     def ssh(cmd=nil, options={})
-      options = {
-        :port => 2222,
-        :user => 'vbox',
-        :keypath => DEFAULT_KEYPATH
-      }.merge(options)
-      
-      # To prevent ssh errors, protect the private key
-      FileUtils.chmod(0600, options[:keypath])
-      "ssh #{options[:quiet] ? '-q ' : nil}-p #{options[:port]} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i #{options[:keypath]} #{options[:user]}@localhost #{cmd}"
+      "ssh #{options[:quiet] ? '-q ' : nil}-F '#{options[:config_file]}' '#{options[:host]}' -- #{cmd}"
     end
     
     def share(path, options={})
