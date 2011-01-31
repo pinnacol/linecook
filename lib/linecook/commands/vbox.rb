@@ -60,14 +60,10 @@ module Linecook
     # Linecook::Commands::Ssh::desc ssh to vm
     class Ssh < Command
       config :host, VBOX
-      config :config_file, 'config/ssh'
-      
-      def vmname
-        host
-      end
+      config :ssh_config_file, 'config/ssh'
       
       def process(cmd=nil)
-        vbox = Vbox.new(vmname)
+        vbox = Vbox.new(host)
         ssh = vbox.ssh(cmd, config)
       
         # Patterned after vagrant/ssh.rb (circa 0.6.6)
@@ -87,9 +83,12 @@ module Linecook
     
     # Linecook::Commands::Share::desc setup a vbox share
     class Share < Command
-      def process(path='vbox', vmname=VBOX)
-        vbox = Vbox.new(vmname)
-        system vbox.share(path)
+      config :host, VBOX
+      config :config_file, 'config/ssh'
+      
+      def process(path='vbox')
+        vbox = Vbox.new(host)
+        system vbox.share(path, config)
       end
     end
   end
