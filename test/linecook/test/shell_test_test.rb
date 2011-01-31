@@ -95,7 +95,7 @@ class ShellTestTest < Test::Unit::TestCase
   end
   
   #
-  # quiet, verbose test
+  # verbose test
   #
 
   def test_verbose_is_true_if_VERBOSE_is_truish
@@ -113,31 +113,6 @@ class ShellTestTest < Test::Unit::TestCase
 
     with_env 'VERBOSE' => nil do
       assert_equal false, verbose?
-    end
-  end
-
-  def test_quiet_is_true_if_QUIET_is_truish
-    with_env 'QUIET' => 'true' do
-      assert_equal true, quiet?
-    end
-
-    with_env 'QUIET' => 'TruE' do
-      assert_equal true, quiet?
-    end
-
-    with_env 'QUIET' => 'false' do
-      assert_equal false, quiet?
-    end
-
-    with_env 'QUIET' => nil do
-      assert_equal true, quiet?
-    end
-  end
-
-  def test_verbose_wins_over_quiet
-    with_env 'VERBOSE' => 'true', 'QUIET' => 'true' do
-      assert_equal true, verbose?
-      assert_equal false, quiet?
     end
   end
 

@@ -16,17 +16,6 @@ module Linecook
         verbose = ENV['VERBOSE']
         verbose && verbose =~ /^true$/i ? true : false
       end
-
-      # Returns true if the ENV variable 'QUIET' is true or nil.  When quiet,
-      # ShellTest does not print any extra information to $stdout.
-      #
-      # If 'VERBOSE' and 'QUIET' are both set, verbose wins.
-      def quiet?
-        return false if verbose?
-
-        quiet = ENV['QUIET']
-        quiet.nil? || quiet =~ /^true$/i ? true : false
-      end
       
       # Sets the specified ENV variables and returns the *current* env.
       # If replace is true, current ENV variables are replaced; otherwise
@@ -68,18 +57,21 @@ module Linecook
       end
       
       def sh(cmd)
-        if @notify_method_name && !quiet?
+        if @notify_method_name && verbose?
           @notify_method_name = false
           puts
           puts method_name 
         end
         
-        start = Time.now
+        start  = Time.now
         result = `#{cmd}`
-        
         finish = Time.now
-        elapsed = "%.3f" % [finish-start]
-        puts "  (#{elapsed}s) #{cmd}" unless quiet?
+        
+        if verbose?
+          elapsed = "%.3f" % [finish-start]
+          puts "  (#{elapsed}s) #{cmd}"
+        end
+        
         result
       end
       
