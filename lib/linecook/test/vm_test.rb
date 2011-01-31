@@ -13,28 +13,19 @@ module Linecook
       
       def setup
         super
-        @vm_options = default_vm_options.dup
+        @vm_options = {}
       end
       
-      def ssh(cmd, options={})
-        options = vm_options.merge(options)
-        
-        Dir.chdir(options[:ssh_dir]) do
-          sh("ssh -q -F '#{options[:ssh_config_file]}' '#{options[:host]}' -- #{cmd}")
-        end
-      end
-      
-      def scp(sources, target, options={})
-        options = vm_options.merge(options)
-        
-        Dir.chdir(options[:ssh_dir]) do
-          sources = [sources] unless sources.kind_of?(Array)
-          sh("2>&1 scp -q -r -F '#{options[:ssh_config_file]}' '#{sources.join("' '")}' '#{options[:host]}:#{target}'")
-        end
+      def host
+        vm_options[:host] ||= 'vbox'
       end
       
       def ssh_dir
-        vm_options[:ssh_dir]
+        vm_options[:ssh_dir] ||= user_dir
+      end
+      
+      def ssh_config_file
+        vm_options[:ssh_config_file] ||= 'config/ssh'
       end
       
       def remote_user_dir
@@ -51,7 +42,23 @@ module Linecook
         end
       end
       
-      def vm_setup
+      def ssh(cmd)
+        Dir.chdir(ssh_dir) do
+          sh("ssh -q -F '#{ssh_config_file}' '#{host}' -- #{cmd}")
+        end
+      end
+      
+      def scp(sources, target)
+        sources = [sources] unless sources.kind_of?(Array)
+        
+        Dir.chdir(ssh_dir) do
+          sh("2>&1 scp -q -r -F '#{ssh_config_file}' '#{sources.join("' '")}' '#{host}:#{target}'")
+        end
+      end
+      
+      def vm_setup(options=vm_options)
+        @vm_options = options
+        
         ssh outdent(%Q{
           sh <<SETUP
           rm -rf '#{remote_method_dir}'
@@ -71,20 +78,11 @@ module Linecook
         end
       end
       
-      def default_vm_options
-        {
-          :ssh_config_file => 'config/ssh',
-          :ssh_dir         => user_dir,
-          :host            => 'vbox'
-        }
-      end
-      
       def with_vm(options={})
         current = @vm_options
         
         begin
-          @vm_options = default_vm_options.merge(options)
-          vm_setup
+          vm_setup(options)
           yield
         ensure
           vm_teardown
@@ -115,7 +113,7 @@ module Linecook
           )
         end
         
-        result = ssh "#{shell} < '#{script}'", options
+        result = ssh "#{shell} < '#{script}'"
         assert_equal exit_status, $?.exitstatus, result
       end
       
