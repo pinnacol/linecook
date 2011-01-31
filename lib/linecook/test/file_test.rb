@@ -1,22 +1,36 @@
-require 'linecook/utils'
-
 module Linecook
   module Test
     module FileTest
-      TEST_DIR = ENV['TEST_DIR'] || 'test'
+      module ClassMethods
+        attr_accessor :class_dir
+        
+        def self.extended(base)
+          # Infers the test directory from the calling file.
+          #   'some_class_test.rb' => 'some_class_test'
+          calling_file = caller[2].gsub(/:\d+(:in .*)?$/, "")
+          base.class_dir = calling_file.chomp(File.extname(calling_file))
+        end
+      end
+    
+      module ModuleMethods
+        module_function
+      
+        def included(base)
+          base.extend base.kind_of?(Class) ? ClassMethods : ModuleMethods
+          super
+        end
+      end
+    
+      extend ModuleMethods
       
       attr_reader :user_dir
-      attr_reader :test_dir
-      attr_reader :class_dir
       attr_reader :method_dir
       
       def setup
         super
         
-        @user_dir   = Dir.pwd
-        @test_dir   = File.expand_path(TEST_DIR, user_dir)
-        @class_dir  = File.expand_path(Linecook::Utils.underscore(self.class.to_s), test_dir)
-        @method_dir = File.expand_path(method_name, class_dir)
+        @user_dir   = File.expand_path('.')
+        @method_dir = File.expand_path(File.join(self.class.class_dir, method_name))
         
         cleanup method_dir
       end
@@ -25,7 +39,7 @@ module Linecook
         Dir.chdir(user_dir)
         
         unless ENV["KEEP_OUTPUTS"] == "true"
-          cleanup method_dir, class_dir
+          cleanup method_dir, File.dirname(method_dir)
         end
       
         super

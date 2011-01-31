@@ -1,13 +1,13 @@
 require 'linecook/test/file_test'
 require 'linecook/test/shell_test'
+require 'linecook/template'
+require 'lazydoc'
 
 module Linecook
   module Test
     module VmTest
       include FileTest
       include ShellTest
-      
-      REMOTE_DIR = ENV['REMOTE_DIR'] || 'test'
       
       attr_reader :vm_options
       
@@ -29,7 +29,7 @@ module Linecook
         
         Dir.chdir(options[:ssh_dir]) do
           sources = [sources] unless sources.kind_of?(Array)
-          sh("scp -q -r -F '#{options[:ssh_config_file]}' '#{sources.join("' '")}' '#{options[:host]}:#{target}'")
+          sh("2>&1 scp -q -r -F '#{options[:ssh_config_file]}' '#{sources.join("' '")}' '#{options[:host]}:#{target}'")
         end
       end
       
@@ -37,16 +37,18 @@ module Linecook
         vm_options[:ssh_dir]
       end
       
-      def remote_test_dir
-        vm_options[:remote_test_dir]
-      end
-      
-      def remote_class_dir
-        vm_options[:remote_class_dir] ||= File.join(remote_test_dir, Linecook::Utils.underscore(self.class.to_s))
+      def remote_user_dir
+        vm_options[:remote_user_dir] ||= "."
       end
       
       def remote_method_dir
-        vm_options[:remote_method_dir] ||= File.join(remote_class_dir, method_name)
+        vm_options[:remote_method_dir] ||= begin
+          relative_path = method_dir.index(user_dir) == 0 ? 
+            method_dir[user_dir.length, method_dir.length - user_dir.length] :
+            method_name
+          
+          File.join(remote_user_dir, relative_path)
+        end
       end
       
       def vm_setup
@@ -62,15 +64,8 @@ module Linecook
         unless ENV["KEEP_OUTPUTS"] == "true"
           ssh outdent(%Q{
             sh <<TEARDOWN
-            dir='#{remote_method_dir}'
-            base='#{remote_class_dir}'
-
-            rm -r "$dir"
-            while [ $? -eq 0 ]; 
-            do 
-              dir=$(dirname "$dir")
-              rmdir "$dir"
-            done
+            rm -rf '#{remote_method_dir}'
+            rmdir "$(dirname '#{remote_method_dir}')"
             TEARDOWN
           })
         end
@@ -80,8 +75,7 @@ module Linecook
         {
           :ssh_config_file => 'config/ssh',
           :ssh_dir         => user_dir,
-          :host            => 'vbox',
-          :remote_test_dir => REMOTE_DIR
+          :host            => 'vbox'
         }
       end
       
