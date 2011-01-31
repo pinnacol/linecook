@@ -20,7 +20,7 @@ module Linecook
         options = vm_options.merge(options)
         
         Dir.chdir(options[:ssh_dir]) do
-          sh("ssh -q -F '#{options[:ssh_config_file]}' '#{options[:host]}' -- #{cmd}", options)
+          sh("ssh -q -F '#{options[:ssh_config_file]}' '#{options[:host]}' -- #{cmd}")
         end
       end
       
@@ -29,7 +29,7 @@ module Linecook
         
         Dir.chdir(options[:ssh_dir]) do
           sources = [sources] unless sources.kind_of?(Array)
-          sh("scp -q -r -F '#{options[:ssh_config_file]}' '#{sources.join("' '")}' '#{options[:host]}:#{target}'", options)
+          sh("scp -q -r -F '#{options[:ssh_config_file]}' '#{sources.join("' '")}' '#{options[:host]}:#{target}'")
         end
       end
       
@@ -99,7 +99,7 @@ module Linecook
       end
       
       def assert_remote_script(remote_script, options={})
-        caller[1] =~ Lazydoc::CALLER_REGEXP
+        caller[0] =~ Lazydoc::CALLER_REGEXP
         file, lineno = $1, $2.to_i
         
         options = {
@@ -116,7 +116,7 @@ module Linecook
           io << Template.build(REMOTE_SCRIPT_TEMPLATE,
             :shell       => shell,
             :script_name => script_name,
-            :commands    => parse(remote_script, options),
+            :commands    => CommandParser.new(options).parse(outdent(remote_script)),
             :remote_dir  => remote_method_dir
           )
         end
@@ -129,8 +129,7 @@ module Linecook
 # Write script commands to a file, to allow debugging
 cd '<%= remote_dir %>'
 cat > '<%= script_name %>' <<'DOC'
-#!/<%= shell %>
-cd '<%= remote_dir %>'
+#!<%= shell %>
 
 assert_status_equal () {
   expected=$1; actual=$2; lineno=$3

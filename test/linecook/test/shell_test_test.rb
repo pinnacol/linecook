@@ -145,14 +145,6 @@ class ShellTestTest < Test::Unit::TestCase
   # assert_script test
   #
 
-  def test_assert_script_replaces_percent_and_redirects_output_by_default 
-    assert_script %Q{
-% ruby -e "STDERR.puts 'on stderr'; STDOUT.puts 'on stdout'"
-on stderr
-on stdout
-}
-  end
-
   def test_assert_script_correctly_matches_no_output
     assert_script %Q{
 ruby -e ""
@@ -201,18 +193,22 @@ echo
 }
   end
 
-  def test_assert_script_does_not_strip_indents_unless_specified
-    assert_script %Q{
-    ruby -e 'print "    \\t\\n      "'
-    \t
-      }, :outdent => false
-  end
-
   def test_assert_script_fails_on_mismatch
     assert_raises(Test::Unit::AssertionFailedError) { assert_script %Q{ruby -e ""\nflunk} }
     assert_raises(Test::Unit::AssertionFailedError) { assert_script %Q{echo pass\nflunk} }
   end
-
+  
+  #
+  # _assert_script test
+  #
+  
+  def test__assert_script_does_not_strip_indents
+    _assert_script %Q{
+    ruby -e 'print "    \\t\\n      "'
+    \t
+      }, :outdent => false
+  end
+  
   #
   # assert_script_match test
   #

@@ -1,4 +1,5 @@
 require 'linecook/test/regexp_escape'
+require 'linecook/test/command_parser'
 
 module Linecook
   module Test
@@ -66,69 +67,7 @@ module Linecook
         end
       end
       
-      def parse_options
-        {
-          :ps1 => '% ',
-          :ps2 => '> ',
-          :prefix => '0<&- 2>&1 ',
-          :suffix => '',
-          :outdent => true
-        }
-      end
-      
-      def parse(script, options={})
-        options = parse_options.merge(options)
-        
-        if options[:outdent]
-          script = outdent(script)
-        else
-          script.lstrip!
-        end
-        
-        ps1 = options[:ps1]
-        ps1_length = ps1.length
-        
-        ps2 = options[:ps2]
-        ps2_length = ps2.length
-        
-        commands = []
-        command, output, exit_status = nil, nil, 0
-        script.each_line do |line|
-          case
-          when line.index(ps1) == 0
-            commands << [command, output.join, exit_status] if command
-            
-            command = line[ps1_length, line.length - ps1_length ]
-            exit_status = $1.to_i if command =~ /# \[(\d+)\]\s*$/
-            output  = []
-            
-          when command.nil?
-            command, output = line, []
-          
-          when line.index(ps2) == 0
-            command << line[ps2_length, line.length - ps2_length]
-            
-          else
-            output << line
-          end
-        end
-        
-        commands << [command, output.join, exit_status] if command
-        commands
-      end
-      
-      def sh_options
-        {
-          :env => {},
-          :replace_env => false,
-          :prefix => '<&- 2>&1 ',
-          :suffix => nil
-        }
-      end
-      
-      def sh(cmd, options={})
-        options = sh_options.merge(sh_options)
-        
+      def sh(cmd)
         if @notify_method_name && !quiet?
           @notify_method_name = false
           puts
@@ -136,9 +75,7 @@ module Linecook
         end
         
         start = Time.now
-        result = with_env(options[:env], options[:replace_env]) do 
-          `#{options[:prefix]}#{cmd}#{options[:suffix]}`
-        end
+        result = `#{cmd}`
         
         finish = Time.now
         elapsed = "%.3f" % [finish-start]
@@ -147,8 +84,13 @@ module Linecook
       end
       
       def assert_script(script, options={})
-        parse(script, options).each do |cmd, output, status|
-          result = sh(cmd, options)
+        _assert_script outdent(script), options
+      end
+      
+      def _assert_script(script, options={})
+        commands = CommandParser.new(options).parse(script)
+        commands.each do |cmd, output, status|
+          result = sh(cmd)
           
           _assert_output_equal(output, result, cmd) if output
           assert_equal(status, $?.exitstatus, cmd)  if status
@@ -156,8 +98,13 @@ module Linecook
       end
       
       def assert_script_match(script, options={})
-        parse(script, options).each do |cmd, output, status|
-          result = sh(cmd, options)
+        _assert_script_match outdent(script), options
+      end
+      
+      def _assert_script_match(script, options={})
+        commands = CommandParser.new(options).parse(script)
+        commands.each do |cmd, output, status|
+          result = sh(cmd)
           
           _assert_alike(output, result, cmd)       if output
           assert_equal(status, $?.exitstatus, cmd) if status
@@ -214,12 +161,12 @@ module Linecook
 }
         end
       end
-
+      
       # helper for stripping indentation off a string
       def outdent(str)
         str =~ /\A(?:\s*?\n)( *)(.*)\z/m ? $2.gsub!(/^ {0,#{$1.length}}/, '') : str
       end
-
+      
       # helper for formatting escaping whitespace into readable text
       def whitespace_escape(str)
         str.to_s.gsub(/\s/) do |match|
