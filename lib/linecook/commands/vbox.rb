@@ -20,7 +20,7 @@ module Linecook
       end
       
       def sh(cmd)
-        puts cmd
+        puts "% #{cmd}"
         system(cmd)
       end
       
