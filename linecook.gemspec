@@ -44,18 +44,19 @@ Gem::Specification.new do |s|
     lib/linecook/commands/package.rb
     lib/linecook/commands/preview.rb
     lib/linecook/commands/vbox.rb
+    lib/linecook/config.rb
     lib/linecook/cookbook.rb
     lib/linecook/helper.rb
     lib/linecook/package.rb
     lib/linecook/recipe.rb
     lib/linecook/template.rb
     lib/linecook/test.rb
+    lib/linecook/test/command_parser.rb
     lib/linecook/test/file_test.rb
     lib/linecook/test/regexp_escape.rb
     lib/linecook/test/shell_test.rb
     lib/linecook/test/vm_test.rb
     lib/linecook/utils.rb
-    lib/linecook/vbox.rb
     lib/linecook/version.rb
     templates/Gemfile
     templates/README
