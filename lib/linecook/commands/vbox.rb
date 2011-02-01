@@ -1,23 +1,12 @@
+require 'linecook/config'
+
 module Linecook
   module Commands
     class VboxCommand < Command
       config :ssh_config_file, 'config/ssh'
       
       def hostnames
-        @hostnames ||= begin
-          hostnames = []
-          
-          if File.exists?(ssh_config_file)
-            File.open(ssh_config_file) do |io|
-              io.each_line do |line|
-                next unless line =~ /Host (\w+)/
-                hostnames << $1 
-              end
-            end
-          end
-          
-          hostnames
-        end
+        @hostnames ||= Config::HOSTNAMES[ssh_config_file]
       end
       
       def each_vm_name(vm_names)

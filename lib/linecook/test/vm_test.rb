@@ -1,7 +1,7 @@
 require 'linecook/test/file_test'
 require 'linecook/test/shell_test'
 require 'linecook/template'
-require 'linecook/constants'
+require 'linecook/config'
 
 module Linecook
   module Test
@@ -13,28 +13,15 @@ module Linecook
       
       def setup
         super
-        @hostname = Linecook::DEFAULT_HOSTNAME
+        @hostname = hostnames.first
       end
       
       def ssh_config_file
-        @ssh_config_file ||= 'config/ssh'
+        Config::DEFAULT_SSH_CONFIG_FILE
       end
       
       def hostnames
-        @hostnames ||= begin
-          hostnames = []
-          
-          if File.exists?(ssh_config_file)
-            File.open(ssh_config_file) do |io|
-              io.each_line do |line|
-                next unless line =~ /Host (\w+)/
-                hostnames << $1 
-              end
-            end
-          end
-          
-          hostnames
-        end
+        Config::HOSTNAMES[ssh_config_file]
       end
       
       def remote_method_dir
