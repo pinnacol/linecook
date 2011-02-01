@@ -20,18 +20,21 @@ class <%= const_name %>Test < Test::Unit::TestCase
   end
   
   def test_echo_actually_echos_args_to_command_line
-    # vbox_test builds the recipe and copies the resulting package to the
-    # vbox vm and runs the commands as specified; if the exit status is 0
-    # and the stdout is as written then the test passes.
+    # build_package builds the recipe into a package.  check_package copies
+    # the package to each vm named in config/ssh and runs the commands on
+    # the vm as specified; if the exit status is 0 for each command, and
+    # the stdout is as written, then the check passes.
     
-    vbox_test(%{
-      % sh recipe | tee output.txt
+    build_package { 
+      helpers '<%= project_name %>'
+      echo 'a', 'b c'
+    }
+    
+    check_package %{
+      % sh package/recipe | tee output.txt
       a b c
       % cat output.txt
       a b c
-    }){ 
-      helpers '<%= project_name %>'
-      echo 'a', 'b c'
     }
   end
 end
