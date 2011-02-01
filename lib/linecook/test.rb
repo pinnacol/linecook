@@ -3,7 +3,6 @@ require 'linecook/package'
 require 'linecook/test/vm_test'
 require 'linecook/test/regexp_escape'
 require 'linecook/utils'
-require 'linecook/vbox'
 
 module Linecook
   module Test
