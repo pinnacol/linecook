@@ -26,12 +26,12 @@ class LinecookTestTest < Test::Unit::TestCase
   #
   
   def test_end_to_end
-    build_remote do
+    build_package do
       target.puts 'echo hello world'
       target.puts 'echo hello world'
     end
     
-    assert_remote_script %Q{
+    check_package %Q{
       % bash package/recipe | tee one
       hello world
       hello world
@@ -42,23 +42,23 @@ class LinecookTestTest < Test::Unit::TestCase
   end
   
   def test_end_to_end_two
-    build_remote do
+    build_package do
       target.puts 'echo goonight moon'
     end
     
-    assert_remote_script %Q{
+    check_package %Q{
       % bash package/recipe
       goonight moon
     }
     
     assert_raises(Test::Unit::AssertionFailedError) do
-      assert_remote_script %Q{
+      check_package %Q{
         % bash package/recipe
         goonight m0on
       }
     end
     
-    assert_remote_script %Q{
+    check_package %Q{
       % bash package/recipe
       goonight moon
     }

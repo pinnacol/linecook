@@ -1,13 +1,15 @@
 require 'linecook/test/file_test'
 require 'linecook/test/shell_test'
 require 'linecook/template'
-require 'lazydoc'
 
 module Linecook
   module Test
     module VmTest
       include FileTest
       include ShellTest
+      
+      VMNAMES = (ENV['VMNAME'] || 'vbox').split(':')
+      VMNAME  = VMNAMES.first
       
       attr_reader :vm_options
       
@@ -16,8 +18,8 @@ module Linecook
         @vm_options = {}
       end
       
-      def host
-        vm_options[:host] ||= 'vbox'
+      def hostname
+        vm_options[:hostname] ||= VMNAME
       end
       
       def ssh_dir
@@ -44,7 +46,7 @@ module Linecook
       
       def ssh(cmd)
         Dir.chdir(ssh_dir) do
-          sh("ssh -q -F '#{ssh_config_file}' '#{host}' -- #{cmd}")
+          sh("ssh -q -F '#{ssh_config_file}' '#{hostname}' -- #{cmd}")
         end
       end
       
@@ -52,7 +54,7 @@ module Linecook
         sources = [sources] unless sources.kind_of?(Array)
         
         Dir.chdir(ssh_dir) do
-          sh("2>&1 scp -q -r -F '#{ssh_config_file}' '#{sources.join("' '")}' '#{host}:#{target}'")
+          sh("2>&1 scp -q -r -F '#{ssh_config_file}' '#{sources.join("' '")}' '#{hostname}:#{target}'")
         end
       end
       
@@ -68,14 +70,12 @@ module Linecook
       end
       
       def vm_teardown
-        unless ENV["KEEP_OUTPUTS"] == "true"
-          ssh outdent(%Q{
-            sh <<TEARDOWN
-            rm -rf '#{remote_method_dir}'
-            rmdir "$(dirname '#{remote_method_dir}')"
-            TEARDOWN
-          })
-        end
+        ssh outdent(%Q{
+          sh <<TEARDOWN
+          rm -rf '#{remote_method_dir}'
+          rmdir "$(dirname '#{remote_method_dir}')" > /dev/null 2>&1
+          TEARDOWN
+        })
       end
       
       def with_vm(options={})
@@ -85,18 +85,24 @@ module Linecook
           vm_setup(options)
           yield
         ensure
-          vm_teardown
+          vm_teardown if options[:teardown]
           @vm_options = current
         end
       end
       
-      def assert_remote_script(remote_script, options={})
-        caller[0] =~ Lazydoc::CALLER_REGEXP
-        file, lineno = $1, $2.to_i
+      def with_each_vm(options={}, &block)
+        hosts = options[:hostnames] || VMNAMES
         
+        hosts.each do |host|
+          opts = options.merge(:hostname => host)
+          with_vm(opts, &block)
+        end
+      end
+      
+      def assert_remote_script(script, options={})
         options = {
           :shell       => '/bin/sh',
-          :script_name => "line_#{lineno}.sh",
+          :script_name => 'assert_remote_script.sh',
           :exit_status => 0
         }.merge(options)
         
@@ -104,22 +110,24 @@ module Linecook
         script_name = options[:script_name]
         exit_status = options[:exit_status]
         
-        script = prepare(script_name) do |io|
+        script_path = prepare(script_name) do |io|
           io << Template.build(REMOTE_SCRIPT_TEMPLATE,
             :shell       => shell,
             :script_name => script_name,
-            :commands    => CommandParser.new(options).parse(outdent(remote_script)),
+            :commands    => CommandParser.new(options).parse(outdent(script)),
             :remote_dir  => remote_method_dir
           )
         end
         
-        result = ssh "#{shell} < '#{script}'"
+        result = ssh "#{shell} < '#{script_path}' 2>&1"
         assert_equal exit_status, $?.exitstatus, result
       end
       
       REMOTE_SCRIPT_TEMPLATE = <<-SCRIPT
-# Write script commands to a file, to allow debugging
 cd '<%= remote_dir %>'
+if [ $? -ne 0 ]; then exit 1; fi
+
+# Write script commands to a file, to allow debugging
 cat > '<%= script_name %>' <<'DOC'
 #!<%= shell %>
 

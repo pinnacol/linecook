@@ -56,12 +56,11 @@ module Linecook
       {
         :env         => {},
         :target_path => 'recipe',
-        :export_dir  => 'package',
-        :chdir       => method_dir
+        :export_dir  => 'package'
       }
     end
     
-    def build(options={}, &block)
+    def build_package(options={}, &block)
       options = build_options.merge(options)
       
       setup_package options[:env]
@@ -77,15 +76,10 @@ module Linecook
         package.export export_dir
       end
       
-      if dir = options[:chdir]
-        Dir.chdir(dir)
-      end
-      
       package
     end
     
-    def build_remote(options={}, &block)
-      package   = build(options, &block)
+    def transfer_package(package)
       pkg_files = package.registry.values
       
       export_dir = File.dirname(pkg_files.sort_by {|path| path.length }.first)
@@ -93,10 +87,14 @@ module Linecook
         pkg_files = [export_dir]
       end
       
-      vm_setup
       scp pkg_files, remote_method_dir
-      
-      package
+    end
+    
+    def check_package(remote_script, options={})
+      with_each_vm(options) do 
+        transfer_package(options[:package] || package)
+        assert_remote_script(remote_script, options)
+      end
     end
   end
 end

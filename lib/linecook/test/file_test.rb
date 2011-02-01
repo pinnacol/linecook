@@ -74,8 +74,12 @@ module Linecook
       def prepare(relative_path, content=nil, &block)
         target = path(relative_path)
         
-        target_dir = File.dirname(target)
-        FileUtils.mkdir_p(target_dir) unless File.exists?(target_dir)
+        if File.exists?(target)
+          FileUtils.rm(target)
+        else
+          target_dir = File.dirname(target)
+          FileUtils.mkdir_p(target_dir) unless File.exists?(target_dir)
+        end
         
         FileUtils.touch(target)
         File.open(target, 'w') {|io| io << content } if content
