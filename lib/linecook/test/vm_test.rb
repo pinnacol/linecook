@@ -1,7 +1,7 @@
 require 'linecook/test/file_test'
 require 'linecook/test/shell_test'
 require 'linecook/template'
-require 'linecook/utils'
+require 'linecook/constants'
 
 module Linecook
   module Test
@@ -9,13 +9,11 @@ module Linecook
       include FileTest
       include ShellTest
       
-      DEFAULT_VM_NAME = ENV['LINECOOK_VM_NAME'] || 'vbox'
-      
       attr_reader :hostname
       
       def setup
         super
-        @hostname = DEFAULT_VM_NAME
+        @hostname = Linecook::DEFAULT_HOSTNAME
       end
       
       def ssh_config_file
@@ -58,7 +56,7 @@ module Linecook
         sh("2>&1 scp -q -r -F '#{ssh_config_file}' '#{sources.join("' '")}' '#{hostname}:#{target}'")
       end
       
-      def vm_setup(hostname=VMNAME)
+      def vm_setup(hostname=self.hostname)
         @hostname = hostname
         
         ssh outdent(%Q{
@@ -78,11 +76,11 @@ module Linecook
         })
       end
       
-      def with_vm(host=hostname, options={})
+      def with_vm(hostname=self.hostname, options={})
         current = @hostname
         
         begin
-          vm_setup(host)
+          vm_setup(hostname)
           yield
         ensure
           vm_teardown if options[:teardown]

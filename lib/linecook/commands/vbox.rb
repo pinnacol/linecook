@@ -2,14 +2,15 @@ require 'linecook/vbox'
 
 module Linecook
   module Commands
-    VBOX = Vbox::DEFAULT_VM_NAME
+    VBOX = Linecook::DEFAULT_VM_NAME
+    HOSTNAME = Linecook::DEFAULT_HOSTNAME
     
     # Linecook::Commands::Start::desc start the vm
     class Start < Command
       config :type, 'headless'
       
-      def process(vmname=VBOX)
-        vbox = Vbox.new(vmname)
+      def process(vm_name=VBOX)
+        vbox = Vbox.new(vm_name)
         
         unless vbox.running?
           system vbox.start(type)
@@ -19,8 +20,8 @@ module Linecook
     
     # Linecook::Commands::Stop::desc stop the vm
     class Stop < Command
-      def process(vmname=VBOX)
-        vbox = Vbox.new(vmname)
+      def process(vm_name=VBOX)
+        vbox = Vbox.new(vm_name)
 
         if vbox.running?
           system vbox.stop
@@ -32,8 +33,8 @@ module Linecook
     class Reset < Command
       config :type, 'headless'
       
-      def process(snapshot='base', vmname=VBOX)
-        vbox = Vbox.new(vmname)
+      def process(snapshot='base', vm_name=VBOX)
+        vbox = Vbox.new(vm_name)
 
         system vbox.stop if vbox.running?
         system vbox.reset(snapshot)
@@ -43,27 +44,28 @@ module Linecook
     
     # Linecook::Commands::Snapshot::desc take a snapshop
     class Snapshot < Command
-      def process(snapshot, vmname=VBOX)
-        vbox = Vbox.new(vmname)
+      def process(snapshot, vm_name=VBOX)
+        vbox = Vbox.new(vm_name)
         system vbox.snapshot(snapshot)
       end
     end
     
     # Linecook::Commands::State::desc print the vm state
     class State < Command
-      def process(vmname=VBOX)
-        vbox = Vbox.new(vmname)
+      def process(vm_name=VBOX)
+        vbox = Vbox.new(vm_name)
         puts(vbox.running? ? "running" : "stopped")
       end
     end
     
     # Linecook::Commands::Ssh::desc ssh to vm
     class Ssh < Command
-      config :host, VBOX
+      config :vm_name, VBOX
+      config :hostname, HOSTNAME
       config :ssh_config_file, 'config/ssh'
       
       def process(cmd=nil)
-        vbox = Vbox.new(host)
+        vbox = Vbox.new(vm_name)
         ssh = vbox.ssh(cmd, config)
       
         # Patterned after vagrant/ssh.rb (circa 0.6.6)
@@ -83,11 +85,12 @@ module Linecook
     
     # Linecook::Commands::Share::desc setup a vbox share
     class Share < Command
-      config :host, VBOX
+      config :vm_name, VBOX
+      config :hostname, HOSTNAME
       config :config_file, 'config/ssh'
       
       def process(path='vbox')
-        vbox = Vbox.new(host)
+        vbox = Vbox.new(vm_name)
         system vbox.share(path, config)
       end
     end
