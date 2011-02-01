@@ -1,6 +1,7 @@
 require 'linecook/test/file_test'
 require 'linecook/test/shell_test'
 require 'linecook/template'
+require 'linecook/utils'
 
 module Linecook
   module Test
@@ -8,61 +9,60 @@ module Linecook
       include FileTest
       include ShellTest
       
-      VMNAMES = (ENV['VMNAME'] || 'vbox').split(':')
-      VMNAME  = VMNAMES.first
+      DEFAULT_VM_NAME = ENV['LINECOOK_VM_NAME'] || 'vbox'
       
-      attr_reader :vm_options
+      attr_reader :hostname
       
       def setup
         super
-        @vm_options = {}
-      end
-      
-      def hostname
-        vm_options[:hostname] ||= VMNAME
-      end
-      
-      def ssh_dir
-        vm_options[:ssh_dir] ||= user_dir
+        @hostname = DEFAULT_VM_NAME
       end
       
       def ssh_config_file
-        vm_options[:ssh_config_file] ||= 'config/ssh'
+        @ssh_config_file ||= 'config/ssh'
       end
       
-      def remote_user_dir
-        vm_options[:remote_user_dir] ||= "."
+      def hostnames
+        @hostnames ||= begin
+          hostnames = []
+          
+          if File.exists?(ssh_config_file)
+            File.open(ssh_config_file) do |io|
+              io.each_line do |line|
+                next unless line =~ /Host (\w+)/
+                hostnames << $1 
+              end
+            end
+          end
+          
+          hostnames
+        end
       end
       
       def remote_method_dir
-        vm_options[:remote_method_dir] ||= begin
-          relative_path = method_dir.index(user_dir) == 0 ? 
-            method_dir[user_dir.length, method_dir.length - user_dir.length] :
-            method_name
-          
-          File.join(remote_user_dir, relative_path)
+        @remote_method_dir ||= begin
+          method_dir.index(user_dir) == 0 ? 
+          method_dir[user_dir.length + 1, method_dir.length - user_dir.length] :
+          method_name
         end
       end
       
       def ssh(cmd)
-        Dir.chdir(ssh_dir) do
-          sh("ssh -q -F '#{ssh_config_file}' '#{hostname}' -- #{cmd}")
-        end
+        # -T: 'Pseudo-terminal will not be allocated because stdin is not a terminal.'
+        # -q: 'Warning: Permanently added '[localhost]:2222' (RSA) to the list of known hosts.'
+        sh("ssh -q -T -F '#{ssh_config_file}' '#{hostname}' -- #{cmd}")
       end
       
       def scp(sources, target)
         sources = [sources] unless sources.kind_of?(Array)
-        
-        Dir.chdir(ssh_dir) do
-          sh("2>&1 scp -q -r -F '#{ssh_config_file}' '#{sources.join("' '")}' '#{hostname}:#{target}'")
-        end
+        sh("2>&1 scp -q -r -F '#{ssh_config_file}' '#{sources.join("' '")}' '#{hostname}:#{target}'")
       end
       
-      def vm_setup(options=vm_options)
-        @vm_options = options
+      def vm_setup(hostname=VMNAME)
+        @hostname = hostname
         
         ssh outdent(%Q{
-          sh <<SETUP
+          <<SETUP
           rm -rf '#{remote_method_dir}'
           mkdir -p '#{remote_method_dir}'
           SETUP
@@ -71,55 +71,49 @@ module Linecook
       
       def vm_teardown
         ssh outdent(%Q{
-          sh <<TEARDOWN
+          <<TEARDOWN
           rm -rf '#{remote_method_dir}'
           rmdir "$(dirname '#{remote_method_dir}')" > /dev/null 2>&1
           TEARDOWN
         })
       end
       
-      def with_vm(options={})
-        current = @vm_options
+      def with_vm(host=hostname, options={})
+        current = @hostname
         
         begin
-          vm_setup(options)
+          vm_setup(host)
           yield
         ensure
           vm_teardown if options[:teardown]
-          @vm_options = current
+          @hostname = current
         end
       end
       
       def with_each_vm(options={}, &block)
-        hosts = options[:hostnames] || VMNAMES
-        
-        hosts.each do |host|
-          opts = options.merge(:hostname => host)
-          with_vm(opts, &block)
+        hostnames.each do |hostname|
+          with_vm(hostname, options, &block)
         end
       end
       
       def assert_remote_script(script, options={})
         options = {
-          :shell       => '/bin/sh',
           :script_name => 'assert_remote_script.sh',
           :exit_status => 0
         }.merge(options)
         
-        shell = options[:shell]
         script_name = options[:script_name]
         exit_status = options[:exit_status]
         
         script_path = prepare(script_name) do |io|
           io << Template.build(REMOTE_SCRIPT_TEMPLATE,
-            :shell       => shell,
             :script_name => script_name,
             :commands    => CommandParser.new(options).parse(outdent(script)),
             :remote_dir  => remote_method_dir
           )
         end
         
-        result = ssh "#{shell} < '#{script_path}' 2>&1"
+        result = ssh "< '#{script_path}' 2>&1"
         assert_equal exit_status, $?.exitstatus, result
       end
       
@@ -129,8 +123,6 @@ if [ $? -ne 0 ]; then exit 1; fi
 
 # Write script commands to a file, to allow debugging
 cat > '<%= script_name %>' <<'DOC'
-#!<%= shell %>
-
 assert_status_equal () {
   expected=$1; actual=$2; lineno=$3
   
@@ -169,7 +161,8 @@ stdout
 DOC
 
 # Now run the test script
-<%= shell %> '<%= script_name %>'
+chmod +x '<%= script_name %>'
+'./<%= script_name %>'
 SCRIPT
     end
   end
