@@ -19,6 +19,6 @@ module Linecook
     
     DEFAULT_SSH_CONFIG_FILE = File.expand_path(ENV['LINECOOK_SSH_CONFIG_FILE'] || 'config/ssh')
     DEFAULT_HOSTS = hosts(DEFAULT_SSH_CONFIG_FILE)
-    DEFAULT_HOST  = ENV['LINECOOK_DEFAULT_HOST'] || DEFAULT_HOSTS.first
+    DEFAULT_HOST  = ENV['LINECOOK_DEFAULT_HOST'] || DEFAULT_HOSTS.first || 'vbox'
   end
 end
