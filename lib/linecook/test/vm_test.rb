@@ -1,7 +1,7 @@
 require 'linecook/test/file_test'
 require 'linecook/test/shell_test'
-require 'linecook/template'
 require 'linecook/vm'
+require 'erb'
 
 module Linecook
   module Test
@@ -92,13 +92,10 @@ module Linecook
         
         script_name = options[:script_name]
         exit_status = options[:exit_status]
+        commands = CommandParser.new(options).parse(outdent(script))
         
         script_path = prepare(script_name) do |io|
-          io << Template.build(REMOTE_SCRIPT_TEMPLATE,
-            :script_name => script_name,
-            :commands    => CommandParser.new(options).parse(outdent(script)),
-            :remote_dir  => remote_method_dir
-          )
+          io << ERB.new(REMOTE_SCRIPT_TEMPLATE).result(binding)
         end
         
         result = ssh "< '#{script_path}' 2>&1"
@@ -106,7 +103,7 @@ module Linecook
       end
       
       REMOTE_SCRIPT_TEMPLATE = <<-SCRIPT
-cd '<%= remote_dir %>'
+cd '<%= remote_method_dir %>'
 if [ $? -ne 0 ]; then exit 1; fi
 
 # Write script commands to a file, to allow debugging
