@@ -1,4 +1,4 @@
-require 'linecook/config'
+require 'linecook/vm'
 
 module Linecook
   module Commands
@@ -6,7 +6,7 @@ module Linecook
       config :ssh_config_file, 'config/ssh'
       
       def hosts
-        @hosts ||= Config.hosts(ssh_config_file)
+        @hosts ||= Vm.hosts(ssh_config_file)
       end
       
       def each_vm_name(vm_names)

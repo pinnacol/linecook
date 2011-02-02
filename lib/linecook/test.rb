@@ -1,4 +1,3 @@
-require 'linecook/config'
 require 'linecook/cookbook'
 require 'linecook/package'
 require 'linecook/test/vm_test'
@@ -9,14 +8,6 @@ module Linecook
     
     attr_writer :cookbook
     attr_writer :package
-    
-    def default_host
-      Config::DEFAULT_HOST
-    end
-    
-    def default_ssh_config_file
-      Config::DEFAULT_SSH_CONFIG_FILE
-    end
     
     def cookbook_dir
       user_dir

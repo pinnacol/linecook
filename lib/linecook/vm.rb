@@ -1,5 +1,5 @@
 module Linecook
-  module Config
+  module Vm
     module_function
     
     def hosts(path)

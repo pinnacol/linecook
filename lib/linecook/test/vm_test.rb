@@ -1,6 +1,7 @@
 require 'linecook/test/file_test'
 require 'linecook/test/shell_test'
 require 'linecook/template'
+require 'linecook/vm'
 
 module Linecook
   module Test
@@ -14,11 +15,11 @@ module Linecook
       end
       
       def default_host
-        'vbox'
+        Vm::DEFAULT_HOST
       end
       
       def default_ssh_config_file
-        'config/ssh'
+        Vm::DEFAULT_SSH_CONFIG_FILE
       end
       
       def set_vm(host=default_host, ssh_config_file=default_ssh_config_file)
