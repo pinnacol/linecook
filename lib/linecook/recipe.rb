@@ -31,14 +31,14 @@ module Linecook
     end
     
     def attrs
-      @attributes.current
+      @attrs ||= @attributes.current
     end
     
     def attributes(attributes_name)
       path = @package.attributes_path(attributes_name)
       
       @attributes.instance_eval(File.read(path), path)
-      @attributes.reset(false)
+      @attrs = nil
       self
     end
     

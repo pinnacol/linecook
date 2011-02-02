@@ -12,6 +12,31 @@ class AttributesTest < Test::Unit::TestCase
   end
   
   #
+  # documentation test
+  #
+  
+  def test_attributes_documentation
+    user_env = {'a' => 'A'}
+    attributes = Attributes.new(user_env)
+    attributes.instance_eval %{
+      attrs['a'] = '-'
+      attrs['b'] = 'B'
+    }
+  
+    expected = {'a' => 'A', 'b' => 'B'}
+    assert_equal expected, attributes.current
+
+    attributes = Attributes.new
+    attributes.instance_eval %{
+      attrs[:a]       = :A
+      attrs['a']['b'] = 'B'
+    }
+    
+    expected = {:a => :A, 'a' => {'b' => 'B'}}
+    assert_equal expected, attributes.current
+  end
+  
+  #
   # attrs test
   #
   
@@ -58,30 +83,6 @@ class AttributesTest < Test::Unit::TestCase
         :a => 'a',
         :b => 'b'
       }
-    }, attributes.current)
-  end
-  
-  def test_current_attrs_are_cached
-    assert_equal attributes.current.object_id, attributes.current.object_id
-  end
-  
-  #
-  # reset test
-  #
-  
-  def test_reset_clears_attrs
-    attributes.attrs[:a] = 'A'
-    attributes.env[:b]   = 'B'
-    
-    assert_equal({
-      :a => 'A',
-      :b => 'B'
-    }, attributes.current)
-    
-    attributes.reset
-    
-    assert_equal({
-      :b => 'B'
     }, attributes.current)
   end
 end
