@@ -23,6 +23,10 @@ module Linecook
         init(env, cookbook)
       end
       
+      def setup(env={}, cookbook=nil)
+        env.kind_of?(String) ? load(env, cookbook) : init(env, cookbook)
+      end
+      
       def build(path=nil, cookbook=nil)
         package = load(path, cookbook)
         package.build

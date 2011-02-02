@@ -18,7 +18,7 @@ module Linecook
     end
     
     def setup_package(env={})
-      @package = Package.init(env, cookbook)
+      @package = Package.setup(env, cookbook)
     end
     
     def package
