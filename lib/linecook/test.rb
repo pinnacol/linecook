@@ -6,11 +6,14 @@ module Linecook
   module Test
     include VmTest
     
+    DEFAULT_HOSTNAME = ENV['LINECOOK_TEST_HOSTNAME'] || 'vbox'
+    
     attr_writer :cookbook
     attr_writer :package
     
-    def timestamp
-      @timestamp ||= Time.now.strftime("%Y%m%d%H%M%S")
+    def setup
+      super
+      set_vm DEFAULT_HOSTNAME
     end
     
     def cookbook_dir
@@ -37,46 +40,32 @@ module Linecook
       @recipe ||= setup_recipe
     end
     
-    def assert_recipe(expected, &block)
-      recipe = setup_recipe
-      assert_output_equal expected, recipe.result(&block)
-      recipe
+    def build_recipe(target_path='recipe', &block)
+      setup_recipe(target_path).instance_eval(&block)
     end
     
-    def assert_recipe_match(expected, &block)
-      recipe = setup_recipe
-      assert_alike expected, recipe.result(&block)
-      recipe
-    end
-    
-    def build_options
-      {
-        :env         => {},
+    def build_package(env={}, options={}, &block)
+      options = {
         :target_path => 'recipe',
         :export_dir  => 'package'
-      }
-    end
-    
-    def build_package(options={}, &block)
-      options = build_options.merge(options)
+      }.merge(options)
       
-      setup_package options[:env]
+      package = setup_package(env)
       
       if block_given?
-        recipe = setup_recipe options[:target_path]
-        recipe.result(&block)
+        build_recipe(options[:target_path], &block)
       end
       
       package.build
       
-      if export_dir = path(options[:export_dir])
-        package.export export_dir
+      if export_dir = options[:export_dir]
+        package.export path(export_dir)
       end
       
       package
     end
     
-    def transfer_package(package)
+    def transfer_package(package=self.package, remote_dir=remote_method_dir)
       pkg_files = package.registry.values
       
       export_dir = File.dirname(pkg_files.sort_by {|path| path.length }.first)
@@ -84,14 +73,30 @@ module Linecook
         pkg_files = [export_dir]
       end
       
-      scp pkg_files, remote_method_dir
+      scp pkg_files, remote_dir
+    end
+    
+    def assert_recipe(expected, recipe=self.recipe, &block)
+      recipe.build(&block) if block_given?
+      assert_output_equal expected, recipe.result
+      recipe
+    end
+    
+    def assert_recipe_match(expected, recipe=self.recipe, &block)
+      recipe.build(&block) if block_given?
+      assert_alike expected, recipe.result
+      recipe
     end
     
     def check_package(remote_script, options={})
-      with_each_vm(options) do 
-        transfer_package(options[:package] || package)
-        assert_remote_script(remote_script, options)
-      end
+      options = {
+        :package    => package,
+        :remote_dir => remote_method_dir
+      }.merge(options)
+      
+      vm_setup
+      transfer_package options[:package], options[:remote_dir]
+      assert_remote_script(remote_script, options)
     end
   end
 end

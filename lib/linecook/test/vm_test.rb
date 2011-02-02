@@ -9,19 +9,27 @@ module Linecook
       include FileTest
       include ShellTest
       
-      attr_reader :hostname
+      def set_vm(hostname)
+        @hostname = hostname
+      end
       
-      def setup
-        super
-        @hostname = hostnames.first
+      def with_vm(hostname)
+        current = @hostname
+        
+        begin
+          set_vm(hostname)
+          yield
+        ensure
+          set_vm(current)
+        end
+      end
+      
+      def hostname
+        @hostname or raise("vm hostname has not been set")
       end
       
       def ssh_config_file
         Config::DEFAULT_SSH_CONFIG_FILE
-      end
-      
-      def hostnames
-        Config::HOSTNAMES[ssh_config_file]
       end
       
       def remote_method_dir
@@ -43,9 +51,7 @@ module Linecook
         sh("2>&1 scp -q -r -F '#{ssh_config_file}' '#{sources.join("' '")}' '#{hostname}:#{target}'")
       end
       
-      def vm_setup(hostname=self.hostname)
-        @hostname = hostname
-        
+      def vm_setup
         ssh outdent(%Q{
           <<SETUP
           rm -rf '#{remote_method_dir}'
@@ -61,24 +67,6 @@ module Linecook
           rmdir "$(dirname '#{remote_method_dir}')" > /dev/null 2>&1
           TEARDOWN
         })
-      end
-      
-      def with_vm(hostname=self.hostname, options={})
-        current = @hostname
-        
-        begin
-          vm_setup(hostname)
-          yield
-        ensure
-          vm_teardown if options[:teardown]
-          @hostname = current
-        end
-      end
-      
-      def with_each_vm(options={}, &block)
-        hostnames.each do |hostname|
-          with_vm(hostname, options, &block)
-        end
       end
       
       def assert_remote_script(script, options={})
