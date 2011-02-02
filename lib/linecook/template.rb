@@ -93,15 +93,6 @@ module Linecook
       tail.length == 0 && start > 0 ? rstrip(n * 2) : concat(tail)
     end
     
-    def close
-      erbout.close unless closed?
-      self
-    end
-    
-    def closed?
-      erbout.closed?
-    end
-    
     def result(&block)
       instance_eval(&block) if block
       

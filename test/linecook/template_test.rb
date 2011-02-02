@@ -11,6 +11,26 @@ class TemplateTest < Test::Unit::TestCase
   end
   
   #
+  # result test
+  #
+  
+  def test_result_returns_current_template_results
+    template.erbout << 'abc'
+    assert_equal 'abc', template.result
+  end
+  
+  def test_result_does_not_interfere_with_result
+    template.erbout << 'abc'
+    
+    assert_equal 'abc', template.result
+    assert_equal 'abc', template.result
+    
+    template.erbout << 'xyz'
+    
+    assert_equal 'abcxyz', template.result
+  end
+  
+  #
   # rstrip test
   #
   

@@ -213,8 +213,8 @@ class PackageTest < Test::Unit::TestCase
   def test_recipe_returns_a_new_recipe_that_builds_into_self
     recipe = package.recipe
     recipe.target << 'content'
-    recipe.close
     
+    package.close
     assert_equal 'content', package.content(recipe.target_name)
   end
   
@@ -226,12 +226,12 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'target/path.1', b.target_path
   end
   
-  def test_recipes_close_with_package
+  def test_recipes_close_on_package_close
     recipe = package.recipe
-    assert_equal false, recipe.closed?
+    assert_equal false, recipe.erbout.closed?
     
     package.close
-    assert_equal true, recipe.closed?
+    assert_equal true, recipe.erbout.closed?
   end
   
   #
