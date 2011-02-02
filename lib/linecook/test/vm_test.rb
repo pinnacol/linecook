@@ -1,7 +1,6 @@
 require 'linecook/test/file_test'
 require 'linecook/test/shell_test'
 require 'linecook/template'
-require 'linecook/config'
 
 module Linecook
   module Test
@@ -9,18 +8,33 @@ module Linecook
       include FileTest
       include ShellTest
       
-      def set_vm(host)
-        @host = host
+      def setup
+        super
+        set_vm default_host, default_ssh_config_file
       end
       
-      def with_vm(host)
-        current = @host
+      def default_host
+        'vbox'
+      end
+      
+      def default_ssh_config_file
+        'config/ssh'
+      end
+      
+      def set_vm(host=default_host, ssh_config_file=default_ssh_config_file)
+        @host = host
+        @ssh_config_file = ssh_config_file
+      end
+      
+      def with_vm(host=default_host, ssh_config_file=default_ssh_config_file)
+        current_host = @host
+        current_file = @ssh_config_file
         
         begin
-          set_vm(host)
+          set_vm(host, ssh_config_file)
           yield
         ensure
-          set_vm(current)
+          set_vm(current_host, current_file)
         end
       end
       
@@ -29,7 +43,7 @@ module Linecook
       end
       
       def ssh_config_file
-        Config::DEFAULT_SSH_CONFIG_FILE
+        @ssh_config_file or raise("ssh config file has not been set")
       end
       
       def remote_method_dir

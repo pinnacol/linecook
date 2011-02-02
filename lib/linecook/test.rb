@@ -1,3 +1,4 @@
+require 'linecook/config'
 require 'linecook/cookbook'
 require 'linecook/package'
 require 'linecook/test/vm_test'
@@ -6,14 +7,15 @@ module Linecook
   module Test
     include VmTest
     
-    DEFAULT_HOST = ENV['LINECOOK_TEST_HOST'] || 'vbox'
-    
     attr_writer :cookbook
     attr_writer :package
     
-    def setup
-      super
-      set_vm DEFAULT_HOST
+    def default_host
+      Config::DEFAULT_HOST
+    end
+    
+    def default_ssh_config_file
+      Config::DEFAULT_SSH_CONFIG_FILE
     end
     
     def cookbook_dir

@@ -5,13 +5,13 @@ module Linecook
     class VboxCommand < Command
       config :ssh_config_file, 'config/ssh'
       
-      def hostnames
-        @hostnames ||= Config::HOSTNAMES[ssh_config_file]
+      def hosts
+        @hosts ||= Config.hosts(ssh_config_file)
       end
       
       def each_vm_name(vm_names)
         if vm_names.empty?
-          vm_names = hostnames 
+          vm_names = hosts 
         end
         
         vm_names.each do |vm_name|
@@ -119,7 +119,7 @@ module Linecook
     
     # Linecook::Commands::Ssh::desc ssh to vm
     class Ssh < VboxCommand
-      def process(host=hostnames.first)
+      def process(host=hosts.first)
         ssh = "ssh -F '#{ssh_config_file}' '#{host}' --"
         puts ssh
         
