@@ -6,14 +6,14 @@ module Linecook
   module Test
     include VmTest
     
-    DEFAULT_HOSTNAME = ENV['LINECOOK_TEST_HOSTNAME'] || 'vbox'
+    DEFAULT_HOST = ENV['LINECOOK_TEST_HOST'] || 'vbox'
     
     attr_writer :cookbook
     attr_writer :package
     
     def setup
       super
-      set_vm DEFAULT_HOSTNAME
+      set_vm DEFAULT_HOST
     end
     
     def cookbook_dir

@@ -9,23 +9,23 @@ module Linecook
       include FileTest
       include ShellTest
       
-      def set_vm(hostname)
-        @hostname = hostname
+      def set_vm(host)
+        @host = host
       end
       
-      def with_vm(hostname)
-        current = @hostname
+      def with_vm(host)
+        current = @host
         
         begin
-          set_vm(hostname)
+          set_vm(host)
           yield
         ensure
           set_vm(current)
         end
       end
       
-      def hostname
-        @hostname or raise("vm hostname has not been set")
+      def host
+        @host or raise("vm host has not been set")
       end
       
       def ssh_config_file
@@ -43,12 +43,12 @@ module Linecook
       def ssh(cmd)
         # -T: 'Pseudo-terminal will not be allocated because stdin is not a terminal.'
         # -q: 'Warning: Permanently added '[localhost]:2222' (RSA) to the list of known hosts.'
-        sh("ssh -q -T -F '#{ssh_config_file}' '#{hostname}' -- #{cmd}")
+        sh("ssh -q -T -F '#{ssh_config_file}' '#{host}' -- #{cmd}")
       end
       
       def scp(sources, target)
         sources = [sources] unless sources.kind_of?(Array)
-        sh("2>&1 scp -q -r -F '#{ssh_config_file}' '#{sources.join("' '")}' '#{hostname}:#{target}'")
+        sh("2>&1 scp -q -r -F '#{ssh_config_file}' '#{sources.join("' '")}' '#{host}:#{target}'")
       end
       
       def vm_setup
