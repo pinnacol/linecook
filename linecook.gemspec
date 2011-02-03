@@ -44,7 +44,7 @@ Gem::Specification.new do |s|
     lib/linecook/commands/package.rb
     lib/linecook/commands/preview.rb
     lib/linecook/commands/vbox.rb
-    lib/linecook/config.rb
+    lib/linecook/vm.rb
     lib/linecook/cookbook.rb
     lib/linecook/helper.rb
     lib/linecook/package.rb
