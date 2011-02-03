@@ -1,5 +1,6 @@
 require 'linecook/recipe'
 require 'tempfile'
+require 'ostruct'
 
 module Linecook
   class Package
@@ -270,6 +271,14 @@ module Linecook
       tempfiles.any? {|tempfile| tempfile.path == source_path }
     end
     
+    def template(template_name, locals={})
+      source = template_path(template_name)
+      
+      erb = ERB.new File.read(source)
+      erb.filename = source
+      erb.result(OpenStruct.new(locals).send(:binding))
+    end
+    
     # Returns a recipe bound to self.
     def recipe(target_path='recipe')
       target = tempfile(target_path)
@@ -311,11 +320,8 @@ module Linecook
     # access in the template context.  Raises an error if the target is
     # already registered. Returns self.
     def build_template(template_name, target_path, locals=env)
-      source = template_path(template_name)
-      
       target = tempfile!(target_path)
-      target << Template.build(File.read(source), locals, source)
-      
+      target << template(template_name, locals)
       target.close
       self
     end

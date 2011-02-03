@@ -1,4 +1,3 @@
-require 'ostruct'
 require 'stringio'
 require 'erb'
 
@@ -50,13 +49,6 @@ module Linecook
   #
   # See _erbout and _erbout= for the ERB trick that makes this all possible.
   class Template
-    class << self
-      def build(template, locals, template_path=nil)
-        erb = ERB.new(template)
-        erb.filename = template_path if template_path
-        erb.result(OpenStruct.new(locals).send(:binding))
-      end
-    end
     
     # An IO-type target to recieve any template output.
     attr_reader :target

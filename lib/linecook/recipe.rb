@@ -65,8 +65,7 @@ module Linecook
     
     def template_path(template_name, locals={})
       locals[:attrs] ||= attrs
-      path = @package.template_path(template_name)
-      target_file template_name, Template.build(File.read(path), locals, path)
+      target_file template_name, @package.template(template_name, locals)
     end
     
     def recipe_path(recipe_name, target_name = recipe_name)
