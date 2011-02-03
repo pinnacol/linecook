@@ -3,13 +3,11 @@ require 'linecook/attributes'
 
 module Linecook
   class Recipe < Template
-    alias target erbout
-    
     attr_reader :target_name
     attr_reader :target_dir_name
     
     def initialize(target, package)
-      @erbout      = target
+      @target      = target
       @attributes  = {}
       @package     = package
       @target_name = @package.target_path(target.path)

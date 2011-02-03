@@ -327,7 +327,7 @@ module Linecook
       recipe = self.recipe!(target_path)
       recipe.evaluate(recipe_name)
       
-      tempfile = recipe.erbout
+      tempfile = recipe.target
       tempfile.close unless tempfile.closed?
       
       self

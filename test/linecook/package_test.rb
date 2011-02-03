@@ -228,10 +228,10 @@ class PackageTest < Test::Unit::TestCase
   
   def test_recipes_close_on_package_close
     recipe = package.recipe
-    assert_equal false, recipe.erbout.closed?
+    assert_equal false, recipe.target.closed?
     
     package.close
-    assert_equal true, recipe.erbout.closed?
+    assert_equal true, recipe.target.closed?
   end
   
   #
