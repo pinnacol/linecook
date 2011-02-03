@@ -1,3 +1,8 @@
+== 0.13.1 2011/02/03
+
+* added back close methods to template
+* fixed test bug
+
 == 0.13.0 2011/02/03
 
 * documentation, testing, cleanup
