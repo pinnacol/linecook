@@ -10,7 +10,7 @@ module Linecook
       @target      = target
       @attributes  = {}
       @package     = package
-      @target_name = @package.target_path(target.path)
+      @target_name = @package.target_name(target.path)
       @target_dir_name = "#{target_name}.d"
     end
     
@@ -25,7 +25,7 @@ module Linecook
       yield(tempfile) if block_given?
       
       tempfile.close
-      target_path @package.target_path(tempfile.path)
+      target_path @package.target_name(tempfile.path)
     end
     
     def attrs

@@ -133,13 +133,13 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_target_path_returns_the_latest_target_path_registerd_to_source
-    assert_equal nil, package.target_path('source/path')
+    assert_equal nil, package.target_name('source/path')
     
     package.register('target/path/a', 'source/path')
-    assert_equal 'target/path/a', package.target_path('source/path')
+    assert_equal 'target/path/a', package.target_name('source/path')
     
     package.register('target/path/b', 'source/path')
-    assert_equal 'target/path/b', package.target_path('source/path')
+    assert_equal 'target/path/b', package.target_name('source/path')
   end
   
   #
@@ -176,22 +176,22 @@ class PackageTest < Test::Unit::TestCase
     
     assert_equal Tempfile, tempfile.class
     assert_equal false, tempfile.closed?
-    assert_equal 'target/path', package.target_path(tempfile.path)
+    assert_equal 'target/path', package.target_name(tempfile.path)
   end
   
-  def test_tempfile_increments_target_path_as_needed
+  def test_tempfile_increments_target_name_as_needed
     a = package.tempfile('target/path')
     b = package.tempfile('target/path')
     
-    assert_equal 'target/path', package.target_path(a.path)
-    assert_equal 'target/path.1', package.target_path(b.path)
+    assert_equal 'target/path', package.target_name(a.path)
+    assert_equal 'target/path.1', package.target_name(b.path)
   end
   
   #
   # tempfile! test
   #
   
-  def test_tempfile_bang_raises_error_if_target_path_is_already_registered
+  def test_tempfile_bang_raises_error_if_target_name_is_already_registered
     package.register('target/path', 'source/b')
     err = assert_raises(RuntimeError) { package.tempfile!('target/path') }
     assert_equal 'already registered: "target/path"', err.message
@@ -218,12 +218,12 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'content', package.content(recipe.target_name)
   end
   
-  def test_recipe_increments_target_path_as_needed
+  def test_recipe_increments_target_name_as_needed
     a = package.recipe('target/path')
     b = package.recipe('target/path')
     
-    assert_equal 'target/path',   a.target_path
-    assert_equal 'target/path.1', b.target_path
+    assert_equal 'target/path',   a.target_name
+    assert_equal 'target/path.1', b.target_name
   end
   
   def test_recipes_close_on_package_close
@@ -238,7 +238,7 @@ class PackageTest < Test::Unit::TestCase
   # recipe! test
   #
   
-  def test_recipe_bang_raises_error_if_target_path_is_already_registered
+  def test_recipe_bang_raises_error_if_target_name_is_already_registered
     package.register('target/path', 'source/path')
     err = assert_raises(RuntimeError) { package.recipe!('target/path') }
     assert_equal 'already registered: "target/path"', err.message
