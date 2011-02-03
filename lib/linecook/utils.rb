@@ -8,18 +8,6 @@ module Linecook
       (path ? YAML.load_file(path) : nil) || {}
     end
     
-    def nest_hash
-      Hash.new {|hash, key| hash[key] = nest_hash }
-    end
-    
-    def serial_merge(*hashes)
-      attrs = {}
-      while overrides = hashes.shift
-        attrs = deep_merge(attrs, overrides)
-      end
-      attrs
-    end
-    
     def deep_merge(a, b)
       b.each_pair do |key, current|
         previous = a[key]

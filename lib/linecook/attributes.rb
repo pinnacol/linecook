@@ -1,5 +1,3 @@
-require 'linecook/utils'
-
 module Linecook
   
   # Attributes provides a context for specifying default attributes.  For

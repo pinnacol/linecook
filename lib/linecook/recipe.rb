@@ -31,7 +31,7 @@ module Linecook
     end
     
     def attrs
-      @attrs ||= Utils.serial_merge(@attributes, @package.env)
+      @attrs ||= Utils.deep_merge(@attributes, @package.env)
     end
     
     def attributes(attributes_name)
@@ -40,7 +40,7 @@ module Linecook
       attributes  = Attributes.new
       attributes.instance_eval(File.read(path), path)
       
-      @attributes = Utils.serial_merge(@attributes, attributes.to_hash)
+      @attributes = Utils.deep_merge(@attributes, attributes.to_hash)
       @attrs = nil
       
       @attributes
