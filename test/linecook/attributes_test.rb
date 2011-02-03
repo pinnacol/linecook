@@ -12,28 +12,83 @@ class AttributesTest < Test::Unit::TestCase
   end
   
   #
+  # Attributes.nest_hash test
+  #
+  
+  def test_nest_hashes_auto_nest
+    hash = Attributes.nest_hash
+    hash[:a] = 1
+    hash[:b][:c] = 2
+    
+    assert_equal({
+      :a => 1,
+      :b => {:c => 2}
+    }, hash)
+  end
+  
+  #
+  # Attributes.disable_nest_hash test
+  #
+  
+  def test_disable_nest_hash_returns_a_copy_of_hash_with_auto_nesting_turned_off
+    hash = Attributes.nest_hash
+    hash[:a] = 1
+    hash[:b][:c] = 2
+    
+    assert_equal({
+      :a => 1,
+      :b => {:c => 2}
+    }, hash)
+    
+    hash = Attributes.disable_nest_hash(hash)
+    
+    assert_equal({
+      :a => 1,
+      :b => {:c => 2}
+    }, hash)
+    
+    assert_equal(nil, hash[:c])
+    assert_equal(nil, hash[:b][:d])
+  end
+  
+  def test_disable_nest_hash_does_not_disable_the_orignal_hash
+    original = Attributes.nest_hash
+    disabled = Attributes.disable_nest_hash(original)
+    
+    assert_equal({},  original[:a])
+    assert_equal(nil, disabled[:a])
+  end
+  
+  def test_disable_nest_hash_returns_a_deep_copy
+    original = Attributes.nest_hash
+    original[:a] = {:b => 1}
+    
+    disabled = Attributes.disable_nest_hash(original)
+    
+    original[:b] = 1
+    disabled[:b] = 2
+    disabled[:a][:b] = 2
+    
+    assert_equal(1, original[:b])
+    assert_equal(2, disabled[:b])
+    
+    assert_equal(1, original[:a][:b])
+    assert_equal(2, disabled[:a][:b])
+  end
+  
+  #
   # documentation test
   #
   
   def test_attributes_documentation
-    user_env = {'a' => 'A'}
-    attributes = Attributes.new(user_env)
-    attributes.instance_eval %{
-      attrs['a'] = '-'
-      attrs['b'] = 'B'
-    }
-  
-    expected = {'a' => 'A', 'b' => 'B'}
-    assert_equal expected, attributes.current
-
     attributes = Attributes.new
     attributes.instance_eval %{
-      attrs[:a]       = :A
-      attrs['a']['b'] = 'B'
+      attrs['a'] = 'A'
+      attrs['b']['c'] = 'C'
     }
     
-    expected = {:a => :A, 'a' => {'b' => 'B'}}
-    assert_equal expected, attributes.current
+    expected = {'a' => 'A', 'b' => {'c' => 'C'}}
+    assert_equal expected, attributes.to_hash
   end
   
   #
@@ -49,40 +104,53 @@ class AttributesTest < Test::Unit::TestCase
       :a => 1,
       :b => {:c => 2}
     }, attrs)
+    
+    assert_equal({}, attrs[:c])
+    assert_equal({}, attrs[:b][:d])
+  end
+  
+  def test_attrs_is_not_indifferent
+    attrs = attributes.attrs
+    attrs[:a] = 1
+    attrs['a'] = 2
+    
+    assert_equal({
+      :a => 1,
+      'a' => 2
+    }, attrs)
   end
   
   #
-  # current test
+  # to_hash test
   #
   
-  def test_current_merges_attrs_and_env
-    attributes.attrs[:a] = 'A'
-    attributes.attrs[:b] = '-'
+  def test_to_hash_returns_attrs_with_auto_nesting_turned_off
+    attrs = attributes.attrs
+    attrs[:a] = 1
+    attrs[:b][:c] = 2
     
-    attributes.env[:b]   = 'B'
-    
+    hash = attributes.to_hash
     assert_equal({
-      :a => 'A',
-      :b => 'B'
-    }, attributes.current)
+      :a => 1,
+      :b => {:c => 2}
+    }, hash)
+    
+    assert_equal nil, hash[:c]
+    assert_equal nil, hash[:b][:d]
   end
   
-  def test_current_performs_deep_merge
-    attributes.attrs[:a] = 'A'
-    attributes.attrs[:b] = '-'
-    attributes.attrs[:one][:a] = 'a'
-    attributes.attrs[:one][:b] = '-'
+  def test_to_hash_does_not_break_attrs
+    attrs = attributes.attrs
     
-    attributes.env[:b]   = 'B'
-    attributes.env[:one] = {:b => 'b'}
-    
+    attrs[:a] = 1
     assert_equal({
-      :a => 'A',
-      :b => 'B',
-      :one => {
-        :a => 'a',
-        :b => 'b'
-      }
-    }, attributes.current)
+      :a => 1
+    }, attributes.to_hash)
+    
+    attrs[:b][:c] = 2
+    assert_equal({
+      :a => 1,
+      :b => {:c => 2}
+    },  attributes.to_hash)
   end
 end

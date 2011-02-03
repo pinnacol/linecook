@@ -10,8 +10,8 @@ module Linecook
     
     def initialize(target, package)
       @erbout      = target
+      @attributes  = {}
       @package     = package
-      @attributes  = Attributes.new(@package.env)
       @target_name = @package.target_path(target.path)
       @target_dir_name = "#{target_name}.d"
     end
@@ -31,15 +31,19 @@ module Linecook
     end
     
     def attrs
-      @attrs ||= @attributes.current
+      @attrs ||= Utils.serial_merge(@attributes, @package.env)
     end
     
     def attributes(attributes_name)
       path = @package.attributes_path(attributes_name)
       
-      @attributes.instance_eval(File.read(path), path)
+      attributes  = Attributes.new
+      attributes.instance_eval(File.read(path), path)
+      
+      @attributes = Utils.serial_merge(@attributes, attributes.to_hash)
       @attrs = nil
-      self
+      
+      @attributes
     end
     
     def helpers(helper_name)
