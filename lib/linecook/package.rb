@@ -168,14 +168,12 @@ module Linecook
     end
     
     # Registers the source_path to target_name in the registry and
-    # revese_registry.  Increments and returns the new target_name if the
+    # reverse_registry.  Increments and returns the new target_name if the
     # target_name is already a registered target.
     def register(target_name, source_path)
-      source_path = File.expand_path(source_path)
-      
       count = 0
-      registry.each_key do |path|
-        if path.kind_of?(String) && path.index(target_name) == 0
+      registry.each_key do |key|
+        if key.index(target_name) == 0
           count += 1
         end
       end
