@@ -330,9 +330,7 @@ module Linecook
     def build_recipe(recipe_name, target_name)
       recipe = self.recipe!(target_name)
       recipe.evaluate(recipe_name)
-      
-      tempfile = recipe.target
-      tempfile.close unless tempfile.closed?
+      recipe.close
       
       self
     end

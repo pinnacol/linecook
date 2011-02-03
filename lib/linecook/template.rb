@@ -157,7 +157,19 @@ module Linecook
       tail.length == 0 && start > 0 ? rstrip(n) : concat(tail)
     end
     
-    # Flushes target, rewinds, and reads the contents of target.
+    # Closes the target and returns self.
+    def close
+      target.close unless closed?
+      self
+    end
+    
+    # Returns true if the target is closed.
+    def closed?
+      target.closed?
+    end
+    
+    # Flushes target, rewinds, and reads the contents of target.  Does not
+    # work if the target is closed.
     def result
       target.flush
       target.rewind

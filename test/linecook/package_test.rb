@@ -214,7 +214,7 @@ class PackageTest < Test::Unit::TestCase
     recipe = package.recipe
     recipe.target << 'content'
     
-    package.close
+    recipe.close
     assert_equal 'content', package.content(recipe.target_name)
   end
   
@@ -228,10 +228,10 @@ class PackageTest < Test::Unit::TestCase
   
   def test_recipes_close_on_package_close
     recipe = package.recipe
-    assert_equal false, recipe.target.closed?
+    assert_equal false, recipe.closed?
     
     package.close
-    assert_equal true, recipe.target.closed?
+    assert_equal true, recipe.closed?
   end
   
   #
