@@ -30,19 +30,19 @@ module Linecook
         Hash.new(&NEST_HASH_PROC)
       end
       
-      # Recursively disables automatic nesting of nest_hash hashes. Returns a
-      # copy of the source with auto-nesting turned off (ie the source itself
-      # will still auto-nest).
-      def disable_nest_hash(source)
-        if source.default_proc == NEST_HASH_PROC
-          target = {}
-          source.each_pair do |key, value|
-            target[key] = value.kind_of?(Hash) ? disable_nest_hash(value) : value
-          end
-          target
-        else
-          source.dup
+      # Recursively disables automatic nesting of nest_hash hashes.
+      def disable_nest_hash(hash)
+        if hash.default_proc == NEST_HASH_PROC
+          hash.default = nil
         end
+        
+        hash.each_pair do |key, value|
+          if value.kind_of?(Hash)
+            disable_nest_hash(value)
+          end
+        end
+        
+        hash
       end
     end
     
@@ -53,7 +53,7 @@ module Linecook
       @attrs = Attributes.nest_hash
     end
     
-    # Returns a copy of attrs with nesting turned off.
+    # Disables automatic nesting and returns attrs.
     def to_hash
       Attributes.disable_nest_hash(attrs)
     end

@@ -30,7 +30,7 @@ class AttributesTest < Test::Unit::TestCase
   # Attributes.disable_nest_hash test
   #
   
-  def test_disable_nest_hash_returns_a_copy_of_hash_with_auto_nesting_turned_off
+  def test_disable_nest_hash_turns_off_auto_nesting_of_each_nest_hash
     hash = Attributes.nest_hash
     hash[:a] = 1
     hash[:b][:c] = 2
@@ -40,7 +40,7 @@ class AttributesTest < Test::Unit::TestCase
       :b => {:c => 2}
     }, hash)
     
-    hash = Attributes.disable_nest_hash(hash)
+    Attributes.disable_nest_hash(hash)
     
     assert_equal({
       :a => 1,
@@ -49,31 +49,6 @@ class AttributesTest < Test::Unit::TestCase
     
     assert_equal(nil, hash[:c])
     assert_equal(nil, hash[:b][:d])
-  end
-  
-  def test_disable_nest_hash_does_not_disable_the_orignal_hash
-    original = Attributes.nest_hash
-    disabled = Attributes.disable_nest_hash(original)
-    
-    assert_equal({},  original[:a])
-    assert_equal(nil, disabled[:a])
-  end
-  
-  def test_disable_nest_hash_returns_a_deep_copy
-    original = Attributes.nest_hash
-    original[:a] = {:b => 1}
-    
-    disabled = Attributes.disable_nest_hash(original)
-    
-    original[:b] = 1
-    disabled[:b] = 2
-    disabled[:a][:b] = 2
-    
-    assert_equal(1, original[:b])
-    assert_equal(2, disabled[:b])
-    
-    assert_equal(1, original[:a][:b])
-    assert_equal(2, disabled[:a][:b])
   end
   
   #
@@ -139,18 +114,11 @@ class AttributesTest < Test::Unit::TestCase
     assert_equal nil, hash[:b][:d]
   end
   
-  def test_to_hash_does_not_break_attrs
+  def test_to_hash_permanently_disables_auto_nesting_of_attrs
     attrs = attributes.attrs
+    assert_equal({}, attrs[:a])
     
-    attrs[:a] = 1
-    assert_equal({
-      :a => 1
-    }, attributes.to_hash)
-    
-    attrs[:b][:c] = 2
-    assert_equal({
-      :a => 1,
-      :b => {:c => 2}
-    },  attributes.to_hash)
+    attributes.to_hash
+    assert_equal(nil, attrs[:b])
   end
 end
