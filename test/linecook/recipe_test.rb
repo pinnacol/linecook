@@ -12,6 +12,17 @@ class RecipeTest < Test::Unit::TestCase
   end
   
   #
+  # target_name test
+  #
+  
+  def test_target_name_is_the_name_of_target_in_package
+    setup_recipe 'recipe'
+    
+    assert_equal 'recipe', package.target_name(recipe.target.path)
+    assert_equal 'recipe', recipe.target_name
+  end
+  
+  #
   # target test
   #
   
@@ -30,6 +41,13 @@ class RecipeTest < Test::Unit::TestCase
     assert_equal 'recipe.d/name.txt', path
     assert_equal 'content', package.content(path)
   end
+  
+  def test_target_file_can_accept_content_via_a_block
+    path = recipe.target_file('name.txt') {|io| io << 'content'}
+    
+    assert_equal 'recipe.d/name.txt', path
+    assert_equal 'content', package.content(path)
+  end
 
   #
   # attributes test
@@ -38,9 +56,76 @@ class RecipeTest < Test::Unit::TestCase
   def test_attributes_evals_the_attributes_file_in_the_context_of_attributes
     prepare('attributes/example.rb') {|io| io << "attrs[:key] = 'value'"}
     assert_equal nil, recipe.attrs[:key]
-
+    
     recipe.attributes('example')
     assert_equal 'value', recipe.attrs[:key]
+  end
+  
+  def test_attributes_evals_a_block_for_attrs
+    assert_equal nil, recipe.attrs[:key]
+    
+    recipe.attributes do
+      attrs[:key] = 'value'
+    end
+    
+    assert_equal 'value', recipe.attrs[:key]
+  end
+  
+  #
+  # attrs test
+  #
+  
+  def test_attrs_merges_attrs_and_env_where_env_wins
+    package.env[:a] = 'A'
+    
+    recipe.attributes do
+      attrs[:a]     = '-'
+      attrs[:b]     = 'B'
+    end
+
+    assert_equal 'A', recipe.attrs[:a]
+    assert_equal 'B', recipe.attrs[:b]
+  end
+  
+  def test_attrs_are_additive_and_still_ensure_env_wins
+    package.env[:a] = 'A'
+    
+    recipe.attributes do
+      attrs[:a]     = '-'
+      attrs[:b]     = '-'
+      attrs[:c]     = 'C'
+    end
+    
+    recipe.attributes do
+      attrs[:b]     = 'B'
+    end
+    
+    assert_equal 'A', recipe.attrs[:a]
+    assert_equal 'B', recipe.attrs[:b]
+    assert_equal 'C', recipe.attrs[:c]
+  end
+  
+  def test_attrs_performs_deep_merge
+    recipe.attributes do
+      attrs[:a] = 'A'
+      attrs[:b] = '-'
+      attrs[:one][:a] = 'a'
+      attrs[:one][:b] = '-'
+    end
+    
+    package.env[:b]   = 'B'
+    package.env[:one] = {:b => 'b'}
+    
+    assert_equal 'A', recipe.attrs[:a]
+    assert_equal 'B', recipe.attrs[:b]
+    assert_equal({:a => 'a', :b => 'b'}, recipe.attrs[:one])
+  end
+  
+  def test_attrs_does_not_auto_nest
+    recipe.attributes { attrs[:b] }
+    
+    assert_equal nil, recipe.attrs[:a]
+    assert_equal nil, recipe.attrs[:b][:c]
   end
   
   #
