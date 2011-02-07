@@ -37,10 +37,10 @@ parser.add cmd_class.configurations
 parser.on '-h', '--help', 'print this help' do
   puts "usage: linecook [options] #{cmd} #{cmd_class.args}"
   
-  desc = cmd_class.desc.wrap
+  desc = cmd_class.desc.wrap(76, 2, "\n  ")
   unless desc.empty?
     puts
-    puts cmd_class.desc.wrap
+    puts "  #{desc}"
     puts
   end
   
