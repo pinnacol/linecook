@@ -5,10 +5,24 @@ require 'linecook/utils'
 module Linecook
   module Commands
     
-    # ::desc generates a helper
+    # ::desc generates a helper module
+    #
+    # Generates the specified helper module from a set of source files.  Each
+    # source file becomes a method in the module, named after the source file
+    # itself.
+    #
+    # The helper module will be generated under the lib directory in a file
+    # corresponding to const_name (which can also be a constant path).  By
+    # default, all files under the corresponding helpers directory will be
+    # used as sources.  For example these are equivalent and produce the
+    # Const::Name module in 'lib/const/name.rb':
+    #
+    #   % linecook helpers Const::Name
+    #   % linecook helpers const/name
+    #   % linecook helpers const/name helpers/const/name/*
+    #
     class Helper < Command
-      config :cookbook_dir, '.', :short => :d       # the cookbook directory
-      config :namespace, nil, :short => :n          # the helper namespace
+      config :project_dir, '.', :short => :d        # the project directory
       config :force, false, :short => :f, &c.flag   # force creation
       
       include Utils
@@ -17,21 +31,19 @@ module Linecook
         const_name =~ /\A(?:::)?[A-Z]\w*(?:::[A-Z]\w*)*\z/
       end
       
-      def process(name, *sources)
-        name = underscore(name)
-        
-        const_path = namespace ? File.join(namespace, name) : name
+      def process(const_name, *sources)
+        const_path = underscore(const_name)
         const_name = camelize(const_path)
         
         unless valid?(const_name)
           raise "invalid constant name: #{const_name.inspect}"
         end
         
-        sources = default_sources(name) if sources.empty?
-        target  = File.expand_path(File.join('lib', "#{const_path}.rb"), cookbook_dir)
+        sources = default_sources(const_path) if sources.empty?
+        target  = File.expand_path(File.join('lib', "#{const_path}.rb"), project_dir)
         
         if sources.empty?
-          raise CommandError, "no sources specified (and none could be found)"
+          raise CommandError, "no sources specified (and none found under 'helpers/#{const_path}')"
         end
         
         if File.exists?(target) && !force
@@ -51,8 +63,8 @@ module Linecook
         File.open(target, 'w') {|io| io << content }
       end
       
-      def default_sources(name)
-        Dir.glob File.join(cookbook_dir, 'helpers', name, '*')
+      def default_sources(const_path)
+        Dir.glob File.join(project_dir, 'helpers', const_path, '*')
       end
     end
   end

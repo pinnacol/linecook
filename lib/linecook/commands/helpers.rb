@@ -10,7 +10,7 @@ module Linecook
     #
     class Helpers < Helper
       def process
-        helpers_dir = File.expand_path('helpers', cookbook_dir)
+        helpers_dir = File.expand_path('helpers', project_dir)
 
         sources = {}
         Dir.glob("#{helpers_dir}/*/**/*").each do |source|
