@@ -5,10 +5,61 @@ require 'stringio'
 
 class RecipeTest < Test::Unit::TestCase
   include Linecook::Test
+  
+  Package = Linecook::Package
   Recipe = Linecook::Recipe
   
   def cookbook_dir
     method_dir
+  end
+  
+  #
+  # documentation test
+  #
+
+  module Helper
+    # This is compiled ERB code, prefixed by 'self.', ie:
+    #
+    #   "self." + ERB.new("echo '<%= args.join(' ') %>'\n").src
+    #
+    def echo(*args)
+      self._erbout = ''; _erbout.concat "echo '"; _erbout.concat(( args.join(' ') ).to_s); _erbout.concat "'\n"
+      _erbout
+    end
+  end
+
+  def test_template_documentation
+    package = Package.new
+    recipe  = package.recipe
+    
+    recipe.extend Helper
+    recipe.instance_eval do
+      echo 'a', 'b c'
+      echo 'X Y'.downcase, :z
+    end
+    
+    expected = %{
+echo 'a b c'
+echo 'x y z'
+}
+    assert_equal expected, "\n" + recipe.result
+
+    recipe  = package.recipe
+    recipe.extend Helper
+    recipe.instance_eval do
+      echo 'outer'
+      indent do
+        echo 'inner'
+      end
+      echo 'outer'
+    end
+
+    expected = %{
+echo 'outer'
+  echo 'inner'
+echo 'outer'
+}
+    assert_equal expected, "\n" + recipe.result
   end
   
   #
@@ -29,6 +80,33 @@ class RecipeTest < Test::Unit::TestCase
   def test_target_allows_direct_writing
     recipe.target.puts 'str'
     assert_equal "str\n", recipe.result
+  end
+  
+  #
+  # result test
+  #
+  
+  def test_result_returns_current_template_results
+    recipe.target << 'abc'
+    assert_equal 'abc', recipe.result
+  end
+  
+  def test_result_allows_further_modification
+    recipe.target << 'abc'
+    
+    assert_equal 'abc', recipe.result
+    assert_equal 'abc', recipe.result
+    
+    recipe.target << 'xyz'
+    
+    assert_equal 'abcxyz', recipe.result
+  end
+  
+  def test_result_works_when_closed
+    recipe.target << 'abc'
+    recipe.close
+    
+    assert_equal 'abc', recipe.result
   end
   
   #
@@ -237,5 +315,28 @@ class RecipeTest < Test::Unit::TestCase
     
     assert_equal 'recipe.d/example.txt', path
     assert_equal 'got value', package.content(path)
+  end
+  
+  #
+  # rstrip test
+  #
+  
+  def test_rstrip_rstrips_target
+    recipe.target << " a b \n "
+    recipe.rstrip
+    assert_equal " a b", recipe.result
+  end
+  
+  def test_rstrip_removes_all_whitespace_up_to_start
+    recipe.target << "  \n "
+    recipe.rstrip
+    assert_equal "", recipe.result
+  end
+  
+  def test_rstrip_removes_lots_of_whitespace
+    recipe.target << "a b"
+    recipe.target << " " * 100
+    recipe.rstrip
+    assert_equal "a b", recipe.result
   end
 end
