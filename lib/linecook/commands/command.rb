@@ -24,7 +24,7 @@ module Linecook
       lazy_attr :args, :process
       lazy_register :process, Lazydoc::Arguments
       
-      def initialize(config)
+      def initialize(config={})
         initialize_config(config)
       end
       

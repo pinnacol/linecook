@@ -4,6 +4,8 @@ require 'yaml'
 
 # http://snippets.dzone.com/posts/show/5811
 class Hash
+  undef_method :to_yaml
+  
   # Replacing the to_yaml function so it'll serialize hashes sorted (by their keys)
   #
   # Original function is in /usr/lib/ruby/1.8/yaml/rubytypes.rb
@@ -21,22 +23,32 @@ end
 module Linecook
   module Commands
     
-    # ::desc prints the cookbook env
+    # ::desc prints a package env
     #
-    # Print the cookbook env.
-    #
+    # Prints the package env. A specific env value can be printed by
+    # specifying the key path to it.
     class Env < Command
-      config :cookbook_dir, '.', :short => :d       # the cookbook directory
-      config :path, nil                             # package path
+      config :project_dir, '.', :short => :d        # the project directory
+      config :package_path, nil, :short => :p       # the package path
+      
+      def select(current, *keys)
+        keys.each do |key|
+          unless current.kind_of?(Hash)
+            return nil
+          end
+          
+          current = current[key]
+        end
+        
+        current
+      end
       
       def process(*keys)
-        cookbook = Linecook::Cookbook.init(cookbook_dir)
-        package  = Linecook::Package.load(path, cookbook)
+        cookbook = Linecook::Cookbook.init(project_dir)
+        package  = Linecook::Package.load(package_path, cookbook)
         
-        current = package.env
-        keys.each {|key| current = current[key] if current }
-        
-        YAML.dump(current, $stdout)
+        env = select(package.env, *keys)
+        YAML.dump(env, $stdout)
       end
     end
   end
