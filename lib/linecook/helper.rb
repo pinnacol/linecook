@@ -1,6 +1,55 @@
 require 'linecook/template'
 
 module Linecook
+  
+  # == Source Files
+  #
+  # The contents of the source file are translated into code according to
+  # the source file extname.
+  #
+  #   extname      translation
+  #   .rb          file defines method body
+  #   .erb         file defines an ERB template (compiled to ruby code)
+  #
+  # Source files can specify documenation and a method signature using a
+  # standard header separated from the body by a double-dash.  For example
+  # this:
+  #
+  #   [echo.erb]
+  #   Echo arguments out to the target.
+  #   (*args)
+  #   --
+  #   echo <%= args.join(' ') %>
+  #
+  # Is translated into something like:
+  #
+  #   # Echo arguments out to the target.
+  #   def echo(*args)
+  #     eval ERB.new("echo <%= args.join(' ') %>").src
+  #   end
+  #
+  # Check and bang methods can be specified by adding -check and -bang to
+  # the end of the file name.  These extensions are stripped off like:
+  #
+  #   [file-check.erb]   # => def file? ...
+  #   [make-bang.rb]     # => def make! ...
+  #
+  # == Section Files
+  #
+  # Special section files can be used to define non-standard code in the
+  # following places:
+  #
+  #   [:header]
+  #   module Name
+  #     [:head]
+  #     ...
+  #     [:foot]
+  #   end
+  #   [:footer]
+  #
+  # Section files are defined by adding -section.rb at the end of the file
+  # name (like header-section.rb) and are not processed like other source
+  # files; the contents are directly transcribed.
   class Helper < Template
     attr_reader :const_name
     attr_reader :sources
@@ -8,7 +57,7 @@ module Linecook
     def initialize(const_name, sources)
       @const_name = const_name
       @sources    = sources.select {|source| File.file?(source) }
-      @section_paths, @definition_paths = @sources.partition {|path| File.basename(path)[0] == ?_ }
+      @section_paths, @definition_paths = @sources.partition {|path| path =~ /\-section\.rb$/ }
       super()
     end
     
@@ -22,8 +71,7 @@ module Linecook
         sections = {}
         
         @section_paths.each do |path|
-          key = File.basename(path)[1..-1]
-          key.chomp! File.extname(path)
+          key = File.basename(path).chomp!('-section.rb')
           sections[key.to_sym] = File.read(path)
         end
         
@@ -81,8 +129,8 @@ module Linecook
     
     def method_name(name)
       case name
-      when /_check$/ then name.sub(/_check$/, '?')
-      when /_bang$/  then name.sub(/_bang$/, '!')
+      when /-check$/ then name.sub(/-check$/, '?')
+      when /-bang$/  then name.sub(/-bang$/, '!')
       else name
       end
     end

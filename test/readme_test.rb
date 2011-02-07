@@ -16,7 +16,7 @@ class ReadmeTest < Test::Unit::TestCase
     sh "#{LINE_COOK} init '#{method_dir}'"
     Dir.chdir method_dir
     
-    prepare('helpers/example/_head.rb', %q{
+    prepare('helpers/example/head-section.rb', %q{
 COLOR_CODES = Hash[*%W{
   black       0;30   red         0;31
   white       1;37   green       0;32
