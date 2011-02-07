@@ -34,7 +34,7 @@ class LinecookTest < Test::Unit::TestCase
         }
       end
       
-      output = `BUNDLE_GEMFILE='#{gemfile}' bundle exec linecook helpers`
+      output = `BUNDLE_GEMFILE='#{gemfile}' bundle exec linecook helper example`
       assert_equal 0, $?.exitstatus, output
       
       output = `BUNDLE_GEMFILE='#{gemfile}' bundle exec linecook package packages/example.yml`
