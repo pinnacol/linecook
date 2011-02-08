@@ -4,16 +4,13 @@ require 'linecook/test'
 class ReadmeTest < Test::Unit::TestCase
   include Linecook::Test
   
-  LINE_COOK_DIR = File.expand_path('../..', __FILE__)
-  LINE_COOK = File.join(LINE_COOK_DIR, 'bin/linecook')
-  
   def teardown
     Dir.chdir user_dir
     super
   end
   
   def test_readme
-    sh "#{LINE_COOK} init '#{method_dir}'"
+    sh "#{LINECOOK} init '#{method_dir}'"
     Dir.chdir method_dir
     
     prepare('helpers/example/head-section.rb', %q{
@@ -64,7 +61,7 @@ example:
     gemfile = path('Gemfile')
     File.open(gemfile, 'w') do |io|
       io.puts %Q{
-        path '#{LINE_COOK_DIR}', :glob => 'linecook.gemspec'
+        path '#{LINECOOK_DIR}', :glob => 'linecook.gemspec'
         gemspec
       }
     end

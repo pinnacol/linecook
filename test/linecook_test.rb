@@ -4,9 +4,6 @@ require 'linecook/test'
 class LinecookTest < Test::Unit::TestCase
   include Linecook::Test
   
-  LINE_COOK_DIR = File.expand_path('../..', __FILE__)
-  LINE_COOK = File.join(LINE_COOK_DIR, 'bin/linecook')
-  
   def setup
     super
     FileUtils.mkdir_p method_dir
@@ -22,14 +19,14 @@ class LinecookTest < Test::Unit::TestCase
     example_dir = path('example')
     assert_equal false, File.exists?(example_dir)
     
-    output = `ruby #{LINE_COOK} init example`
+    output = `ruby #{LINECOOK} init example`
     assert_equal 0, $?.exitstatus, output
     
     Dir.chdir(example_dir) do
       gemfile = File.expand_path('Gemfile')
       File.open(gemfile, 'w') do |io|
         io.puts %Q{
-          path '#{LINE_COOK_DIR}', :glob => 'linecook.gemspec'
+          path '#{LINECOOK_DIR}', :glob => 'linecook.gemspec'
           gemspec
         }
       end
@@ -64,7 +61,7 @@ class LinecookTest < Test::Unit::TestCase
     example_dir = path('example')
     FileUtils.mkdir_p(example_dir)
     
-    output = `ruby #{LINE_COOK} init example`
+    output = `ruby #{LINECOOK} init example`
     assert_equal 1, $?.exitstatus
     
     assert_equal [], Dir.glob("#{example_dir}/*")
@@ -73,13 +70,13 @@ class LinecookTest < Test::Unit::TestCase
   def test_init_regenerates_cookbook_on_force
     example_readme = path('example/README')
     
-    output = `ruby #{LINE_COOK} init example`
+    output = `ruby #{LINECOOK} init example`
     assert_equal 0, $?.exitstatus, output
     
     assert_equal true, File.exists?(example_readme)
     FileUtils.rm(example_readme)
     
-    output = `ruby #{LINE_COOK} init example --force`
+    output = `ruby #{LINECOOK} init example --force`
     assert_equal 0, $?.exitstatus, output
     
     assert_equal true, File.exists?(example_readme)
@@ -90,24 +87,13 @@ class LinecookTest < Test::Unit::TestCase
     FileUtils.mkdir_p(example_dir)
     
     Dir.chdir(example_dir)
-    output = `ruby #{LINE_COOK} init . --force`
+    output = `ruby #{LINECOOK} init . --force`
     assert_equal 1, $?.exitstatus
     
-    output = `ruby #{LINE_COOK} init .. --force`
+    output = `ruby #{LINECOOK} init .. --force`
     assert_equal 1, $?.exitstatus
     
     assert_equal [example_dir], Dir.glob(path('parent/*'))
     assert_equal [], Dir.glob(path('parent/current/*'))
-  end
-  
-  #
-  # env test
-  #
-  
-  def test_env_prints_the_current_env
-    result = sh "ruby #{LINE_COOK} env"
-    result = YAML.load(result)
-    
-    assert_equal({}, result['linecook']['manifest'])
   end
 end

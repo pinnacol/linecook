@@ -6,6 +6,9 @@ module Linecook
   module Test
     include VmTest
     
+    LINECOOK_DIR = File.expand_path('../../..', __FILE__)
+    LINECOOK = File.join(LINECOOK_DIR, 'bin/linecook')
+    
     attr_writer :cookbook
     attr_writer :package
     
