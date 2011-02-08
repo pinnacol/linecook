@@ -34,12 +34,12 @@ class LinecookTest < Test::Unit::TestCase
       output = `BUNDLE_GEMFILE='#{gemfile}' bundle exec linecook helper example`
       assert_equal 0, $?.exitstatus, output
       
-      output = `BUNDLE_GEMFILE='#{gemfile}' bundle exec linecook package packages/example.yml`
+      output = `BUNDLE_GEMFILE='#{gemfile}' bundle exec linecook package packages/vbox.yml`
       assert_equal 0, $?.exitstatus, output
-      assert_equal true, File.exists?('packages/example/example'), output
+      assert_equal true, File.exists?('packages/vbox/example'), output
       
       assert_script %q{
-        % sh packages/example/example
+        % sh packages/vbox/example
         a b c
         7 8 9
         Contents of an example file.

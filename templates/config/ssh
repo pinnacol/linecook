@@ -1,11 +1,11 @@
-Host vbox # [vbox]
+HostName localhost
+User vbox
+UserKnownHostsFile /dev/null
+StrictHostKeyChecking no
+IdentitiesOnly yes
+IdentityFile vbox/ssh/id_rsa
+ControlMaster auto
+ControlPath vbox/ssh/socket-%r@%h:%p
 
-  HostName localhost
-  User vbox
+Host vbox   # [vbox]
   Port 2222
-  IdentityFile vbox/ssh/id_rsa
-  UserKnownHostsFile /dev/null
-  StrictHostKeyChecking no
-  IdentitiesOnly yes
-  ControlMaster auto
-  ControlPath vbox/ssh/socket-%r@%h:%p

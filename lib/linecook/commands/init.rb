@@ -75,10 +75,10 @@ module Linecook
           end
         end
 
-        # Link up packages into vbox
-        source = File.join(project_dir, 'packages')
-        target = File.join(project_dir, 'vbox/packages')
-        FileUtils.ln_s source, target
+        # Link up project dir into test
+        target = File.join(project_dir, 'test', "#{project_name}_test", "test_#{project_name}")
+        FileUtils.mkdir_p File.dirname(target)
+        FileUtils.ln_s project_dir, target
         
         # Set permissions for ssh
         FileUtils.chmod 0600,  File.join(project_dir, 'vbox/ssh/id_rsa')
