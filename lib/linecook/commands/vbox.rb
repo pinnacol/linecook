@@ -4,6 +4,7 @@ module Linecook
   module Commands
     class VboxCommand < Command
       config :ssh_config_file, 'config/ssh'
+      registry.delete('vboxcommand')
       
       def hosts
         Config.hosts(ssh_config_file)
@@ -98,7 +99,7 @@ module Linecook
       end
     end
     
-    # Linecook::Commands::Snapshot::desc take a snapshop
+    # Linecook::Commands::Snapshot::desc take a vm snapshop
     #
     # Takes the specified snapshot of one or more VirtualBox virtual machines.
     # By default all virtual machines configured in config/ssh will have a

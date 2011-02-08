@@ -7,7 +7,7 @@ require 'ostruct'
 module Linecook
   module Commands
     
-    # ::desc init a linecook scaffold
+    # ::desc create a linecook scaffold
     #
     # Initializes a linecook scaffold in the specified directory.  This
     # initializer is currently very basic; it is not a true generator.
