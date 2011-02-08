@@ -99,8 +99,8 @@ end
 
 namespace :vm do
   task :setup do
-    sh 'bundle exec linecook reset'
-    sh 'bundle exec linecook share vbox'
+    sh 'bundle exec linecook start --snapshot base'
+    sh 'bundle exec linecook share'
   end
   
   task :teardown do

@@ -81,7 +81,7 @@ module Linecook
         FileUtils.ln_s project_dir, target
         
         # Set permissions for ssh
-        FileUtils.chmod 0600,  File.join(project_dir, 'vbox/ssh/id_rsa')
+        FileUtils.chmod 0600,  File.join(project_dir, 'vm/ssh/id_rsa')
       end
     end
   end

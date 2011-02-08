@@ -13,27 +13,25 @@ are instructions for setting up a generic Ubuntu VM.
 
 Use the VirtualBox wizard to get started.
 
-- name: vbox
-- Linux/Ubuntu
-- 512 MB memory
-- 8 GB dynamically resizing drive
+  - name: vbox
+  - Linux/Ubuntu
+  - 512 MB memory
+  - 8 GB dynamically resizing drive
 
 Under Settings:
 
-- add the ubuntu iso to the cd/dvd device (under storage)
-- disable audio
-- network set to NAT
-- disable usb (only the inner box would stay unchecked)
-- shared folder: map the 'vbox' directory in project root
+  - add the ubuntu iso to the cd/dvd device (under storage)
+  - disable audio
+  - network set to NAT
 
-Start the server and install (default unless specified):
+Start the server and install ubuntu (use default settings unless specified):
 
-- hostname: vbox-ubuntu
-- user/password: vbox
-- no packages
-- power off, remove ubuntu iso from the cd/dvd device 
+  - hostname: vbox-ubuntu
+  - user/password: vbox
+  (Devices > CD/DVD Devices > Remove disk from virtual drive)
+  (Machine > Take Snapshot) - RAW
 
-Setup Permissions (allows vbox to run sudo without password):
+Login and setup sudo permissions:
 
   vm: sudo visudo
 
@@ -43,39 +41,35 @@ Setup Permissions (allows vbox to run sudo without password):
   #
   # then exit (write out changes as prompted)
 
-Setup login shell and home dir:
-
-  vm: sudo mkdir /vbox
-  vm: sudo usermod --home /vbox vbox
-  vm: sudo chsh --shell /bin/bash vbox
-
 Setup guest additions to allow shared folders. On OSX guest additions are
-located in the application package; see these
-{two}[http://forums.virtualbox.org/viewtopic.php?f=8&t=10286]
-{topics}[http://forums.virtualbox.org/viewtopic.php?t=15868] on the virtual
-box forum.
+located in the application package (view package contents on VirtualBox
+application > Contents > MacOS > VBoxGuestAdditions.iso).
 
-  (cd/dvd device): add the VBoxGuestAdditions.iso
+  (Devices > CD/DVD Devices): select the VBoxGuestAdditions.iso
   vm: sudo apt-get install linux-headers-$(uname -r) build-essential ssh openssh-server
   vm: sudo mkdir /media/dvd
   vm: sudo mount /dev/dvd /media/dvd/
-  vm: sudo sh /media/dvd/VBoxLinuxAdditions-x86.run
+  vm: sudo sh /media/dvd/VBoxLinuxAdditions.run
   # there may be a warning about 'Window System drivers fail', ignore
+  (Devices > CD/DVD Devices > Remove disk from virtual drive)
+  
+Mount a share to the vm directory:
 
-Mount the share:
-
-  vm: sudo mount -t vboxsf -o uid=1000,gid=100 vbox /vbox
+  ht: VBoxManage sharedfolder add vbox --name vm --hostpath "$(pwd)/vm" --transient
+  vm: mkdir ~/vm
+  vm: sudo mount -t vboxsf -o uid=1000,gid=100 vm ~/vm
 
 Setup SSH:
 
   vm: mkdir ~/.ssh
   vm: chmod 0700 ~/.ssh
-  vm: cat /vbox/ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+  vm: cat ~/vm/ssh/id_rsa.pub >> ~/.ssh/authorized_keys
   vm: chmod 0600 ~/.ssh/authorized_keys
 
 Unmount the share:
 
-  vm: umount /vbox
+  vm: sudo umount ~/vm
+  ht: VBoxManage sharedfolder remove vbox --name vm --transient
 
 Now take some standard snapshots and setup port forwarding:
 
@@ -88,25 +82,9 @@ Now take some standard snapshots and setup port forwarding:
   ht: VBoxManage -q snapshot vbox restore CURRENT
   ht: VBoxManage startvm vbox --type headless
 
-You can now ssh to the box, from the project directory:
+Now you can re-establish the share and access the box like this:
 
-  ht: chmod 0600 vbox/ssh/id_rsa
-  ht: ssh -p 2222 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i vbox/ssh/id_rsa vbox@localhost
-
-To save a lot of typing, setup a ssh config file for linecook:
-
-  [config/ssh]
-  Host vbox
-  HostName localhost
-  User vbox
-  Port 2222
-  UserKnownHostsFile /dev/null
-  StrictHostKeyChecking no
-  IdentitiesOnly yes
-  IdentityFile vbox/ssh/id_rsa
-
-Now you can access the box like this:
-
+  ht: linecook share
   ht: linecook ssh
 
 To cleanup the port forwarding (run later, if ever):
@@ -124,7 +102,7 @@ Linecook provides the following commands to manage and develop packages:
   # build, transfer, run, and test the 'vbox.yml' package
   ht: linecook test
   
-  # checkout the results (and or look in the vbox directory)
+  # checkout the results (and or look in the vm directory)
   ht: linecook ssh
   
   # move the current snapshot forward, and repeat
@@ -158,7 +136,7 @@ configurations can be reorganized to be a little more DRY:
   UserKnownHostsFile /dev/null
   StrictHostKeyChecking no
   IdentitiesOnly yes
-  IdentityFile vbox/ssh/id_rsa
+  IdentityFile vm/ssh/id_rsa
   
   Host vbox
     Port 2222
@@ -179,7 +157,7 @@ The same linecook commands will operate on a set of vms:
   # move the current snapshot forward for all (or a subset) the vms
   ht: linecook snapshot current
   
-  # checkout the results, one at a time - note the vbox directory will be
+  # checkout the results, one at a time - note the vm directory will be
   # shared among all of the vms (typically does not cause conflicts)
   ht: linecook ssh vbox
   ht: linecook ssh alt

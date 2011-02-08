@@ -3,9 +3,9 @@ User vbox
 UserKnownHostsFile /dev/null
 StrictHostKeyChecking no
 IdentitiesOnly yes
-IdentityFile vbox/ssh/id_rsa
+IdentityFile vm/ssh/id_rsa
 ControlMaster auto
-ControlPath vbox/ssh/socket-%r@%h:%p
+ControlPath vm/ssh/socket-%r@%h:%p
 
 Host vbox   # [vbox]
   Port 2222
