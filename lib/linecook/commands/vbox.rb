@@ -6,7 +6,7 @@ module Linecook
       config :ssh_config_file, 'config/ssh'
       
       def hosts
-        @hosts ||= Config.hosts(ssh_config_file)
+        Config.hosts(ssh_config_file)
       end
       
       def each_vm_name(vm_names)
@@ -62,20 +62,32 @@ module Linecook
       end
     end
     
-    # Linecook::Commands::Start::desc start the vm
+    # Linecook::Commands::Start::desc start a vm
+    #
+    # Starts one or more VirtualBox virtual machines, and resets to a snapshot
+    # if provided. By default all virtual machines configured in config/ssh
+    # will be reset and started in this way.
     class Start < VboxCommand
-      config :type, 'headless'
+      config :type, 'headless'             # vm type (headless|gui)
+      config :snapshot, '', :short => :s   # start snapshot
       
       def process(*vm_names)
         each_vm_name(vm_names) do |vm_name|
-          unless running?(vm_name)
-            start(vm_name)
+          unless snapshot.empty?
+            stop(vm_name) if running?(vm_name)
+            reset(vm_name, snapshot)
           end
+          
+          start(vm_name, type)
         end
       end
     end
     
-    # Linecook::Commands::Stop::desc stop the vm
+    # Linecook::Commands::Stop::desc stop a vm
+    #
+    # Stops one or more VirtualBox virtual machines using 'poweroff'.  By
+    # default all virtual machines configured in config/ssh will be stopped.
+    #
     class Stop < VboxCommand
       def process(*vm_names)
         each_vm_name(vm_names) do |vm_name|
@@ -86,20 +98,12 @@ module Linecook
       end
     end
     
-    # Linecook::Commands::Reset::desc reset vm to a snapshot
-    class Reset < VboxCommand
-      config :type, 'headless'
-      
-      def process(snapshot='base', *vm_names)
-        each_vm_name(vm_names) do |vm_name|
-          stop(vm_name) if running?(vm_name)
-          reset(vm_name, snapshot)
-          start(vm_name, type)
-        end
-      end
-    end
-    
     # Linecook::Commands::Snapshot::desc take a snapshop
+    #
+    # Takes the specified snapshot of one or more VirtualBox virtual machines.
+    # By default all virtual machines configured in config/ssh will have a
+    # snapshot taken.
+    #
     class Snapshot < VboxCommand
       def process(snapshot, *vm_names)
         each_vm_name(vm_names) do |vm_name|
@@ -109,17 +113,28 @@ module Linecook
     end
     
     # Linecook::Commands::State::desc print the vm state
+    #
+    # Prints the state of one or more VirtualBox virtual machines. By default
+    # all virtual machines configured in config/ssh will print their state.
+    #
     class State < VboxCommand
+      def state(vm_name)
+        running?(vm_name) ? "running" : "stopped"
+      end
+      
       def process(*vm_names)
         each_vm_name(vm_names) do |vm_name|
-          puts(running?(vm_name) ? "running" : "stopped")
+          puts "#{vm_name}: #{state(vm_name)}"
         end
       end
     end
     
-    # Linecook::Commands::Ssh::desc ssh to vm
+    # Linecook::Commands::Ssh::desc ssh to a vm
+    #
+    # Connects to a virtual machine using ssh, as configured in config/ssh.
+    # 
     class Ssh < VboxCommand
-      def process(host=hosts.first)
+      def process(host='vbox')
         ssh = "ssh -F '#{ssh_config_file}' '#{host}' --"
         puts ssh
         
@@ -138,7 +153,13 @@ module Linecook
       end
     end
     
-    # Linecook::Commands::Share::desc setup a vbox share
+    # Linecook::Commands::Share::desc setup a vm shared folder
+    #
+    # Sets up a shared folder with one or more VirtualBox virtual machines. By
+    # default all virtual machines configured in config/ssh will share the
+    # specified folder.  The virtual machines must be running for shares to be
+    # established.
+    # 
     class Share < VboxCommand
       def share(vm_name, path)
         name = Time.now.strftime("#{vm_name}-#{File.basename(path)}-%Y%m%d%H%M%S")
@@ -147,11 +168,11 @@ module Linecook
         ssh! vm_name, "sudo mount -t vboxsf -o uid=1000,gid=100 '#{name}' /vbox"
       end
       
-      def process(path='vbox', *vm_names)
-        path = File.expand_path(path)
+      def process(share_path='vbox', *vm_names)
+        share_path = File.expand_path(share_path)
         
         each_vm_name(vm_names) do |vm_name|
-          share(vm_name, path)
+          share(vm_name, share_path)
         end
       end
     end
