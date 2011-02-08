@@ -25,11 +25,15 @@ module Linecook
     
     # ::desc prints a package env
     #
-    # Prints the package env. A specific env value can be printed by
-    # specifying the key path to it.
+    # Prints the env for the current project directory.  Specifically the
+    # cookbook file is loaded and used to determine all resources that are
+    # current available.  The full build env for a package can be viewed by
+    # specifying the package file as an option.
+    #
+    # A specific env value can be printed by specifying the key path to it.
     class Env < Command
       config :project_dir, '.', :short => :d        # the project directory
-      config :package_path, nil, :short => :p       # the package path
+      config :package_file, nil, :short => :p       # the package file
       
       def select(current, *keys)
         keys.each do |key|
@@ -45,7 +49,7 @@ module Linecook
       
       def process(*keys)
         cookbook = Linecook::Cookbook.init(project_dir)
-        package  = Linecook::Package.load(package_path, cookbook)
+        package  = Linecook::Package.load(package_file, cookbook)
         
         env = select(package.env, *keys)
         YAML.dump(env, $stdout)

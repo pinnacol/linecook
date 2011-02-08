@@ -8,31 +8,36 @@ module Linecook
     
     # ::desc generates a package
     #
-    # Generates a package.
+    # Generates a package from a package file.  Package files are YAML files
+    # that specify a package env.  The env specifies recipes to build into the
+    # package, and the attributes to build them with.
     #
+    # If a cookbook file is present in the project_dir then it will be used to
+    # resolve resources available to the package.  See the env command to
+    # interrogate a package env.
     class Package < Command
-      config :cookbook_dir, '.', :short => :d       # the cookbook directory
+      config :project_dir, '.', :short => :d        # the project directory
       config :force, false, :short => :f, &c.flag   # force creation
       
-      def process(source, target=nil)
-        target ||= default_target(source)
+      def process(package_file, package_dir=nil)
+        package_dir ||= default_package_dir(package_file)
         
-        if File.exists?(target)
+        if File.exists?(package_dir)
           if force
-            FileUtils.rm_r(target)
+            FileUtils.rm_r(package_dir)
           else
-            raise "already exists: #{target}"
+            raise "already exists: #{package_dir}"
           end
         end
         
-        log :create, File.basename(target)
+        log :create, File.basename(package_dir)
         
-        cookbook = Linecook::Cookbook.init(cookbook_dir)
-        Linecook::Package.build(source, cookbook).export(target)
+        cookbook = Linecook::Cookbook.init(project_dir)
+        Linecook::Package.build(package_file, cookbook).export(package_dir)
       end
       
-      def default_target(source)
-        source.chomp(File.extname(source))
+      def default_package_dir(package_file)
+        package_file.chomp(File.extname(package_file))
       end
     end
   end
