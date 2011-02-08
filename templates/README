@@ -1,12 +1,15 @@
 = README
 
 Linecook provides support to develop scripts on a virtual machine managed by
-VirtualBox. Nothing says you have to use VirtualBox during development, but if
-you want to, these are instructions for setting up a generic Ubuntu VM.
+VirtualBox. Nothing says you have to use VirtualBox during development, or
+that you have to use it in the way described below, but if you want to, these
+are instructions for setting up a generic Ubuntu VM.
 
 1. Download and Install VirtualBox (http://www.virtualbox.org)
 2. Download a Ubuntu ISO (http://www.ubuntu.com/server/get-ubuntu/download)
 3. Build the Box
+
+== Setup
 
 Use the VirtualBox wizard to get started.
 
@@ -40,8 +43,14 @@ Setup Permissions (allows vbox to run sudo without password):
   #
   # then exit (write out changes as prompted)
 
-Setup guest additions. On OSX guest additions are located in the application
-package; see these
+Setup login shell and home dir:
+
+  vm: sudo mkdir /vbox
+  vm: sudo usermod --home /vbox vbox
+  vm: sudo chsh --shell /bin/bash vbox
+
+Setup guest additions to allow shared folders. On OSX guest additions are
+located in the application package; see these
 {two}[http://forums.virtualbox.org/viewtopic.php?f=8&t=10286]
 {topics}[http://forums.virtualbox.org/viewtopic.php?t=15868] on the virtual
 box forum.
@@ -53,14 +62,10 @@ box forum.
   vm: sudo sh /media/dvd/VBoxLinuxAdditions-x86.run
   # there may be a warning about 'Window System drivers fail', ignore
 
-Add an init script to mount the share on boot:
+Mount the share:
 
-  vm: sudo mkdir /vbox
   vm: sudo mount -t vboxsf -o uid=1000,gid=100 vbox /vbox
-  vm: sudo cp /vbox/setup/virtual_box /etc/init.d
-  vm: sudo chmod 0755 /etc/init.d/virtual_box
-  vm: sudo update-rc.d virtual_box defaults 80
-  
+
 Setup SSH:
 
   vm: mkdir ~/.ssh
@@ -68,35 +73,128 @@ Setup SSH:
   vm: cat /vbox/ssh/id_rsa.pub >> ~/.ssh/authorized_keys
   vm: chmod 0600 ~/.ssh/authorized_keys
 
-Now take a snapshot and setup port forwarding:
+Unmount the share:
+
+  vm: umount /vbox
+
+Now take some standard snapshots and setup port forwarding:
 
   vm: exit
   ht: VBoxManage snapshot vbox take BASE
+  ht: VBoxManage snapshot vbox take CURRENT
   ht: VBoxManage controlvm vbox poweroff
-  ht: VBoxManage modifyvm vbox --natpf1 'guestssh,tcp,,2222,,22'
-  ht: VBoxManage modifyvm vbox --natpf1 'http,tcp,,8888,,80'
-  ht: VBoxManage -q snapshot vbox restore BASE
+  ht: VBoxManage modifyvm vbox --natpf1 'vbox-ssh,tcp,,2222,,22'
+  ht: VBoxManage modifyvm vbox --natpf1 'vbox-http,tcp,,8888,,80'
+  ht: VBoxManage -q snapshot vbox restore CURRENT
   ht: VBoxManage startvm vbox --type headless
 
-You can now ssh to the box (from the project dir):
+You can now ssh to the box, from the project directory:
 
   ht: chmod 0600 vbox/ssh/id_rsa
   ht: ssh -p 2222 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i vbox/ssh/id_rsa vbox@localhost
 
-Linecook provides a shortcut for ssh:
+To save a lot of typing, setup a ssh config file for linecook:
+
+  [config/ssh]
+  Host vbox
+  HostName localhost
+  User vbox
+  Port 2222
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  IdentitiesOnly yes
+  IdentityFile vbox/ssh/id_rsa
+
+Now you can access the box like this:
 
   ht: linecook ssh
 
-Linecook also provides commands to manage the vm. The most useful command are
-these, which can be used to incrementally develop recipes.
+To cleanup the port forwarding (run later, if ever):
 
-  # take a snapshot
-  ht: linecook snapshot example
+  ht: VBoxManage modifyvm vbox --natpf1 delete 'vbox-ssh'
+  ht: VBoxManage modifyvm vbox --natpf1 delete 'vbox-http'
+
+== Development
+
+Linecook provides the following commands to manage and develop packages:
+
+  # start the vm to a known snapshot
+  ht: linecook start --snapshot=current
   
-  # reset the vm to a known snapshot (default 'base')
-  ht: linecook reset example
+  # build, transfer, run, and test the 'vbox.yml' package
+  ht: linecook test
+  
+  # checkout the results (and or look in the vbox directory)
+  ht: linecook ssh
+  
+  # move the current snapshot forward, and repeat
+  ht: linecook snapshot current
+  
+  # return to go
+  ht: linecook start --snapshot=base
+  
+  # stop the vm and go home
+  ht: linecook stop
 
-To cleanup the port forwarding (run later):
+=== Multiple VMs
 
-  ht: VBoxManage modifyvm vbox --natpf1 delete 'guestssh'
-  ht: VBoxManage modifyvm vbox --natpf1 delete 'http'
+To develop multiple (potentially interacting) virtual machines, build each as
+above but customize your access to each machine on the host. For example if
+you made an 'alt' virtual machine:
+
+  - name: alt
+  - hostname: alt-ubuntu
+  
+  ht: VBoxManage modifyvm alt --natpf1 'alt-ssh,tcp,,2223,,22'
+  ht: VBoxManage modifyvm alt --natpf1 'alt-http,tcp,,8889,,80'
+
+Notice both the name and the ports are altered in the port forwarding
+commands. Now in the ssh config file, make entries for each host; the
+configurations can be reorganized to be a little more DRY:
+
+  [config/ssh]
+  HostName localhost
+  User vbox
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  IdentitiesOnly yes
+  IdentityFile vbox/ssh/id_rsa
+  
+  Host vbox
+    Port 2222
+  
+  Host alt
+    Port 2223
+
+The same linecook commands will operate on a set of vms:
+
+  # start all (or a subset) the vms to a known snapshot
+  ht: linecook start --snapshot=current
+  
+  # * build, transfer, run the 'vbox.yml' package on the vbox vm
+  # * build, transfer, run the 'alt.yml' package on the alt vm
+  # * run the tests for each
+  ht: linecook test
+  
+  # move the current snapshot forward for all (or a subset) the vms
+  ht: linecook snapshot current
+  
+  # checkout the results, one at a time - note the vbox directory will be
+  # shared among all of the vms (typically does not cause conflicts)
+  ht: linecook ssh vbox
+  ht: linecook ssh alt
+  
+  # etc...
+
+When running tests the package name corresponds to the host that it will be
+run on, ie 'vbox.yml' goes to the 'vbox' host as specified in 'config/ssh'.
+Implicitly the target virtual machine will also be named 'vbox' in VirtualBox.
+If you name it something else, add a magic comment to the Host declaration
+like this:
+
+  [config/ssh]
+  ...
+  Host vbox    # [the_vm_name]
+  ...
+
+That's it.
