@@ -1,7 +1,10 @@
 require File.expand_path('../../../test_helper', __FILE__) 
 require 'linecook/commands/env'
+require 'linecook/test'
 
 class EnvTest < Test::Unit::TestCase
+  include Linecook::Test
+  
   Env = Linecook::Commands::Env
   
   attr_accessor :cmd
@@ -9,6 +12,17 @@ class EnvTest < Test::Unit::TestCase
   def setup
     super
     @cmd = Env.new
+  end
+  
+  #
+  # cmd test
+  #
+  
+  def test_env_prints_the_current_env
+    result = sh "ruby #{LINECOOK} env"
+    result = YAML.load(result)
+    
+    assert_equal Hash, result.class
   end
   
   #
