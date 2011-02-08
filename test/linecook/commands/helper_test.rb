@@ -139,18 +139,11 @@ class HelperTest < Test::Unit::TestCase
   #
   
   def test_build_results_in_a_nicely_formatted_module
-    a = prepare('a.rb') do |io| 
+    definition = prepare('a.rb') do |io| 
       io.puts "aaa"
       io.puts "(*args)"
       io.puts '--'
       io.puts "  body"
-    end
-    
-    b = prepare('b.erb') do |io| 
-      io.puts "bbb"
-      io.puts "(*args)"
-      io.puts '--'
-      io.puts "body"
     end
     
     assert_output_equal %q{
@@ -168,21 +161,9 @@ class HelperTest < Test::Unit::TestCase
           def _a(*args, &block) # :nodoc:
             capture { a(*args, &block) }
           end
-          
-          # bbb
-          def b(*args)
-            #  body
-            #  
-            _erbout.concat "body\n"
-            nil
-          end
-          
-          def _b(*args, &block) # :nodoc:
-            capture { b(*args, &block) }
-          end
         end
       end
-    }, cmd.build('A::B', [a, b])
+    }, cmd.build('A::B', [definition])
   end
   
   def test_build_remains_nicely_formatted_with_sections
