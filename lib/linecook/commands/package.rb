@@ -22,18 +22,16 @@ module Linecook
       def process(package_file, package_dir=nil)
         package_dir ||= default_package_dir(package_file)
         
-        if File.exists?(package_dir)
-          if force
-            FileUtils.rm_r(package_dir)
-          else
-            raise "already exists: #{package_dir}"
-          end
+        cookbook = Linecook::Cookbook.init(project_dir)
+        package  = Linecook::Package.load(package_file, cookbook)
+        
+        if force || !File.exists?(package_dir)
+          log :create, File.basename(package_dir)
+          package.build
+          package.export(package_dir)
         end
         
-        log :create, File.basename(package_dir)
-        
-        cookbook = Linecook::Cookbook.init(project_dir)
-        Linecook::Package.build(package_file, cookbook).export(package_dir)
+        package_dir
       end
       
       def default_package_dir(package_file)

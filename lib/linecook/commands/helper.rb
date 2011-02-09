@@ -1,6 +1,7 @@
 require 'linecook/commands/command'
 require 'linecook/utils'
 require 'erb'
+require 'fileutils'
 
 module Linecook
   module Commands
@@ -42,19 +43,19 @@ module Linecook
           raise CommandError, "no sources specified (and none found under 'helpers/#{const_path}')"
         end
         
-        if File.exists?(target) && !force
-          raise CommandError, "already exists: #{target}"
+        if force || !FileUtils.uptodate?(target, sources)
+          log :create, const_name
+          content = build(const_name, sources)
+          
+          target_dir = File.dirname(target)
+          unless File.exists?(target_dir)
+            FileUtils.mkdir_p(target_dir) 
+          end
+          
+          File.open(target, 'w') {|io| io << content }
         end
         
-        log :create, const_name
-        content = build(const_name, sources)
-        
-        target_dir = File.dirname(target)
-        unless File.exists?(target_dir)
-          FileUtils.mkdir_p(target_dir) 
-        end
-
-        File.open(target, 'w') {|io| io << content }
+        target
       end
       
       # Returns the default source files for a given constant path, which are
