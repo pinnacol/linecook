@@ -29,6 +29,21 @@ class PackageTest < Test::Unit::TestCase
   end
   
   #
+  # registry test
+  #
+  
+  def test_registry_returns_registry_in_config
+    hash = {}
+    package = Package.new(Package::CONFIG_KEY => {Package::REGISTRY_KEY => hash})
+    assert_equal hash.object_id, package.registry.object_id
+  end
+  
+  def test_registry_initializes_to_empty_hash_if_unset
+    assert_equal({}, package.registry)
+    assert_equal({}, package.env[Package::CONFIG_KEY][Package::REGISTRY_KEY])
+  end
+  
+  #
   # recipes test
   #
   

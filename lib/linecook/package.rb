@@ -39,6 +39,7 @@ module Linecook
     CONFIG_KEY          = 'linecook'
     COOKBOOK_CONFIG_KEY = 'cookbook'
     MANIFEST_KEY        = 'manifest'
+    REGISTRY_KEY        = 'registry'
     FILES_KEY           = 'files'
     TEMPLATES_KEY       = 'templates'
     RECIPES_KEY         = 'recipes'
@@ -58,7 +59,6 @@ module Linecook
     
     def initialize(env={})
       @env = env
-      @registry = {}
       @tempfiles = []
       @counters = Hash.new(0)
     end
@@ -79,6 +79,12 @@ module Linecook
     # empty hash.
     def manifest
       config[MANIFEST_KEY] ||= Hash.new {|hash, key| hash[key] = {} }
+    end
+    
+    # Returns the registry in config, as keyed by REGISTRY_KEY. Defaults to an
+    # empty hash.
+    def registry
+      config[REGISTRY_KEY] ||= {}
     end
     
     # Returns the hash of (source, target) pairs identifying which of the
