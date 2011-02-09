@@ -68,9 +68,8 @@ echo 'outer'
   
   def test_target_name_is_the_name_of_target_in_package
     setup_recipe 'recipe'
-    
-    assert_equal 'recipe', package.target_name(recipe.target.path)
     assert_equal 'recipe', recipe.target_name
+    assert_equal recipe.target.path, package.registry['recipe']
   end
   
   #

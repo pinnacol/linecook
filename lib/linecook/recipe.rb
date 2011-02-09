@@ -61,11 +61,11 @@ module Linecook
     # The name of target in package
     attr_reader :target_name
     
-    def initialize(target, package)
-      @target      = target
-      @attributes  = {}
+    def initialize(package, target_name)
       @package     = package
-      @target_name = @package.target_name(target.path)
+      @target_name = target_name
+      @target      = @package.tempfile(target_name)
+      @attributes  = {}
     end
     
     # Returns self.  In the context of a compiled ERB helper, this method
@@ -139,13 +139,14 @@ module Linecook
     # the file can be specified as the content arg and/or with a block which
     # recieves an IO representing the new file.
     def target_file(name, content=nil) # :yields: io
-      tempfile = @package.tempfile File.join(target_dir_name, name)
+      target_name = File.join(target_dir_name, name)
+      tempfile = @package.tempfile target_name
       
       tempfile << content if content
       yield(tempfile) if block_given?
       
       tempfile.close
-      target_path @package.target_name(tempfile.path)
+      target_path target_name
     end
     
     # Loads the specified attributes file and merges the resulting attrs into
@@ -203,13 +204,17 @@ module Linecook
     # target_path to the resulting file.
     def template_path(template_name, locals={})
       locals[:attrs] ||= attrs
-      target_file template_name, @package.template(template_name, locals)
+      
+      binding = OpenStruct.new(locals).send(:binding)
+      content = @package.template(template_name).result(binding)
+      
+      target_file template_name, content
     end
     
     # Looks up, builds, and registers the specified recipe and returns the
     # target_path to the resulting file.
     def recipe_path(recipe_name, target_name = recipe_name)
-      unless @package.registered_target?(target_name)
+      unless @package.registry.has_key?(target_name)
         @package.build_recipe(recipe_name, target_name)
       end
       
