@@ -42,7 +42,6 @@ module Linecook
     FILES_KEY           = 'files'
     TEMPLATES_KEY       = 'templates'
     RECIPES_KEY         = 'recipes'
-    RESOURCE_TYPES      = [FILES_KEY, TEMPLATES_KEY, RECIPES_KEY]
     
     # The package environment
     attr_reader :env
@@ -87,66 +86,39 @@ module Linecook
       config[MANIFEST_KEY] ||= Hash.new {|hash, key| hash[key] = {} }
     end
     
-    # Returns a hash of (source, target) pairs identifying which of the
-    # specified type of resources will be built into self by build.  The type
-    # of resource can be 'files', 'templates', or 'recipes'.  Resources are
-    # looked up in config by type and then normalized.
+    # Returns the hash of (source, target) pairs identifying which of the
+    # files will be built into self by build.  Files are identified by
+    # FILES_KEY in config, and normalized the same way as recipes.
+    def files
+      normalize(FILES_KEY)
+    end
+    
+    # Returns the hash of (source, target) pairs identifying which templates
+    # will be built into self by build. Templates are identified by
+    # TEMPLATES_KEY in config, and normalized the same way as recipes.
+    def templates
+      normalize(TEMPLATES_KEY)
+    end
+    
+    # Returns the hash of (source, target) pairs identifying which recipes
+    # will be built into self by build.  Recipes are identified by RECIPES_KEY
+    # in config.
     #
-    # ==== Normalization
-    #
-    # Resources are normalized by expanding arrays into a redundant hash, such
-    # that each entry has the same source and target (more concretely, the
-    # 'example' recipe is registered as the 'example' script).  Strings are
-    # split along colons into an array and then expanded.
+    # Non-hash recipes are normalized by expanding arrays into a redundant
+    # hash, such that each entry has the same source and target (more
+    # concretely, the 'example' recipe is registered as the 'example' script).
+    # Strings are split along colons into an array and then expanded.
     #
     # For example:
     #
     #   package = Package.new('linecook' => {'recipes' => 'a:b:c'})
-    #   package.resources('recipes')   # => {'a' => 'a', 'b' => 'b', 'c' => 'c'}
+    #   package.recipes   # => {'a' => 'a', 'b' => 'b', 'c' => 'c'}
     #
-    def resources(type)
-      unless RESOURCE_TYPES.include?(type)
-        raise "invalid type: #{type.inspect}"
-      end
-      
-      obj = config[type]
-      
-      case obj
-      when Hash
-        obj
-        
-      when nil
-        config[type] = {}
-        
-      when Array
-        hash = {}
-        obj.each {|entry| hash[entry] = entry }
-        config[type] = hash
-      
-      when String
-        config[type] = obj.split(':')
-        resources(type)
-      
-      else
-        raise "invalid #{type}: #{obj.inspect}"
-      end
-    end
-    
-    # Returns the 'files' resources.
-    def files
-      resources(FILES_KEY)
-    end
-    
-    # Returns the 'templates' resources.
-    def templates
-      resources(TEMPLATES_KEY)
-    end
-    
-    # Returns the 'recipes' resources.
     def recipes
-      resources(RECIPES_KEY)
+      normalize(RECIPES_KEY)
     end
     
+    # Returns the source path for the target in registry.
     def [](target_name)
       registry[target_name]
     end
@@ -411,6 +383,32 @@ module Linecook
       
       tempfiles.clear
       registry
+    end
+    
+    private
+    
+    def normalize(type) # :nodoc:
+      obj = config[type]
+      
+      case obj
+      when Hash
+        obj
+        
+      when nil
+        config[type] = {}
+        
+      when Array
+        hash = {}
+        obj.each {|entry| hash[entry] = entry }
+        config[type] = hash
+      
+      when String
+        config[type] = obj.split(':')
+        normalize(type)
+      
+      else
+        raise "invalid #{type}: #{obj.inspect}"
+      end
     end
   end
 end

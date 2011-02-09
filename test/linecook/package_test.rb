@@ -29,36 +29,36 @@ class PackageTest < Test::Unit::TestCase
   end
   
   #
-  # resources test
+  # recipes test
   #
   
-  def test_resources_documentation
+  def test_recipes_documentation
     package = Package.new('linecook' => {'recipes' => 'a:b:c'})
-    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.resources('recipes'))
+    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.recipes)
   end
   
-  def test_resources_returns_resources_of_the_specified_type_in_configs
+  def test_recipes_returns_recipes_of_the_specified_type_in_configs
     hash = {}
     package = Package.new(Package::CONFIG_KEY => {Package::RECIPES_KEY => hash})
-    assert_equal hash.object_id, package.resources(Package::RECIPES_KEY).object_id
+    assert_equal hash.object_id, package.recipes.object_id
   end
   
-  def test_resources_initializes_to_empty_hash_if_unset
-    assert_equal({}, package.resources(Package::RECIPES_KEY))
+  def test_recipes_initializes_to_empty_hash_if_unset
+    assert_equal({}, package.recipes)
     assert_equal({}, package.env[Package::CONFIG_KEY][Package::RECIPES_KEY])
   end
   
-  def test_resources_expands_array_into_a_redundant_hash
+  def test_recipes_expands_array_into_a_redundant_hash
     package = Package.new(Package::CONFIG_KEY => {Package::RECIPES_KEY => ['a', 'b', 'c']})
     
-    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.resources(Package::RECIPES_KEY))
+    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.recipes)
     assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.env[Package::CONFIG_KEY][Package::RECIPES_KEY])
   end
   
-  def test_resources_splits_string_into_a_redundant_hash_along_colons
+  def test_recipes_splits_string_into_a_redundant_hash_along_colons
     package = Package.new(Package::CONFIG_KEY => {Package::RECIPES_KEY => 'a:b:c'})
     
-    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.resources(Package::RECIPES_KEY))
+    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.recipes)
     assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.env[Package::CONFIG_KEY][Package::RECIPES_KEY])
   end
   
