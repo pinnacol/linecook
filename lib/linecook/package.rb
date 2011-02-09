@@ -81,12 +81,6 @@ module Linecook
       config[MANIFEST_KEY] ||= Hash.new {|hash, key| hash[key] = {} }
     end
     
-    # Returns the registry in config, as keyed by REGISTRY_KEY. Defaults to an
-    # empty hash.
-    def registry
-      config[REGISTRY_KEY] ||= {}
-    end
-    
     # Returns the hash of (source, target) pairs identifying which of the
     # files will be built into self by build.  Files are identified by
     # FILES_KEY in config, and normalized the same way as recipes.
@@ -119,9 +113,10 @@ module Linecook
       normalize(RECIPES_KEY)
     end
     
-    # Returns the source path for the target in registry.
-    def [](target_name)
-      registry[target_name]
+    # Returns the registry in config, as keyed by REGISTRY_KEY. Defaults to an
+    # empty hash.
+    def registry
+      config[REGISTRY_KEY] ||= {}
     end
     
     # Registers the source_path to target_name in the registry and
