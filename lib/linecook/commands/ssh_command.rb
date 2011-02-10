@@ -79,12 +79,12 @@ module Linecook
         end
       end
       
-      def scp(host, source, target)
-        sh "scp -q -F '#{ssh_config_file}' '#{source}' '#{host}:#{target}'"
+      def scp_r(host, source, target)
+        sh "scp -q -r -F '#{ssh_config_file}' '#{source}' '#{host}:#{target}'"
       end
       
-      def scp!(host, source, target)
-        unless scp(host, source, target)
+      def scp_r!(host, source, target)
+        unless scp_r(host, source, target)
           raise CommandError, "non-zero exit status: #{$?.exitstatus}"
         end
       end
