@@ -36,46 +36,39 @@ class CookbookTest < Test::Unit::TestCase
   # manifest test
   #
   
-  def test_manifest_searches_for_files_along_pwd_by_default
-    example = prepare('files/example.txt')
-    
-    cookbook = Cookbook.new(method_dir)
-    assert_equal({'files' => {'example.txt' => example}}, cookbook.manifest)
-  end
-  
   def test_manifest_returns_manifest_of_matching_files_along_paths
-    cookbook = Cookbook.new(method_dir, 'paths' => [DIR_ONE, DIR_TWO])
+    cookbook = Cookbook.new('paths' => [DIR_ONE, DIR_TWO])
     assert_equal MANIFEST, cookbook.manifest
   end
   
   def test_manifest_splits_paths
-    cookbook = Cookbook.new(method_dir, 'paths' => "#{DIR_ONE}:#{DIR_TWO}")
+    cookbook = Cookbook.new('paths' => "#{DIR_ONE}:#{DIR_TWO}")
     assert_equal MANIFEST, cookbook.manifest
   end
   
   def test_manifest_resolves_paths_from_gems
-    cookbook = Cookbook.new(method_dir, 'gems' => ['one', 'two'])
+    cookbook = Cookbook.new('gems' => ['one', 'two'])
     cookbook.extend MockSpecs
     
     assert_equal MANIFEST, cookbook.manifest
   end
   
   def test_manifest_splits_gems
-    cookbook = Cookbook.new(method_dir, 'gems' => 'one:two')
+    cookbook = Cookbook.new('gems' => 'one:two')
     cookbook.extend MockSpecs
     
     assert_equal MANIFEST, cookbook.manifest
   end
   
   def test_manifest_searches_gems_then_paths
-    cookbook = Cookbook.new(method_dir, 'paths' => [DIR_TWO], 'gems'  => ['one'])
+    cookbook = Cookbook.new('paths' => [DIR_TWO], 'gems'  => ['one'])
     cookbook.extend MockSpecs
     
     assert_equal MANIFEST, cookbook.manifest
   end
   
   def test_manifest_overrides_results_with_config_manifest
-    cookbook = Cookbook.new(method_dir, 
+    cookbook = Cookbook.new(
       'paths'    => [DIR_ONE],
       'manifest' => {
         'files' => {
@@ -89,7 +82,7 @@ class CookbookTest < Test::Unit::TestCase
   end
   
   def test_manifest_rewrites_resource_paths
-    cookbook = Cookbook.new(method_dir, 
+    cookbook = Cookbook.new(
       'rewrite'  => {
         '/post.' => '.',
         'pre/'   => ''

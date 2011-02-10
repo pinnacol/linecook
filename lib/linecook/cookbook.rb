@@ -10,13 +10,14 @@ module Linecook
       
       def init(dir)
         path = config_file(dir)
-        new(dir, Utils.load_config(path))
+        config = Utils.load_config(path)
+        new default_config(dir).merge(config)
       end
       
-      def default
+      def default_config(dir)
         {
            MANIFEST_KEY => {},
-           PATHS_KEY    => ['.'],
+           PATHS_KEY    => [dir],
            GEMS_KEY     => gems,
            REWRITE_KEY  => {}
          }
@@ -45,12 +46,10 @@ module Linecook
       'templates'  => ['templates', '.erb']
     }
     
-    attr_reader :dir
     attr_reader :config
     
-    def initialize(dir='.', config={})
-      @dir    = File.expand_path(dir)
-      @config = self.class.default.merge(config)
+    def initialize(config={})
+      @config = config
     end
     
     def paths
@@ -70,7 +69,7 @@ module Linecook
     end
     
     def full_gem_paths
-      return gems if gems.empty?
+      return [] if gems.empty?
       specs = latest_specs
       
       gems.collect do |name| 
@@ -90,7 +89,7 @@ module Linecook
           
           replacements[key] = replacement
         end
-      end
+      end if rewrites
       
       replacements.each do |key, replacement|
         manifest[replacement] = manifest.delete(key)
@@ -104,7 +103,7 @@ module Linecook
       
       paths.each do |path|
         PATTERNS.each_pair do |type, (dirname, extname)|
-          resource_dir = File.expand_path(File.join(path, dirname), dir)
+          resource_dir = File.expand_path(File.join(path, dirname))
           pattern = File.join(resource_dir, "**/*#{extname}")
           
           Dir.glob(pattern).each do |full_path|
@@ -149,7 +148,11 @@ module Linecook
     end
     
     def split(obj) # :nodoc:
-      obj.kind_of?(String) ? obj.split(':') : obj
+      case obj
+      when nil    then []
+      when String then obj.split(':')
+      else obj
+      end
     end
     
     def latest_specs # :nodoc:
