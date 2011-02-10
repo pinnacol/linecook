@@ -78,7 +78,7 @@ be a helper module in the 'lib' directory, generated from the definitions
 under the 'helpers' directory, and a package under the packages directory,
 generated from the example.yml file.
 
-  % rake packages
+  % rake build
 
 Start the VM and run the script in the package (see the
 {docs}[link:templates/README] for setting up a VM).

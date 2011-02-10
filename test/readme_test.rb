@@ -66,7 +66,7 @@ example:
       }
     end
     
-    sh "BUNDLE_GEMFILE='#{gemfile}' rake packages 2>&1 > /dev/null"
+    sh "BUNDLE_GEMFILE='#{gemfile}' rake build > /dev/null 2>&1"
     
     assert_script %Q{
       % bash '#{path('packages/example/example')}'

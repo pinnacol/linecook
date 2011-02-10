@@ -1,21 +1,19 @@
 require 'linecook/commands/helper'
 require 'linecook/commands/package'
-require 'yaml'
 
 module Linecook
   module Commands
     
     # ::desc build a project
     #
-    # Builds all packages and helpers in a project, as needed.
+    # Builds some or all packages and helpers in a project, as needed.
     #
     class Build < Command
+      config :project_dir, '.', :short => :d      # the project directory
       config :force, false, :short => :f, &c.flag # force creation
-      config :helpers_dir, 'helpers'
-      config :packages_dir, 'packages'
       
       def glob_helpers(project_dir)
-        helpers_dir = File.expand_path(self.helpers_dir, project_dir)
+        helpers_dir = File.expand_path('helpers', project_dir)
         sources = {}
         helpers = []
         
@@ -32,17 +30,12 @@ module Linecook
         helpers.sort_by {|name, sources| name }
       end
       
-      def glob_packages(project_dir)
-        packages_dir = File.expand_path(self.packages_dir, project_dir)
-        
-        Dir.glob("#{packages_dir}/*.yml").collect do |source|
-          [source, source.chomp('.yml')]
-        end
+      def glob_package_files(project_dir)
+        packages_dir = File.expand_path('packages', project_dir)
+        Dir.glob("#{packages_dir}/*.yml")
       end
       
-      def process(project_dir='.')
-        project_dir = File.expand_path(project_dir)
-        
+      def process(*package_files)
         helper = Helper.new(
           :project_dir => project_dir, 
           :force => force
@@ -56,9 +49,11 @@ module Linecook
           :force => force
         )
         
-        packages = glob_packages(project_dir)
-        packages.collect! {|(source, target)| package.process(source, target) }
-        packages
+        if package_files.empty?
+          package_files = glob_package_files(project_dir)
+        end
+        
+        package_files.collect! {|source| package.process(source) }
       end
     end
   end
