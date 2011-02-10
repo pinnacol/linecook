@@ -1,10 +1,12 @@
 require 'linecook/cookbook'
 require 'linecook/package'
-require 'linecook/test/vm_test'
+require 'linecook/test/file_test'
+require 'linecook/test/shell_test'
 
 module Linecook
   module Test
-    include VmTest
+    include FileTest
+    include ShellTest
     
     LINECOOK_DIR = File.expand_path('../../..', __FILE__)
     LINECOOK = File.join(LINECOOK_DIR, 'bin/linecook')
@@ -36,42 +38,6 @@ module Linecook
       @recipe ||= setup_recipe
     end
     
-    def build_recipe(target_path='recipe', &block)
-      setup_recipe(target_path).instance_eval(&block)
-    end
-    
-    def build_package(env={}, options={}, &block)
-      options = {
-        :target_path => 'recipe',
-        :export_dir  => 'package'
-      }.merge(options)
-      
-      package = setup_package(env)
-      
-      if block_given?
-        build_recipe(options[:target_path], &block)
-      end
-      
-      package.build
-      
-      if export_dir = options[:export_dir]
-        package.export path(export_dir)
-      end
-      
-      package
-    end
-    
-    def transfer_package(package=self.package, remote_dir=remote_method_dir)
-      pkg_files = package.registry.values
-      
-      export_dir = File.dirname(pkg_files.sort_by {|path| path.length }.first)
-      if pkg_files.all? {|path| path.index(export_dir) == 0 }
-        pkg_files = [export_dir]
-      end
-      
-      scp pkg_files, remote_dir
-    end
-    
     def assert_recipe(expected, recipe=self.recipe, &block)
       recipe.instance_eval(&block) if block_given?
       assert_output_equal expected, recipe.result
@@ -82,17 +48,6 @@ module Linecook
       recipe.instance_eval(&block) if block_given?
       assert_alike expected, recipe.result
       recipe
-    end
-    
-    def check_package(remote_script, options={})
-      options = {
-        :package    => package,
-        :remote_dir => remote_method_dir
-      }.merge(options)
-      
-      vm_setup
-      transfer_package options[:package], options[:remote_dir]
-      assert_remote_script(remote_script, options)
     end
   end
 end
