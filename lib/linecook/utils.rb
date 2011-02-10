@@ -8,6 +8,14 @@ module Linecook
       (path ? YAML.load_file(path) : nil) || {}
     end
     
+    def arrayify(obj)
+      case obj
+      when nil    then []
+      when String then obj.split(':')
+      else obj
+      end
+    end
+    
     def hashify(obj)
       case obj
       when Hash then obj

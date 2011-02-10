@@ -53,11 +53,11 @@ module Linecook
     end
     
     def paths
-      split config[PATHS_KEY]
+      Utils.arrayify config[PATHS_KEY]
     end
     
     def gems
-      split config[GEMS_KEY]
+      Utils.arrayify config[GEMS_KEY]
     end
     
     def rewrites
@@ -145,14 +145,6 @@ module Linecook
     def relative_path(dir, path) # :nodoc:
       start = dir.length + 1
       path[start, path.length - start]
-    end
-    
-    def split(obj) # :nodoc:
-      case obj
-      when nil    then []
-      when String then obj.split(':')
-      else obj
-      end
     end
     
     def latest_specs # :nodoc:
