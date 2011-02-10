@@ -341,26 +341,7 @@ module Linecook
     
     def normalize(type) # :nodoc:
       obj = config[type]
-      
-      case obj
-      when Hash
-        obj
-        
-      when nil
-        config[type] = {}
-        
-      when Array
-        hash = {}
-        obj.each {|entry| hash[entry] = entry }
-        config[type] = hash
-      
-      when String
-        config[type] = obj.split(':')
-        normalize(type)
-      
-      else
-        raise "invalid #{type}: #{obj.inspect}"
-      end
+      config[type] = Utils.hashify(obj) or raise "invalid #{type}: #{obj.inspect}"
     end
   end
 end

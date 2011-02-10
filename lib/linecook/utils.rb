@@ -8,6 +8,22 @@ module Linecook
       (path ? YAML.load_file(path) : nil) || {}
     end
     
+    def hashify(obj)
+      case obj
+      when Hash then obj
+      when nil  then {}
+      when Array
+        hash = {}
+        obj.each {|entry| hash[entry] = entry }
+        hash
+      
+      when String 
+        hashify obj.split(':')
+      
+      else nil
+      end
+    end
+    
     def deep_merge(a, b)
       b.each_pair do |key, current|
         previous = a[key]
