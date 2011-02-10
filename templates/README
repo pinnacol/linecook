@@ -46,11 +46,12 @@ located in the application package (view package contents on VirtualBox
 application > Contents > MacOS > VBoxGuestAdditions.iso).
 
   (Devices > CD/DVD Devices): select the VBoxGuestAdditions.iso
-  vm: sudo apt-get install linux-headers-$(uname -r) build-essential ssh openssh-server
+  vm: sudo apt-get install -y linux-headers-$(uname -r) build-essential ssh openssh-server
   vm: sudo mkdir /media/dvd
   vm: sudo mount /dev/dvd /media/dvd/
   vm: sudo sh /media/dvd/VBoxLinuxAdditions.run
   # there may be a warning about 'Window System drivers fail', ignore
+  vm: sudo umount /media/dvd/
   (Devices > CD/DVD Devices > Remove disk from virtual drive)
   
 Mount a share to the vm directory:
@@ -65,6 +66,7 @@ Setup SSH:
   vm: chmod 0700 ~/.ssh
   vm: cat ~/vm/ssh/id_rsa.pub >> ~/.ssh/authorized_keys
   vm: chmod 0600 ~/.ssh/authorized_keys
+  ht: chmod 0600 vm/ssh/id_rsa
 
 Unmount the share:
 
