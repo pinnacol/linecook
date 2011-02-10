@@ -3,7 +3,7 @@ require 'linecook/cookbook'
 require 'yaml'
 
 # http://snippets.dzone.com/posts/show/5811
-class Hash
+class Hash # :nodoc:
   undef_method :to_yaml
   
   # Replacing the to_yaml function so it'll serialize hashes sorted (by their keys)
