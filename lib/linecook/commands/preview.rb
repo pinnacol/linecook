@@ -18,7 +18,7 @@ module Linecook
     # typically big and because they don't print as plain text.
     class Preview < Command
       config :project_dir, '.', :short => :d        # the project directory
-      config :package_path, nil, :short => :p       # the package path
+      config :package_file, nil, :short => :p       # the package file
       
       config :only, '.' do |filter|                 # an 'only' target filter
         Regexp.new(filter)
@@ -31,7 +31,7 @@ module Linecook
       config :max, 10 ** 4, &c.integer              # max length to display (per file)
       
       def process(*recipes)
-        package  = Linecook::Package.init(package_file, project_dir)
+        package = Linecook::Package.init(package_file, project_dir)
         package.config[Linecook::Package::RECIPES_KEY] = recipes
         package.build
 
