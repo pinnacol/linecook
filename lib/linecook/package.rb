@@ -1,6 +1,6 @@
 require 'linecook/recipe'
+require 'linecook/template'
 require 'tempfile'
-require 'ostruct'
 
 module Linecook
   class Package
@@ -215,13 +215,6 @@ module Linecook
       Recipe.new(self, target_name)
     end
     
-    def template(template_name)
-      source = template_path(template_name)
-      erb = ERB.new File.read(source)
-      erb.filename = source
-      erb
-    end
-    
     def helper(helper_name)
       require Utils.underscore(helper_name)
       Utils.constantize(helper_name)
@@ -239,8 +232,8 @@ module Linecook
     # access in the template context.  Raises an error if the target is
     # already registered. Returns self.
     def build_template(target_name, template_name, locals=env)
-      binding = OpenStruct.new(locals).send(:binding)
-      content = template(template_name).result(binding)
+      path = template_path(template_name)
+      content = Template.new(path).build(locals)
       
       target = tempfile(target_name)
       target << content
