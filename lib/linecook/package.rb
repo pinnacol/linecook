@@ -150,6 +150,16 @@ module Linecook
       target_name
     end
     
+    # Returns a package-unique variable with base 'name'.
+    def next_variable_name(context)
+      context = context.to_s
+      
+      count = counters[context]
+      counters[context] += 1
+      
+      "#{context}#{count}"
+    end
+    
     # Returns true if there is a path for the specified resource in manifest.
     def resource?(type, path)
       resources = manifest[type]
@@ -217,19 +227,9 @@ module Linecook
       Utils.constantize(helper_name)
     end
     
-    # Returns a package-unique variable with base 'name'.
-    def variable(name)
-      name  = name.to_s
-      
-      count = counters[name]
-      counters[name] += 1
-      
-      "#{name}#{count}"
-    end
-    
     # Looks up the file with the specified name using file_path and registers
     # it to target_name.  Raises an error if the target is already registered.
-    def build_file(file_name, target_name)
+    def build_file(target_name, file_name)
       register target_name, file_path(file_name)
       self
     end
@@ -238,7 +238,7 @@ module Linecook
     # builds, and registers it to target_name.  The locals will be set for
     # access in the template context.  Raises an error if the target is
     # already registered. Returns self.
-    def build_template(template_name, target_name, locals=env)
+    def build_template(target_name, template_name, locals=env)
       binding = OpenStruct.new(locals).send(:binding)
       content = template(template_name).result(binding)
       
@@ -251,23 +251,27 @@ module Linecook
     # Looks up the recipe with the specified name using recipe_path, evaluates
     # it, and registers the result to target_name.  Raises an error if the
     # target is already registered. Returns self.
-    def build_recipe(recipe_name, target_name)
-      recipe(target_name).evaluate(recipe_name).close
+    def build_recipe(target_name, recipe_name)
+      path = recipe_path(recipe_name)
+      recipe = self.recipe(target_name)
+      recipe.instance_eval(File.read(path), path)
+      recipe.close
+      
       self
     end
     
     # Builds the files, templates, and recipes for self.  Returns self.
     def build
-      files.each do |file_name, target_name|
-        build_file(file_name, target_name)
+      files.each do |target_name, file_name|
+        build_file(target_name, file_name)
       end
       
-      templates.each do |template_name, target_name|
-        build_template(template_name, target_name)
+      templates.each do |target_name, template_name|
+        build_template(target_name, template_name)
       end
       
-      recipes.each do |recipe_name, target_name|
-        build_recipe(recipe_name, target_name)
+      recipes.each do |target_name, recipe_name|
+        build_recipe(target_name, recipe_name)
       end
       
       self

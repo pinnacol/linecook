@@ -123,32 +123,6 @@ module Linecook
       end
     end
     
-    # The name of directory in package where associated files are added
-    def target_dir_name
-      @target_dir_name ||= "#{target_name}.d"
-    end
-    
-    # The path to the named target, as it should be referenced in the final
-    # script.  By default target_path simply returns target_name; this method
-    # exists as a hook to rewrite target names to paths.
-    def target_path(target_name=self.target_name)
-      target_name
-    end
-    
-    # Generates and returns the target_path to the named file.  Content for
-    # the file can be specified as the content arg and/or with a block which
-    # recieves an IO representing the new file.
-    def target_file(name, content=nil) # :yields: io
-      target_name = File.join(target_dir_name, name)
-      tempfile = @package.tempfile target_name
-      
-      tempfile << content if content
-      yield(tempfile) if block_given?
-      
-      tempfile.close
-      target_path target_name
-    end
-    
     # Loads the specified attributes file and merges the resulting attrs into
     # attrs. A block may be given to specify attrs as well; it will be
     # evaluated in the context of an Attributes instance.
@@ -181,51 +155,53 @@ module Linecook
       extend @package.helper(helper_name)
     end
     
-    def variable(name)
-      @package.variable(name)
+    def next_target_name(target_name)
+      @package.next_target_name(target_name)
     end
     
-    # Looks up and evaluates the specified recipe in the context of self.
-    # Returns self.
-    def evaluate(recipe_name=target_name)
-      path = @package.recipe_path(recipe_name)
-      instance_eval(File.read(path), path)
-      self
+    def next_variable_name(context)
+      @package.next_variable_name(context)
+    end
+    
+    # The path to the named target, as it should be referenced in the final
+    # script.  By default target_path simply returns target_name; this method
+    # exists as a hook to rewrite target names to paths.
+    def target_path(target_name=self.target_name)
+      target_name
     end
     
     # Registers the specified file into package and returns the target_path to
     # the file.
-    def file_path(file_name)
-      file_path = @package.file_path(file_name)
-      target_path @package.register(File.join(target_dir_name, file_name), file_path)
+    def file_path(target_name, file_name=target_name)
+      @package.build_file(target_name, file_name)
+      target_path target_name
     end
     
     # Looks up, builds, and registers the specified template and returns the
     # target_path to the resulting file.
-    def template_path(template_name, locals={})
+    def template_path(target_name, template_name=target_name, locals={})
       locals[:attrs] ||= attrs
       
-      binding = OpenStruct.new(locals).send(:binding)
-      content = @package.template(template_name).result(binding)
-      
-      target_file template_name, content
+      @package.build_template(target_name, template_name, locals)
+      target_path target_name
     end
     
     # Looks up, builds, and registers the specified recipe and returns the
     # target_path to the resulting file.
-    def recipe_path(recipe_name, target_name = recipe_name)
-      unless @package.registry.has_key?(target_name)
-        @package.build_recipe(recipe_name, target_name)
-      end
-      
+    def recipe_path(target_name, recipe_name=target_name)
+      @package.build_recipe(target_name, recipe_name)
       target_path target_name
     end
     
     # Captures the output for a block, registers it, and returns the
     # target_path to the resulting file.
-    def capture_path(name, &block)
-      content = capture(false) { instance_eval(&block) }
-      target_file(name, content)
+    def capture_path(target_name,  content=nil, &block)
+      tempfile = @package.tempfile(target_name)
+      tempfile << content if content
+      tempfile << capture(false) { instance_eval(&block) } if block
+      tempfile.close
+      
+      target_path target_name
     end
     
     # Captures and returns output for the duration of a block.  The output is

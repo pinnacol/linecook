@@ -15,4 +15,4 @@ echo *attrs['<%= project_name %>']['numbers']
 cat file_path('file.txt')
 
 # Same for templates.  Provide locals as a trailing hash.
-cat template_path('template.txt', :n => 10)
+cat template_path('template.txt', 'template.txt', :n => 10)
