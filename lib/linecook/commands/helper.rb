@@ -1,7 +1,7 @@
 require 'linecook/commands/command'
 require 'linecook/utils'
-require 'erb'
 require 'fileutils'
+require 'erb'
 
 module Linecook
   module Commands

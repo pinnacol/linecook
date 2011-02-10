@@ -1,6 +1,5 @@
 require 'linecook/commands/init'
-require 'linecook/commands/helper'
-require 'linecook/commands/package'
 require 'linecook/commands/env'
 require 'linecook/commands/vbox'
 require 'linecook/commands/preview'
+require 'linecook/commands/build'
