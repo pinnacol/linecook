@@ -30,7 +30,7 @@ class RecipeTest < Test::Unit::TestCase
 
   def test_template_documentation
     package = Package.new
-    recipe  = package.recipe
+    recipe  = package.setup_recipe
     
     recipe.extend Helper
     recipe.instance_eval do
@@ -44,7 +44,7 @@ echo 'x y z'
 }
     assert_equal expected, "\n" + recipe.result
 
-    recipe  = package.recipe
+    recipe  = package.setup_recipe
     recipe.extend Helper
     recipe.instance_eval do
       echo 'outer'

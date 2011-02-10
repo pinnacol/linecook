@@ -18,7 +18,7 @@ module Linecook
   #   end
   #
   #   package = Package.new
-  #   recipe  = package.recipe
+  #   recipe  = package.setup_recipe
   #
   #   recipe.extend Helper
   #   recipe.instance_eval do
@@ -35,7 +35,7 @@ module Linecook
   # Recipes control the _erbout context, such that reformatting is possible
   # before any content is emitted. This allows such things as indentation.
   #
-  #   recipe = package.recipe
+  #   recipe = package.setup_recipe
   #   recipe.extend Helper
   #   recipe.instance_eval do
   #     echo 'outer'
@@ -64,7 +64,7 @@ module Linecook
     def initialize(package, target_name)
       @package     = package
       @target_name = target_name
-      @target      = @package.tempfile(target_name)
+      @target      = package.setup_tempfile(target_name)
       @attributes  = {}
     end
     
@@ -127,12 +127,7 @@ module Linecook
     # attrs. A block may be given to specify attrs as well; it will be
     # evaluated in the context of an Attributes instance.
     def attributes(attributes_name=nil, &block)
-      attributes  = Attributes.new
-      
-      if attributes_name
-        path = @package.attributes_path(attributes_name)
-        attributes.instance_eval(File.read(path), path)
-      end
+      attributes = @package.load_attributes(attributes_name)
       
       if block_given?
         attributes.instance_eval(&block)
@@ -152,7 +147,7 @@ module Linecook
     
     # Looks up and extends self with the specified helper.
     def helpers(helper_name)
-      extend @package.helper(helper_name)
+      extend @package.load_helper(helper_name)
     end
     
     def next_target_name(target_name)
@@ -196,7 +191,7 @@ module Linecook
     # Captures the output for a block, registers it, and returns the
     # target_path to the resulting file.
     def capture_path(target_name,  content=nil, &block)
-      tempfile = @package.tempfile(target_name)
+      tempfile = @package.setup_tempfile(target_name)
       tempfile << content if content
       tempfile << capture(false) { instance_eval(&block) } if block
       tempfile.close

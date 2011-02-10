@@ -136,19 +136,19 @@ class PackageTest < Test::Unit::TestCase
   end
   
   #
-  # tempfile test
+  # setup_tempfile test
   #
   
-  def test_tempfile_creates_registers_and_returns_a_new_tempfile
-    tempfile = package.tempfile('target/path')
+  def test_setup_tempfile_creates_registers_and_returns_a_new_tempfile
+    tempfile = package.setup_tempfile('target/path')
     
     assert_equal Tempfile, tempfile.class
     assert_equal false, tempfile.closed?
   end
   
-  def test_tempfile_raises_error_if_target_name_is_already_registered
+  def test_setup_tempfile_raises_error_if_target_name_is_already_registered
     package.register('target/path', 'source/b')
-    err = assert_raises(RuntimeError) { package.tempfile('target/path') }
+    err = assert_raises(RuntimeError) { package.setup_tempfile('target/path') }
     assert_equal 'already registered: "target/path"', err.message
   end
   
@@ -156,34 +156,34 @@ class PackageTest < Test::Unit::TestCase
   # tempfile_check test
   #
   
-  def test_tempfile_check_returns_true_if_the_source_is_from_a_tempfile_generated_by_self
+  def test_tempfile_check_returns_true_if_the_source_is_from_a_tempfile_setup_by_self
     assert_equal false, package.tempfile?('source/path')
-    assert_equal true, package.tempfile?(package.tempfile.path)
+    assert_equal true, package.tempfile?(package.setup_tempfile.path)
   end
   
   #
-  # recipe test
+  # setup_recipe test
   #
   
-  def test_recipe_returns_a_new_recipe_that_builds_into_self
-    recipe = package.recipe
+  def test_setup_recipe_returns_a_new_recipe_that_builds_into_self
+    recipe = package.setup_recipe
     recipe.target << 'content'
     
     recipe.close
     assert_equal 'content', package.content(recipe.target_name)
   end
   
-  def test_recipes_close_on_package_close
-    recipe = package.recipe
+  def test_recipes_set_up_by_self_close_on_package_close
+    recipe = package.setup_recipe
     assert_equal false, recipe.closed?
     
     package.close
     assert_equal true, recipe.closed?
   end
   
-  def test_recipe_raises_error_if_target_name_is_already_registered
+  def test_setup_recipe_raises_error_if_target_name_is_already_registered
     package.register('target/path', 'source/path')
-    err = assert_raises(RuntimeError) { package.recipe('target/path') }
+    err = assert_raises(RuntimeError) { package.setup_recipe('target/path') }
     assert_equal 'already registered: "target/path"', err.message
   end
   
@@ -339,7 +339,7 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_export_moves_tempfiles_specified_in_registry
-    tempfile = package.tempfile('target/path')
+    tempfile = package.setup_tempfile('target/path')
     tempfile << 'content'
     
     package.export path('export/dir')
@@ -349,7 +349,7 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_export_rewrites_and_returns_registry_with_new_source_paths
-    tempfile = package.tempfile('target/path')
+    tempfile = package.setup_tempfile('target/path')
     assert_equal tempfile.path, package.registry['target/path']
     
     registry = package.export path('export/dir')
