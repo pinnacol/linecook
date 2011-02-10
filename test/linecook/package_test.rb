@@ -14,33 +14,33 @@ class PackageTest < Test::Unit::TestCase
   end
   
   #
-  # config test
+  # context test
   #
   
-  def test_config_returns_configs_in_env
+  def test_context_returns_linecook_configs_in_env
     hash = {}
-    package = Package.new(Package::CONFIG_KEY => hash)
-    assert_equal hash.object_id, package.config.object_id
+    package = Package.new('linecook' => hash)
+    assert_equal hash.object_id, package.context.object_id
   end
   
-  def test_config_initializes_to_empty_hash_if_unset
-    assert_equal({}, package.config)
-    assert_equal({}, package.env[Package::CONFIG_KEY])
+  def test_context_initializes_to_empty_hash_if_unset
+    assert_equal({}, package.context)
+    assert_equal({}, package.env['linecook'])
   end
   
   #
   # registry test
   #
   
-  def test_registry_returns_registry_in_config
+  def test_registry_returns_registry_in_context
     hash = {}
-    package = Package.new(Package::CONFIG_KEY => {Package::REGISTRY_KEY => hash})
+    package = Package.new('linecook' => {'registry' => hash})
     assert_equal hash.object_id, package.registry.object_id
   end
   
   def test_registry_initializes_to_empty_hash_if_unset
     assert_equal({}, package.registry)
-    assert_equal({}, package.env[Package::CONFIG_KEY][Package::REGISTRY_KEY])
+    assert_equal({}, package.env['linecook']['registry'])
   end
   
   #
@@ -48,33 +48,33 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_recipes_documentation
-    package = Package.new('linecook' => {'recipes' => 'a:b:c'})
+    package = Package.new('linecook' => {'package' => {'recipes' => 'a:b:c'}})
     assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.recipes)
   end
   
   def test_recipes_returns_recipes_of_the_specified_type_in_configs
     hash = {}
-    package = Package.new(Package::CONFIG_KEY => {Package::RECIPES_KEY => hash})
+    package = Package.new('linecook' => {'package' => {'recipes' => hash}})
     assert_equal hash.object_id, package.recipes.object_id
   end
   
   def test_recipes_initializes_to_empty_hash_if_unset
     assert_equal({}, package.recipes)
-    assert_equal({}, package.env[Package::CONFIG_KEY][Package::RECIPES_KEY])
+    assert_equal({}, package.env['linecook']['package']['recipes'])
   end
   
   def test_recipes_expands_array_into_a_redundant_hash
-    package = Package.new(Package::CONFIG_KEY => {Package::RECIPES_KEY => ['a', 'b', 'c']})
+    package = Package.new('linecook' => {'package' => {'recipes' => ['a', 'b', 'c']}})
     
     assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.recipes)
-    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.env[Package::CONFIG_KEY][Package::RECIPES_KEY])
+    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.env['linecook']['package']['recipes'])
   end
   
   def test_recipes_splits_string_into_a_redundant_hash_along_colons
-    package = Package.new(Package::CONFIG_KEY => {Package::RECIPES_KEY => 'a:b:c'})
+    package = Package.new('linecook' => {'package' => {'recipes' => 'a:b:c'}})
     
     assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.recipes)
-    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.env[Package::CONFIG_KEY][Package::RECIPES_KEY])
+    assert_equal({'a' => 'a', 'b' => 'b', 'c' => 'c'}, package.env['linecook']['package']['recipes'])
   end
   
   #
@@ -82,15 +82,6 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_register_registers_source_file_to_target_file
-    source_path = File.expand_path('source/path')
-    target_path = 'target/path'
-    
-    package.register(target_path, source_path)
-    
-    assert_equal source_path, package.registry[target_path]
-  end
-  
-  def test_register_expands_source_path
     package.register('target/path', 'source/path')
     assert_equal File.expand_path('source/path'), package.registry['target/path']
   end
@@ -126,7 +117,7 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_resource_path_returns_corresponding_path_in_manifest
-    package.manifest['type']['path'] = 'source/path'
+    package.manifest.replace('type' => {'path' => 'source/path'})
     assert_equal 'source/path', package.resource_path('type', 'path')
   end
   
@@ -208,7 +199,9 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_build_file_looks_up_and_registers_the_specified_file
-    package.manifest['files']['name'] = prepare('example') {|io| io << 'content' }
+    package.manifest.replace('files' => {
+      'name' => prepare('example') {|io| io << 'content' }
+    })
     
     package.build_file('target/path', 'name')
     assert_equal 'content', package.content('target/path')
@@ -220,7 +213,7 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_build_file_raises_error_if_the_target_is_already_registered
-    package.manifest['files']['name'] = 'file/path'
+    package.manifest.replace('files' => {'name' => 'file/path'})
     package.register('target/path', 'source/path')
     
     err = assert_raises(RuntimeError) { package.build_file('target/path', 'name') }
@@ -228,7 +221,9 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_build_file_returns_package
-    package.manifest['files']['name'] = prepare('example') {|io| io << 'content' }
+    package.manifest.replace('files' => {
+      'name' => prepare('example') {|io| io << 'content' }
+    })
     assert_equal package, package.build_file('target/path', 'name')
   end
   
@@ -237,14 +232,18 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_build_template_looks_up_builds_and_registers_the_specified_template
-    package.manifest['templates']['name'] = prepare('example') {|io| io << 'got: <%= key %>'}
+    package.manifest.replace('templates' => {
+      'name' => prepare('example') {|io| io << 'got: <%= key %>'}
+    })
     
     package.build_template('target/path', 'name', 'key' => 'value')
     assert_equal 'got: value', package.content('target/path')
   end
   
   def test_build_template_uses_env_as_locals_by_default
-    package.manifest['templates']['name'] = prepare('example') {|io| io << 'got: <%= key %>'}
+    package.manifest.replace('templates' => {
+      'name' => prepare('example') {|io| io << 'got: <%= key %>'}
+    })
     
     package.env['key'] = 'value'
     package.build_template('target/path', 'name')
@@ -257,7 +256,7 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_build_template_raises_error_if_the_target_is_already_registered
-    package.manifest['templates']['name'] = prepare('template') {}
+    package.manifest.replace('templates' => {'name' => prepare('template') {}})
     package.register('target/path', 'source/path')
     
     err = assert_raises(RuntimeError) { package.build_template('target/path', 'name') }
@@ -265,7 +264,7 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_build_template_returns_package
-    package.manifest['templates']['name'] = prepare('example') {|io| io << ''}
+    package.manifest.replace('templates' => {'name' => prepare('template') {}})
     assert_equal package, package.build_template('target/path', 'name')
   end
   
@@ -274,7 +273,9 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_build_recipe_looks_up_evaluates_and_registers_the_specified_recipe
-    package.manifest['recipes']['name'] = prepare('example') {|io| io << 'target << "content"'}
+    package.manifest.replace('recipes' => {
+      'name' => prepare('example') {|io| io << 'target << "content"'}
+    })
     
     package.build_recipe('target/path', 'name')
     assert_equal 'content', package.content('target/path')
@@ -286,7 +287,9 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_build_recipe_raises_error_if_the_target_is_already_registered
-    package.manifest['recipes']['name'] = prepare('example') {|io| io << 'target << "content"'}
+    package.manifest.replace('recipes' => {
+      'name' => prepare('example') {|io| io << 'target << "content"'}
+    })
     package.register('target/path', 'source/path')
     
     err = assert_raises(RuntimeError) { package.build_recipe('target/path', 'name') }
@@ -294,7 +297,7 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_build_recipe_returns_package
-    package.manifest['recipes']['name'] = prepare('example') {|io| io << ''}
+    package.manifest.replace('recipes' => {'name' => prepare('example') {|io| io << ''}})
     assert_equal package, package.build_recipe('target/path', 'name')
   end
   

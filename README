@@ -68,8 +68,8 @@ Define a package that uses the recipe.
 
   [packages/example.yml]
   linecook:
-    recipes:
-    - example
+    package:
+      recipes: [example]
   example:
     n: 100
 

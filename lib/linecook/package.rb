@@ -5,44 +5,33 @@ require 'tempfile'
 module Linecook
   class Package
     class << self
-      def init(env={}, cookbook=nil)
+      def init(package_file=nil, project_dir=nil)
+        env = Utils.load_config(package_file)
+        cookbook = Cookbook.init(project_dir)
+        setup(env, cookbook)
+      end
+      
+      def setup(env, cookbook=nil)
         package = new(env)
         
         if cookbook
-          if cookbook_config = package.cookbook_config
-            cookbook = cookbook.merge(cookbook_config)
-          end
-          
-          package.config[MANIFEST_KEY] ||= cookbook.manifest
+          manifest = package.manifest
+          manifest.replace cookbook.manifest
         end
         
         package
       end
-      
-      def load(path=nil, cookbook=nil)
-        env = Utils.load_config(path)
-        init(env, cookbook)
-      end
-      
-      def setup(env={}, cookbook=nil)
-        env.kind_of?(String) ? load(env, cookbook) : init(env, cookbook)
-      end
-      
-      def build(path=nil, cookbook=nil)
-        package = load(path, cookbook)
-        package.build
-        package.close
-        package
-      end
     end
     
-    CONFIG_KEY          = 'linecook'
-    COOKBOOK_CONFIG_KEY = 'cookbook'
-    MANIFEST_KEY        = 'manifest'
-    REGISTRY_KEY        = 'registry'
-    FILES_KEY           = 'files'
-    TEMPLATES_KEY       = 'templates'
-    RECIPES_KEY         = 'recipes'
+    CONTEXT_KEY   = 'linecook'
+    COOKBOOK_KEY  = 'cookbook'
+    MANIFEST_KEY  = 'manifest'
+    PACKAGE_KEY   = 'package'
+    REGISTRY_KEY  = 'registry'
+    
+    FILES_KEY     = 'files'
+    TEMPLATES_KEY = 'templates'
+    RECIPES_KEY   = 'recipes'
     
     # The package environment
     attr_reader :env
@@ -59,36 +48,41 @@ module Linecook
       @counters = Hash.new(0)
     end
     
-    # Returns the linecook configs in env, as keyed by CONFIG_KEY.  Defaults
-    # to an empty hash.
-    def config
-      env[CONFIG_KEY] ||= {}
-    end
-    
-    # Returns the cookbook configs in config, as keyed by COOKBOOK_CONFIG_KEY.
-    # Defaults to an empty hash.
-    def cookbook_config
-      config[COOKBOOK_CONFIG_KEY]
+    def context
+      env[CONTEXT_KEY] ||= {}
     end
     
     # Returns the manifest in config, as keyed by MANIFEST_KEY. Defaults to an
     # empty hash.
     def manifest
-      config[MANIFEST_KEY] ||= Hash.new {|hash, key| hash[key] = {} }
+      context[MANIFEST_KEY] ||= {}
+    end
+    
+    # Returns the registry in config, as keyed by REGISTRY_KEY. Defaults to an
+    # empty hash.  A hash of (target_name, source_path) pairs identifying
+    # files that should be included in a package
+    def registry
+      context[REGISTRY_KEY] ||= {}
+    end
+    
+    # Returns the linecook configs in env, as keyed by CONFIG_KEY.  Defaults
+    # to an empty hash.
+    def config
+      context[PACKAGE_KEY] ||= {}
     end
     
     # Returns the hash of (source, target) pairs identifying which of the
     # files will be built into self by build.  Files are identified by
     # FILES_KEY in config, and normalized the same way as recipes.
     def files
-      normalize(FILES_KEY)
+      config[FILES_KEY] = Utils.hashify(config[FILES_KEY])
     end
     
     # Returns the hash of (source, target) pairs identifying which templates
     # will be built into self by build. Templates are identified by
     # TEMPLATES_KEY in config, and normalized the same way as recipes.
     def templates
-      normalize(TEMPLATES_KEY)
+      config[TEMPLATES_KEY] = Utils.hashify(config[TEMPLATES_KEY])
     end
     
     # Returns the hash of (source, target) pairs identifying which recipes
@@ -102,18 +96,11 @@ module Linecook
     #
     # For example:
     #
-    #   package = Package.new('linecook' => {'recipes' => 'a:b:c'})
+    #   package = Package.new('linecook' => {'package' => {'recipes' => 'a:b:c'}})
     #   package.recipes   # => {'a' => 'a', 'b' => 'b', 'c' => 'c'}
     #
     def recipes
-      normalize(RECIPES_KEY)
-    end
-    
-    # Returns the registry in config, as keyed by REGISTRY_KEY. Defaults to an
-    # empty hash.  A hash of (target_name, source_path) pairs identifying
-    # files that should be included in a package
-    def registry
-      config[REGISTRY_KEY] ||= {}
+      config[RECIPES_KEY] = Utils.hashify(config[RECIPES_KEY])
     end
     
     # Registers the source_path to target_name in the registry and
@@ -166,8 +153,9 @@ module Linecook
     # Returns the path to the resource in manfiest.  Raises an error if there
     # is no such resource.
     def resource_path(type, path)
-      resources = manifest[type] || {}
-      resources[path] or raise "no such resource in manifest: #{type.inspect} #{path.inspect}"
+      resources = manifest[type]
+      resource_path = resources ? resources[path] : nil
+      resource_path or raise "no such resource in manifest: #{type.inspect} #{path.inspect}"
     end
     
     # Returns the resource_path the named attributes file (ex 'attributes/name.rb').
@@ -339,13 +327,6 @@ module Linecook
       
       tempfiles.clear
       registry
-    end
-    
-    private
-    
-    def normalize(type) # :nodoc:
-      obj = config[type]
-      config[type] = Utils.hashify(obj) or raise "invalid #{type}: #{obj.inspect}"
     end
   end
 end

@@ -15,7 +15,7 @@ class LinecookTestTest < Test::Unit::TestCase
   def test_setup_package_and_package_testing
     prepare('recipes/example.rb') {|io| io << "target << Array.new(attrs['n'], 'success').join(',')"}
     
-    setup_package 'linecook' => {'recipes' => 'example'}, 'n' => 3
+    setup_package 'linecook' => {'package' => {'recipes' => 'example'}}, 'n' => 3
     package.build
     
     assert_equal "success,success,success", package.content('example')

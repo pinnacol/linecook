@@ -1,6 +1,7 @@
 # Configure the package.
 linecook:
-  recipes: [<%= project_name %>]
+  package:
+    recipes: [<%= project_name %>]
 
 # Attributes set here override those in the attributes directory.
 <%= project_name %>:

@@ -48,10 +48,9 @@ module Linecook
       end
       
       def process(*keys)
-        cookbook = Linecook::Cookbook.init(project_dir)
-        package  = Linecook::Package.load(package_file, cookbook)
-        
+        package  = Linecook::Package.init(package_file, project_dir)
         env = select(package.env, *keys)
+        
         YAML.dump(env, $stdout)
       end
     end

@@ -31,9 +31,7 @@ module Linecook
       config :max, 10 ** 4, &c.integer              # max length to display (per file)
       
       def process(*recipes)
-        cookbook = Linecook::Cookbook.init(project_dir)
-        package  = Linecook::Package.load(package_path, cookbook)
-        
+        package  = Linecook::Package.init(package_file, project_dir)
         package.config[Linecook::Package::RECIPES_KEY] = recipes
         package.build
 

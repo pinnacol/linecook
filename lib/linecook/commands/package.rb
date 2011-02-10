@@ -21,9 +21,7 @@ module Linecook
       
       def process(package_file, package_dir=nil)
         package_dir ||= default_package_dir(package_file)
-        
-        cookbook = Linecook::Cookbook.init(project_dir)
-        package  = Linecook::Package.load(package_file, cookbook)
+        package  = Linecook::Package.init(package_file, project_dir)
         
         if force || !File.exists?(package_dir)
           log :create, File.basename(package_dir)

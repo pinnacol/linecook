@@ -52,8 +52,8 @@ end
 
     prepare('packages/example.yml', %q{
 linecook:
-  recipes:
-  - example
+  package:
+    recipes: [example]
 example:
   n: 5
 })
