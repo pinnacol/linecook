@@ -29,7 +29,7 @@ module Linecook
       end
       
       def log(action, msg)
-        puts("      %s  %s" % [action, msg])
+        $stderr.puts("      %s  %s" % [action, msg])
       end
       
       def call(argv)

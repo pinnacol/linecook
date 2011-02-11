@@ -19,15 +19,17 @@ module Linecook
     class Package < Command
       config :project_dir, '.', :short => :d      # the project directory
       config :force, false, :short => :f, &c.flag # force creation
+      config :quiet, false, &c.flag
       
       def process(package_file, package_dir=nil)
         package_dir ||= default_package_dir(package_file)
+        package_dir = File.expand_path(package_dir)
         package = Linecook::Package.init(package_file, project_dir)
         
         if force || !FileUtils.uptodate?(package_dir, dependencies(package))
-          log :create, File.basename(package_dir)
           package.build
           package.export(package_dir)
+          $stdout.puts package_dir unless quiet
         end
         
         package_dir

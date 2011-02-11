@@ -19,7 +19,7 @@ class LinecookTest < Test::Unit::TestCase
     example_dir = path('example')
     assert_equal false, File.exists?(example_dir)
     
-    output = `ruby #{LINECOOK} init example`
+    output = `2>&1 ruby #{LINECOOK} init example`
     assert_equal 0, $?.exitstatus, output
     
     Dir.chdir(example_dir) do
@@ -31,10 +31,10 @@ class LinecookTest < Test::Unit::TestCase
         }
       end
       
-      output = `BUNDLE_GEMFILE='#{gemfile}' bundle exec linecook helper example`
+      output = `BUNDLE_GEMFILE='#{gemfile}' 2>&1 bundle exec linecook helper example`
       assert_equal 0, $?.exitstatus, output
       
-      output = `BUNDLE_GEMFILE='#{gemfile}' bundle exec linecook package packages/vbox.yml`
+      output = `BUNDLE_GEMFILE='#{gemfile}' 2>&1 bundle exec linecook package packages/vbox.yml`
       assert_equal 0, $?.exitstatus, output
       assert_equal true, File.exists?('packages/vbox/example'), output
       
@@ -61,7 +61,7 @@ class LinecookTest < Test::Unit::TestCase
     example_dir = path('example')
     FileUtils.mkdir_p(example_dir)
     
-    output = `ruby #{LINECOOK} init example`
+    output = `2>&1 ruby #{LINECOOK} init example`
     assert_equal 1, $?.exitstatus
     
     assert_equal [], Dir.glob("#{example_dir}/*")
@@ -70,13 +70,13 @@ class LinecookTest < Test::Unit::TestCase
   def test_init_regenerates_cookbook_on_force
     example_readme = path('example/README')
     
-    output = `ruby #{LINECOOK} init example`
+    output = `2>&1 ruby #{LINECOOK} init example`
     assert_equal 0, $?.exitstatus, output
     
     assert_equal true, File.exists?(example_readme)
     FileUtils.rm(example_readme)
     
-    output = `ruby #{LINECOOK} init example --force`
+    output = `2>&1 ruby #{LINECOOK} init example --force`
     assert_equal 0, $?.exitstatus, output
     
     assert_equal true, File.exists?(example_readme)
@@ -87,10 +87,10 @@ class LinecookTest < Test::Unit::TestCase
     FileUtils.mkdir_p(example_dir)
     
     Dir.chdir(example_dir)
-    output = `ruby #{LINECOOK} init . --force`
+    output = `2>&1 ruby #{LINECOOK} init . --force`
     assert_equal 1, $?.exitstatus
     
-    output = `ruby #{LINECOOK} init .. --force`
+    output = `2>&1 ruby #{LINECOOK} init .. --force`
     assert_equal 1, $?.exitstatus
     
     assert_equal [example_dir], Dir.glob(path('parent/*'))

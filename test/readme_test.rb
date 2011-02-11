@@ -10,7 +10,7 @@ class ReadmeTest < Test::Unit::TestCase
   end
   
   def test_readme
-    sh "#{LINECOOK} init '#{method_dir}'"
+    sh "2>&1 #{LINECOOK} init '#{method_dir}'"
     Dir.chdir method_dir
     
     prepare('helpers/example/head-section.rb', %q{

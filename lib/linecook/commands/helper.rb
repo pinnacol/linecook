@@ -25,6 +25,7 @@ module Linecook
     class Helper < Command
       config :project_dir, '.', :short => :d        # the project directory
       config :force, false, :short => :f, &c.flag   # force creation
+      config :quiet, false, &c.flag
       
       include Utils
       
@@ -44,7 +45,6 @@ module Linecook
         end
         
         if force || !FileUtils.uptodate?(target, sources)
-          log :create, const_name
           content = build(const_name, sources)
           
           target_dir = File.dirname(target)
@@ -53,6 +53,7 @@ module Linecook
           end
           
           File.open(target, 'w') {|io| io << content }
+          $stdout.puts target unless quiet
         end
         
         target

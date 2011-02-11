@@ -11,6 +11,7 @@ module Linecook
     class Build < Command
       config :project_dir, '.', :short => :d      # the project directory
       config :force, false, :short => :f, &c.flag # force creation
+      config :quiet, false, &c.flag
       
       def glob_helpers(project_dir)
         helpers_dir = File.expand_path('helpers', project_dir)
@@ -38,15 +39,17 @@ module Linecook
       def process(*package_files)
         helper = Helper.new(
           :project_dir => project_dir, 
-          :force => force
+          :force => force,
+          :quiet => true
         )
         
         helpers = glob_helpers(project_dir)
-        helpers.collect! {|(name, sources)| helper.process(name, *sources) }
+        helpers.each {|(name, sources)| helper.process(name, *sources) }
         
         package = Package.new(
           :project_dir => project_dir,
-          :force => force
+          :force => force,
+          :quiet => quiet
         )
         
         if package_files.empty?
