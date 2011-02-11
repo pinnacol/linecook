@@ -73,6 +73,10 @@ Unmount the share:
   vm: sudo umount ~/vm
   ht: VBoxManage sharedfolder remove vbox --name vm --transient
 
+Remove the login banner (if you prefer):
+
+  vm: sudo rm /etc/motd
+
 Now take some standard snapshots and setup port forwarding:
 
   vm: exit
