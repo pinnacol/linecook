@@ -1,5 +1,5 @@
 require File.expand_path('../../../test_helper', __FILE__)
-require 'linecook/commands/vbox'
+require 'linecook/commands/vbox_command'
 require 'linecook/test/file_test'
 
 class VboxCommandTest < Test::Unit::TestCase
