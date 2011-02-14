@@ -116,11 +116,11 @@ echo 'outer'
 
   def test_attributes_evals_the_attributes_file_in_the_context_of_attributes
     path = prepare('example.rb') {|io| io << "attrs[:key] = 'value'"}
-    package.manifest['attributes'] = {'example' => path}
+    package.manifest['attributes'] = {'name' => path}
     
     assert_equal nil, recipe.attrs[:key]
     
-    recipe.attributes('example')
+    recipe.attributes('name')
     assert_equal 'value', recipe.attrs[:key]
   end
   
@@ -221,10 +221,10 @@ echo 'outer'
   #
 
   def file_path_registers_file_from_files_dir
-    path = prepare('source.txt') {|io| io << 'content'}
-    package.manifest['files'] = {'source.txt' => path}
+    path = prepare('example.txt') {|io| io << 'content'}
+    package.manifest['files'] = {'source' => path}
     
-    assert_equal 'target', recipe.file_path('target', 'source.txt')
+    assert_equal 'target', recipe.file_path('target', 'source')
     assert_equal 'content', package.content('target')
   end
   
@@ -233,7 +233,7 @@ echo 'outer'
   #
 
   def test_recipe_path_evals_the_recipe_file_in_the_context_of_a_new_recipe
-    path = prepare('source.rb') {|io| io << "target.puts 'content'"}
+    path = prepare('example.rb') {|io| io << "target.puts 'content'"}
     package.manifest['recipes'] = {'source' => path}
     
     assert_equal 'target', recipe.recipe_path('target', 'source')
@@ -247,7 +247,7 @@ echo 'outer'
   #
 
   def test_template_path_templates_and_registers_file_from_templates_dir
-    path = prepare('source.erb') {|io| io << "got <%= key %>" }
+    path = prepare('example.erb') {|io| io << "got <%= key %>" }
     package.manifest['templates'] = {'source' => path}
     
     assert_equal 'target', recipe.template_path('target', 'source', :key => 'value')
@@ -255,9 +255,7 @@ echo 'outer'
   end
   
   def test_template_path_adds_attrs_to_locals
-    path = prepare('source.erb') do |io|
-      io << "got <%= attrs['key'] %><%= key %>"
-    end
+    path = prepare('example.erb') {|io| io << "got <%= attrs['key'] %><%= key %>" }
     package.manifest['templates'] = {'source' => path}
     
     recipe.attrs['key'] = 'val'
@@ -267,9 +265,7 @@ echo 'outer'
   end
   
   def test_template_path_respects_attrs_manually_added_to_locals
-    path = prepare('source.erb') do |io|
-      io << "got <%= attrs['key'] %>"
-    end
+    path = prepare('example.erb') {|io| io << "got <%= attrs['key'] %>" }
     package.manifest['templates'] = {'source' => path}
     
     recipe.attrs['key'] = 'ignored'

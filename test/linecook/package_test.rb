@@ -118,7 +118,7 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_resource_path_returns_corresponding_path_in_manifest
-    package.manifest.replace('type' => {'path' => 'source/path'})
+    package.manifest['type'] = {'path' => 'source/path'}
     assert_equal 'source/path', package.resource_path('type', 'path')
   end
   
@@ -200,11 +200,10 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_build_file_looks_up_and_registers_the_specified_file
-    package.manifest.replace('files' => {
-      'name' => prepare('example') {|io| io << 'content' }
-    })
+    path = prepare('example.txt') {|io| io << 'content' }
+    package.manifest['files'] = {'name' => path}
     
-    package.build_file('target/path', 'name')
+    assert_equal package, package.build_file('target/path', 'name')
     assert_equal 'content', package.content('target/path')
   end
   
@@ -213,38 +212,21 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'no such resource in manifest: "files" "name"', err.message
   end
   
-  def test_build_file_raises_error_if_the_target_is_already_registered
-    package.manifest.replace('files' => {'name' => 'file/path'})
-    package.register('target/path', 'source/path')
-    
-    err = assert_raises(RuntimeError) { package.build_file('target/path', 'name') }
-    assert_equal 'already registered: "target/path"', err.message
-  end
-  
-  def test_build_file_returns_package
-    package.manifest.replace('files' => {
-      'name' => prepare('example') {|io| io << 'content' }
-    })
-    assert_equal package, package.build_file('target/path', 'name')
-  end
-  
   #
   # build_template test
   #
   
   def test_build_template_looks_up_builds_and_registers_the_specified_template
-    package.manifest.replace('templates' => {
-      'name' => prepare('example') {|io| io << 'got: <%= key %>'}
-    })
+    path = prepare('example.erb') {|io| io << 'got: <%= key %>'}
+    package.manifest['templates'] = {'name' => path}
     
-    package.build_template('target/path', 'name', 'key' => 'value')
+    assert_equal package, package.build_template('target/path', 'name', 'key' => 'value')
     assert_equal 'got: value', package.content('target/path')
   end
   
   def test_build_template_uses_env_as_locals_by_default
-    package.manifest.replace('templates' => {
-      'name' => prepare('example') {|io| io << 'got: <%= key %>'}
-    })
+    path = prepare('example.erb') {|io| io << 'got: <%= key %>'}
+    package.manifest['templates'] = {'name' => path}
     
     package.env['key'] = 'value'
     package.build_template('target/path', 'name')
@@ -256,50 +238,21 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'no such resource in manifest: "templates" "name"', err.message
   end
   
-  def test_build_template_raises_error_if_the_target_is_already_registered
-    package.manifest.replace('templates' => {'name' => prepare('template') {}})
-    package.register('target/path', 'source/path')
-    
-    err = assert_raises(RuntimeError) { package.build_template('target/path', 'name') }
-    assert_equal 'already registered: "target/path"', err.message
-  end
-  
-  def test_build_template_returns_package
-    package.manifest.replace('templates' => {'name' => prepare('template') {}})
-    assert_equal package, package.build_template('target/path', 'name')
-  end
-  
   #
   # build_recipe test
   #
   
   def test_build_recipe_looks_up_evaluates_and_registers_the_specified_recipe
-    package.manifest.replace('recipes' => {
-      'name' => prepare('example') {|io| io << 'target << "content"'}
-    })
+    path = prepare('example.rb') {|io| io << 'target << "content"'}
+    package.manifest['recipes'] = {'name' => path}
     
-    package.build_recipe('target/path', 'name')
+    assert_equal package, package.build_recipe('target/path', 'name')
     assert_equal 'content', package.content('target/path')
   end
   
   def test_build_recipe_raises_error_if_no_such_recipe_is_in_manifest
     err = assert_raises(RuntimeError) { package.build_recipe('target/path', 'name') }
     assert_equal 'no such resource in manifest: "recipes" "name"', err.message
-  end
-  
-  def test_build_recipe_raises_error_if_the_target_is_already_registered
-    package.manifest.replace('recipes' => {
-      'name' => prepare('example') {|io| io << 'target << "content"'}
-    })
-    package.register('target/path', 'source/path')
-    
-    err = assert_raises(RuntimeError) { package.build_recipe('target/path', 'name') }
-    assert_equal 'already registered: "target/path"', err.message
-  end
-  
-  def test_build_recipe_returns_package
-    package.manifest.replace('recipes' => {'name' => prepare('example') {|io| io << ''}})
-    assert_equal package, package.build_recipe('target/path', 'name')
   end
   
   #
