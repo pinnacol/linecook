@@ -32,6 +32,17 @@ module Linecook
         $stderr.puts("      %s  %s" % [action, msg])
       end
       
+      def sh(cmd)
+        puts "% #{cmd}"
+        system(cmd)
+      end
+      
+      def sh!(cmd)
+        unless sh(cmd)
+          raise CommandError, "non-zero exit status: #{$?.exitstatus}"
+        end
+      end
+      
       def call(argv)
         process(*argv)
       end

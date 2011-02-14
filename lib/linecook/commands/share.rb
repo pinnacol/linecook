@@ -11,21 +11,14 @@ module Linecook
     # shares to be established.
     # 
     class Share < VboxCommand
-      config :name, 'vm'             # the share name
-      config :remote_dir, '~/vm'    # the remote share dir
-      
-      def share(local_dir, vm_name)
-        ssh vm_name, "sudo umount '#{remote_dir}' > /dev/null 2>&1"
-        sh "VBoxManage sharedfolder remove '#{vm_name}' --name '#{name}' --transient > /dev/null 2>&1"
-        sh! "VBoxManage sharedfolder add '#{vm_name}' --name '#{name}' --hostpath '#{local_dir}' --transient"
-        ssh! vm_name, "sudo mount -t vboxsf -o uid=1000,gid=100 '#{name}' '#{remote_dir}'"
-      end
+      config :name, 'vm'         # the share name
+      config :remote_dir, '~/vm' # the remote share dir
       
       def process(local_dir='vm', *vm_names)
         local_dir = File.expand_path(local_dir)
         
         each_vm_name(vm_names) do |vm_name|
-          share(local_dir, vm_name)
+          share(vm_name, name, local_dir, remote_dir)
         end
       end
     end

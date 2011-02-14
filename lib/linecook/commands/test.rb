@@ -1,10 +1,10 @@
-require 'linecook/commands/ssh_command'
+require 'linecook/commands/command'
 
 module Linecook
   module Commands
     
     # ::desc 
-    class Test < SshCommand
+    class Test < Command
       config :remote_test_dir, 'vm/test'
       # config :default_host, 'vbox'
       # config :keep_outputs, false
