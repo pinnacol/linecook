@@ -1,16 +1,19 @@
 require File.expand_path('../../test_helper', __FILE__)
-require 'linecook/recipe'
-require 'linecook/test'
-require 'stringio'
+require 'linecook/package'
+require 'linecook/test/file_test'
 
 class RecipeTest < Test::Unit::TestCase
-  include Linecook::Test
+  include Linecook::Test::FileTest
   
   Package = Linecook::Package
   Recipe = Linecook::Recipe
   
-  def cookbook_dir
-    method_dir
+  attr_accessor :package, :recipe
+  
+  def setup
+    super
+    @package = Package.new
+    @recipe = package.setup_recipe
   end
   
   #
@@ -67,9 +70,8 @@ echo 'outer'
   #
   
   def test_target_name_is_the_name_of_target_in_package
-    setup_recipe 'recipe'
-    assert_equal 'recipe', recipe.target_name
-    assert_equal recipe.target.path, package.registry['recipe']
+    assert_equal 'file', recipe.target_name
+    assert_equal recipe.target.path, package.registry['file']
   end
   
   #
@@ -113,7 +115,9 @@ echo 'outer'
   #
 
   def test_attributes_evals_the_attributes_file_in_the_context_of_attributes
-    prepare('attributes/example.rb') {|io| io << "attrs[:key] = 'value'"}
+    path = prepare('example.rb') {|io| io << "attrs[:key] = 'value'"}
+    package.manifest['attributes'] = {'example' => path}
+    
     assert_equal nil, recipe.attrs[:key]
     
     recipe.attributes('example')
@@ -217,7 +221,8 @@ echo 'outer'
   #
 
   def file_path_registers_file_from_files_dir
-    prepare('files/source.txt') {|io| io << 'content'}
+    path = prepare('source.txt') {|io| io << 'content'}
+    package.manifest['files'] = {'source.txt' => path}
     
     assert_equal 'target', recipe.file_path('target', 'source.txt')
     assert_equal 'content', package.content('target')
@@ -228,7 +233,9 @@ echo 'outer'
   #
 
   def test_recipe_path_evals_the_recipe_file_in_the_context_of_a_new_recipe
-    prepare('recipes/source.rb') {|io| io << "target.puts 'content'"}
+    path = prepare('source.rb') {|io| io << "target.puts 'content'"}
+    package.manifest['recipes'] = {'source' => path}
+    
     assert_equal 'target', recipe.recipe_path('target', 'source')
     
     assert_equal "", package.content(recipe.target_name)
@@ -240,18 +247,18 @@ echo 'outer'
   #
 
   def test_template_path_templates_and_registers_file_from_templates_dir
-    prepare('templates/source.erb') do |io|
-      io << "got <%= key %>"
-    end
+    path = prepare('source.erb') {|io| io << "got <%= key %>" }
+    package.manifest['templates'] = {'source' => path}
     
     assert_equal 'target', recipe.template_path('target', 'source', :key => 'value')
     assert_equal 'got value', package.content('target')
   end
   
   def test_template_path_adds_attrs_to_locals
-    prepare('templates/source.erb') do |io|
+    path = prepare('source.erb') do |io|
       io << "got <%= attrs['key'] %><%= key %>"
     end
+    package.manifest['templates'] = {'source' => path}
     
     recipe.attrs['key'] = 'val'
     recipe.template_path('target', 'source',  :key => 'ue')
@@ -260,9 +267,10 @@ echo 'outer'
   end
   
   def test_template_path_respects_attrs_manually_added_to_locals
-    prepare('templates/source.erb') do |io|
+    path = prepare('source.erb') do |io|
       io << "got <%= attrs['key'] %>"
     end
+    package.manifest['templates'] = {'source' => path}
     
     recipe.attrs['key'] = 'ignored'
     recipe.template_path('target', 'source', :attrs => {'key' => 'value'})

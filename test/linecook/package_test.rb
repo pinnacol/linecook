@@ -4,6 +4,7 @@ require 'linecook/test/file_test'
 
 class PackageTest < Test::Unit::TestCase
   include Linecook::Test::FileTest
+  
   Package = Linecook::Package
   
   attr_accessor :package
