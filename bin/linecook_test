@@ -1,6 +1,11 @@
 #! /bin/sh
 ############################################################################
 
+ssh_config_file=${SSH_CONFIG_FILE:-config/ssh}
+remote_test_dir=${REMOTE_TEST_DIR:-vm/test}
+build_script=${BUILD_SCRIPT:-build}
+test_script=${TEST_SCRIPT:-test}
+
 usage="usage: %s [-h] PROJECT_DIR\n"
 option="       %s   %s\n"
 while getopts "h" opt
@@ -27,6 +32,7 @@ assert_status_equal () {
 
 ################################### test ###################################
 project_dir=$1
+shift
 
 if [ ! -d "$project_dir" ]
 then
@@ -39,40 +45,34 @@ else
   cd - > /dev/null
 fi
 
-project_name=${PROJECT_NAME:-$(basename -- "$project_dir" | sed 's/^test_//')}
-project_test_name=${PROJECT_TEST_NAME:-"$project_name"_test}
-
-ssh_config_file=${SSH_CONFIG_FILE:-config/ssh}
-remote_test_dir=${REMOTE_TEST_DIR:-vm/test}
-
 #
 # build packages
 #
 
-# build
-packages="$(bundle exec linecook build --force)"
-
-for package_dir in $packages
+for package_dir in "$@"
 do
 host=$(basename -- "$package_dir")
 
-# transfer
 ssh -q -T -F "$ssh_config_file" "$host" -- <<SETUP
-rm -rf "$remote_test_dir"
-if [ "$(dirname $remote_test_dir)" != "" ]
-then mkdir -p "$(dirname $remote_test_dir)"
+rm -rf "$remote_test_dir/$host"
+if [ "$remote_test_dir" != "" ]
+then
+  mkdir -p "$remote_test_dir"
 fi
 SETUP
 
 scp -q -r -F "$ssh_config_file" "$package_dir" "$host:$remote_test_dir"
 assert_status_equal 0 $? $LINENO
 
-# run
 ssh -q -T -F "$ssh_config_file" "$host" -- <<RUN
-cd "$remote_test_dir"
-chmod +x "$project_name"
-sudo ./"$project_name"
+cd "$remote_test_dir/$host"
+if [ -f "$build_script" ]
+then
+  chmod +x "$build_script"
+  sudo ./"$build_script"
+fi
 RUN
+
 assert_status_equal 0 $? $LINENO
 done
 
@@ -80,19 +80,19 @@ done
 # test packages
 #
 
-for package_dir in $packages
+for package_dir in "$@"
 do
 host=$(basename -- "$package_dir")
 
-# check
 ssh -q -T -F "$ssh_config_file" "$host" -- <<CHECK
-cd "$remote_test_dir"
-if [ -f "$project_test_name" ]
+cd "$remote_test_dir/$host"
+if [ -f "$test_script" ]
 then
-  chmod +x "$project_test_name"
-  ./"$project_test_name"
+  chmod +x "$test_script"
+  ./"$test_script"
 fi
 CHECK
+
 assert_status_equal 0 $? $LINENO
 done
 ################################## (test) ##################################

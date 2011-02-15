@@ -32,8 +32,12 @@ module Linecook
         $stderr.puts("      %s  %s" % [action, msg])
       end
       
+      def quiet
+        false
+      end
+      
       def sh(cmd)
-        puts "% #{cmd}"
+        puts "% #{cmd}" unless quiet
         system(cmd)
       end
       
