@@ -15,12 +15,14 @@ module Linecook
         { PATHS_KEY => [project_dir] }.merge(config) 
       end
       
-      def setup(config={})
-        unless config.kind_of?(Hash)
-          config = load_config(config)
+      def setup(config)
+        if config.kind_of?(Hash)
+          new config
+        else
+          project_dir = config
+          config = load_config(project_dir)
+          new(config, project_dir)
         end
-        
-        new(config)
       end
       
       def init(project_dir)
@@ -52,9 +54,11 @@ module Linecook
       'templates'  => ['templates', '.erb']
     }
     
+    attr_reader :project_dir
     attr_reader :config
     
-    def initialize(config={})
+    def initialize(config={}, project_dir='.')
+      @project_dir = project_dir
       @config = config
     end
     
@@ -109,7 +113,7 @@ module Linecook
       
       paths.each do |path|
         PATTERNS.each_pair do |type, (dirname, extname)|
-          resource_dir = File.expand_path(File.join(path, dirname))
+          resource_dir = File.expand_path(File.join(path, dirname), project_dir)
           pattern = File.join(resource_dir, "**/*#{extname}")
           
           Dir.glob(pattern).each do |full_path|

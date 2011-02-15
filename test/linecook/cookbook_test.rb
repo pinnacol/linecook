@@ -6,8 +6,9 @@ class CookbookTest < Test::Unit::TestCase
   include Linecook::Test::FileTest
   Cookbook = Linecook::Cookbook
   
-  DIR_ONE = File.expand_path('../../fixtures/dir_one', __FILE__)
-  DIR_TWO = File.expand_path('../../fixtures/dir_two', __FILE__)
+  FIXTURES_DIR = File.expand_path('../../fixtures', __FILE__)
+  DIR_ONE = File.expand_path('dir_one', FIXTURES_DIR)
+  DIR_TWO = File.expand_path('dir_two', FIXTURES_DIR)
   
   MANIFEST = {
     'files' => {
@@ -96,6 +97,11 @@ class CookbookTest < Test::Unit::TestCase
       }
     )
     
+    assert_equal MANIFEST, cookbook.manifest
+  end
+  
+  def test_manifest_expands_paths_relative_to_project_dir
+    cookbook = Cookbook.new({'paths' => ['dir_one', 'dir_two']}, FIXTURES_DIR)
     assert_equal MANIFEST, cookbook.manifest
   end
 end
