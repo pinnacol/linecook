@@ -27,12 +27,12 @@ module Linecook
       #   Host name # [vm_name]
       #
       def hosts(ssh_config_file)
-        hosts = {}
+        hosts = []
         
         File.open(ssh_config_file) do |io|
           io.each_line do |line|
             next unless line =~ HOST_REGEXP
-            hosts[$1] = $2 || $1
+            hosts << [$1, $2 || $1]
           end
         end
         
@@ -41,7 +41,7 @@ module Linecook
       
       def each_vm_name(vm_names)
         if vm_names.empty?
-          vm_names = hosts(ssh_config_file).values
+          vm_names = hosts(ssh_config_file).collect {|host, vm_name| vm_name }
         end
         
         vm_names.each do |vm_name|
