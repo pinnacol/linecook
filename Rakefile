@@ -118,6 +118,7 @@ task :default => :test
 desc 'Run the tests assuming the vm is running'
 task :quicktest => :bundle do
   tests = Dir.glob('test/**/*_test.rb')
+  tests.delete_if {|test| test =~ /_test\/test_/ }
   
   if ENV['RCOV'] == 'true'
     FileUtils.rm_rf File.expand_path('../coverage', __FILE__)
