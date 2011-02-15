@@ -22,6 +22,10 @@ module Linecook
       config :quiet, false, &c.flag
       
       def process(package_file, package_dir=nil)
+        unless File.exists?(package_file)
+          package_file = guess_package_file(package_file)
+        end
+        
         package_dir ||= default_package_dir(package_file)
         package_dir = File.expand_path(package_dir)
         package = Linecook::Package.init(package_file, project_dir)
@@ -33,6 +37,11 @@ module Linecook
         end
         
         package_dir
+      end
+      
+      def guess_package_file(host_name)
+        package_file = File.expand_path("packages/#{host_name}.yml", project_dir)
+        File.exists?(package_file) ? package_file : host_name
       end
       
       def dependencies(package)
