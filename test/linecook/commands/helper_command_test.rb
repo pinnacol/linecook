@@ -3,7 +3,7 @@ require 'linecook/commands/helper'
 require 'linecook/test/file_test'
 require 'linecook/test/shell_test'
 
-class HelperTest < Test::Unit::TestCase
+class HelperCommandTest < Test::Unit::TestCase
   Helper = Linecook::Commands::Helper
   
   include Linecook::Test::FileTest

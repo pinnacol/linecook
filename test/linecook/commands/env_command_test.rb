@@ -2,7 +2,7 @@ require File.expand_path('../../../test_helper', __FILE__)
 require 'linecook/commands/env'
 require 'linecook/test'
 
-class EnvTest < Test::Unit::TestCase
+class EnvCommandTest < Test::Unit::TestCase
   include Linecook::Test
   
   Env = Linecook::Commands::Env

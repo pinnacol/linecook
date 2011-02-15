@@ -2,7 +2,7 @@ require File.expand_path('../../../test_helper', __FILE__)
 require 'linecook/commands/preview'
 require 'linecook/test'
 
-class PreviewTest < Test::Unit::TestCase
+class PreviewCommandTest < Test::Unit::TestCase
   include Linecook::Test
   
   Preview = Linecook::Commands::Preview
