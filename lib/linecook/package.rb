@@ -5,13 +5,15 @@ require 'tempfile'
 module Linecook
   class Package
     class << self
-      def init(package_file=nil, project_dir=nil)
-        env = Utils.load_config(package_file)
-        cookbook = Cookbook.init(project_dir)
-        setup(env, cookbook)
+      def load_env(package_file)
+        Utils.load_config(package_file)
       end
       
       def setup(env, cookbook=nil)
+        unless env.kind_of?(Hash)
+          env = load_env(env)
+        end
+        
         package = new(env)
         
         if cookbook
@@ -20,6 +22,11 @@ module Linecook
         end
         
         package
+      end
+      
+      def init(package_file=nil, project_dir=nil)
+        cookbook = Cookbook.init(project_dir)
+        setup(package_file, cookbook)
       end
     end
     

@@ -4,23 +4,29 @@ require 'lazydoc'
 module Linecook
   class Cookbook
     class << self
-      def config_file(dir)
-        Dir.glob(File.join(dir, '{C,c}ookbook')).first
+      def config_file(project_dir)
+        Dir.glob(File.join(project_dir, '{C,c}ookbook')).first
       end
       
-      def init(dir)
-        path = config_file(dir)
+      def load_config(project_dir)
+        path   = config_file(project_dir)
         config = Utils.load_config(path)
-        new default_config(dir).merge(config)
+        
+        { PATHS_KEY => [project_dir] }.merge(config) 
       end
       
-      def default_config(dir)
-        {
-           MANIFEST_KEY => {},
-           PATHS_KEY    => [dir],
-           GEMS_KEY     => gems,
-           REWRITE_KEY  => {}
-         }
+      def setup(config={})
+        unless config.kind_of?(Hash)
+          config = load_config(config)
+        end
+        
+        new(config)
+      end
+      
+      def init(project_dir)
+        cookbook = setup project_dir
+        cookbook.config[GEMS_KEY] ||= gems
+        cookbook
       end
       
       def gems
