@@ -9,9 +9,10 @@ module Linecook
     # Builds some or all packages and helpers in a project, as needed.
     #
     class Build < Command
-      config :project_dir, '.', :short => :d      # the project directory
-      config :force, false, :short => :f, &c.flag # force creation
-      config :quiet, false, &c.flag
+      config :project_dir, '.', :short => :d              # the project directory
+      config :force, false, :short => :f, &c.flag         # force creation
+      config :quiet, false, &c.flag                       # silence output
+      config :guess_name, false, :long => :name, &c.flag  # specify package names
       
       def glob_helpers(project_dir)
         helpers_dir = File.expand_path('helpers', project_dir)
@@ -32,8 +33,16 @@ module Linecook
       end
       
       def glob_package_files(project_dir)
-        packages_dir = File.expand_path('packages', project_dir)
-        Dir.glob("#{packages_dir}/*.yml")
+        packages_dir  = File.expand_path('packages', project_dir)
+        package_files = Dir.glob("#{packages_dir}/*.yml")
+        
+        if guess_name
+          package_files.collect! do |path|
+            File.basename(path).chomp('.yml')
+          end
+        end
+        
+        package_files
       end
       
       def process(*package_files)
@@ -49,7 +58,8 @@ module Linecook
         package = Package.new(
           :project_dir => project_dir,
           :force => force,
-          :quiet => quiet
+          :quiet => quiet,
+          :guess_name => guess_name
         )
         
         if package_files.empty?
