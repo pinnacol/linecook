@@ -10,21 +10,21 @@ module Linecook
     # ::desc generates a package
     #
     # Generates a package from a package file.  Package files are YAML files
-    # that specify a package env.  The env specifies recipes to build into the
-    # package, and the attributes to build them with.
+    # that specify a package env.  A package name can be given instead of a
+    # package file; in that case the actual package file should be located at
+    # 'project_dir/packages/name.yml'.
     #
     # If a cookbook file is present in the project_dir then it will be used to
     # resolve resources available to the package.  See the env command to
     # interrogate a package env.
     class Package < Command
-      config :project_dir, '.', :short => :d      # the project directory
-      config :force, false, :short => :f, &c.flag # force creation
-      config :quiet, false, &c.flag
+      config :project_dir, '.', :short => :d              # the project directory
+      config :force, false, :short => :f, &c.flag         # force creation
+      config :quiet, false, &c.flag                       # silence output
+      config :guess_name, false, :long => :name, &c.flag  # specify a package name
       
       def process(package_file, package_dir=nil)
-        unless File.exists?(package_file)
-          package_file = guess_package_file(package_file)
-        end
+        package_file = guess_package_file(package_file) if guess_name
         
         package_dir ||= default_package_dir(package_file)
         package_dir = File.expand_path(package_dir)
@@ -39,9 +39,8 @@ module Linecook
         package_dir
       end
       
-      def guess_package_file(host_name)
-        package_file = File.expand_path("packages/#{host_name}.yml", project_dir)
-        File.exists?(package_file) ? package_file : host_name
+      def guess_package_file(name)
+        File.expand_path("packages/#{name}.yml", project_dir)
       end
       
       def dependencies(package)

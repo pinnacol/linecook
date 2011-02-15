@@ -36,7 +36,7 @@ class HelperTest < Test::Unit::TestCase
     end
   end
   
-  def test_process_guesses_package_file_for_host_name
+  def test_process_guesses_package_file_for_name
     prepare('recipes/example.rb') do |io|
       io << 'target << "content"' 
     end
@@ -47,6 +47,7 @@ class HelperTest < Test::Unit::TestCase
     end
     
     Dir.chdir(method_dir) do
+      cmd.guess_name = true
       package_dir = cmd.process('vbox')
       assert_equal "content", File.read("#{package_dir}/example")
     end
