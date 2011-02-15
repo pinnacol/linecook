@@ -21,12 +21,14 @@ class TestCommandTest < Test::Unit::TestCase
   def test_test_builds_transfers_and_runs_build_and_test_scripts
     prepare('recipes/abox.rb') do |io|
       io.puts "puts 'build'"
+      io.puts "target.puts 'echo run'"
       io.puts "target.puts 'echo content > file.txt'"
       
     end
     
     prepare('recipes/abox_test.rb') do |io|
-      io.puts "puts 'test'"
+      io.puts "puts 'build test'"
+      io.puts "target.puts 'echo run test'"
       io.puts "target.puts '[ $(cat file.txt) = \"content\" ]'"
     end
     
@@ -35,7 +37,9 @@ class TestCommandTest < Test::Unit::TestCase
     assert_script %Q{
       % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/test/#{method_name}' '#{method_dir}'
       build
-      test
+      build test
+      run
+      run test
     }
   end
   
@@ -50,6 +54,37 @@ class TestCommandTest < Test::Unit::TestCase
     
     assert_script %Q{
       % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/test/#{method_name}' '#{method_dir}'  # [1] ...
+    }
+  end
+  
+  def test_test_builds_and_tests_each_package
+    ['abox', 'bbox'].each do |box|
+      prepare("recipes/#{box}.rb") do |io|
+        io.puts "puts 'build #{box}'"
+        io.puts "target.puts 'echo run #{box}'"
+        io.puts "target.puts 'echo content > file.txt'"
+      
+      end
+    
+      prepare("recipes/#{box}_test.rb") do |io|
+        io.puts "puts 'build #{box}_test'"
+        io.puts "target.puts 'echo run #{box}_test'"
+        io.puts "target.puts '[ $(cat file.txt) = \"content\" ]'"
+      end
+    
+      prepare("packages/#{box}.yml") {}
+    end
+    
+    assert_script %Q{
+      % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/test/#{method_name}' '#{method_dir}'
+      build abox
+      build abox_test
+      build bbox
+      build bbox_test
+      run abox
+      run bbox
+      run abox_test
+      run bbox_test
     }
   end
 end
