@@ -26,10 +26,22 @@ module Linecook
       
       def init(package_file=nil, project_dir=nil)
         cookbook = Cookbook.init(project_dir)
-        setup(package_file, cookbook)
+        package  = setup(package_file, cookbook)
+        
+        package.context[PACKAGE_KEY] ||= begin
+          name = host_name(package_file)
+          {'recipes' => { 'build' => name, 'test' => "#{name}_test"}}
+        end
+        
+        package
+      end
+      
+      def host_name(package_file)
+        package_file ? File.basename(package_file).chomp(File.extname(package_file)) : DEFAULT_HOST_NAME
       end
     end
     
+    DEFAULT_HOST_NAME = 'vbox'
     CONTEXT_KEY   = 'linecook'
     COOKBOOK_KEY  = 'cookbook'
     MANIFEST_KEY  = 'manifest'
