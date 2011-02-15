@@ -1,13 +1,12 @@
 require File.expand_path('../../../test_helper', __FILE__)
 require 'linecook/commands/vbox_command'
-require 'linecook/test/file_test'
+require 'linecook/test'
 
 class VboxCommandTest < Test::Unit::TestCase
+  include Linecook::Test
+
   VboxCommand = Linecook::Commands::VboxCommand
   HOST_REGEXP = VboxCommand::HOST_REGEXP
-  
-  include Linecook::Test::FileTest
-  include Linecook::Test::ShellTest
   
   attr_accessor :cmd
   

@@ -1,13 +1,11 @@
 require File.expand_path('../../../test_helper', __FILE__)
 require 'linecook/commands/helper'
-require 'linecook/test/file_test'
-require 'linecook/test/shell_test'
+require 'linecook/test'
 
 class HelperCommandTest < Test::Unit::TestCase
-  Helper = Linecook::Commands::Helper
+  include Linecook::Test
   
-  include Linecook::Test::FileTest
-  include Linecook::Test::ShellTest
+  Helper = Linecook::Commands::Helper
   
   attr_accessor :cmd
   
