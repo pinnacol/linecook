@@ -19,18 +19,18 @@ class TestCommandTest < Test::Unit::TestCase
   #
   
   def test_test_builds_transfers_and_runs_build_and_test_scripts
-    prepare('recipes/vbox.rb') do |io|
+    prepare('recipes/abox.rb') do |io|
       io.puts "puts 'build'"
       io.puts "target.puts 'echo content > file.txt'"
       
     end
     
-    prepare('recipes/vbox_test.rb') do |io|
+    prepare('recipes/abox_test.rb') do |io|
       io.puts "puts 'test'"
       io.puts "target.puts '[ $(cat file.txt) = \"content\" ]'"
     end
     
-    prepare('packages/vbox.yml') {}
+    prepare('packages/abox.yml') {}
     
     assert_script %Q{
       % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/test/#{method_name}' '#{method_dir}'
@@ -40,13 +40,13 @@ class TestCommandTest < Test::Unit::TestCase
   end
   
   def test_test_exits_with_status_1_for_failed_tests
-    prepare('recipes/vbox.rb') {}
+    prepare('recipes/abox.rb') {}
     
-    prepare('recipes/vbox_test.rb') do |io|
-      io.puts "target.puts 'exit 8'"
+    prepare('recipes/abox_test.rb') do |io|
+      io.puts "target.puts 'false'"
     end
     
-    prepare('packages/vbox.yml') {}
+    prepare('packages/abox.yml') {}
     
     assert_script %Q{
       % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/test/#{method_name}' '#{method_dir}'  # [1] ...

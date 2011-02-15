@@ -11,9 +11,11 @@ are instructions for setting up a generic Ubuntu VM.
 
 == Setup
 
-Use the VirtualBox wizard to get started.
+Use the VirtualBox wizard to get started. The name can be changed along with
+any of the other settings (ex user), but be sure to propagate changes
+throughout the setup process.
 
-  - name: vbox
+  - name: abox
   - Linux/Ubuntu
   - 512 MB memory
   - 8 GB dynamically resizing drive
@@ -21,23 +23,22 @@ Use the VirtualBox wizard to get started.
 Under Settings:
 
   - add the ubuntu iso to the cd/dvd device (under storage)
-  - disable audio
-  - network set to NAT
 
 Start the server and install ubuntu (use default settings unless specified):
 
-  - hostname: vbox-ubuntu
-  - user/password: vbox
+  - hostname: abox-ubuntu
+  - user/password: linecook
   (Devices > CD/DVD Devices > Remove disk from virtual drive)
   (Machine > Take Snapshot) - RAW
 
-Login and setup sudo permissions:
+Login and setup sudo permissions for the linecook user:
 
   vm: sudo visudo
 
-  # insert line:
+  # insert:
   #
-  #   %vbox ALL=NOPASSWD: ALL
+  #   # Members of the linecook group may sudo without a password
+  #   %linecook ALL=NOPASSWD: ALL
   #
   # then exit (write out changes as prompted)
 
@@ -48,7 +49,7 @@ application > Contents > MacOS > VBoxGuestAdditions.iso).
   (Devices > CD/DVD Devices): select the VBoxGuestAdditions.iso
   vm: sudo apt-get install -y linux-headers-$(uname -r) build-essential ssh openssh-server
   vm: sudo mkdir /media/dvd
-  vm: sudo mount /dev/dvd /media/dvd/
+  vm: sudo mount /dev/dvd /media/dvd/             # run again if it fails 
   vm: sudo sh /media/dvd/VBoxLinuxAdditions.run
   # there may be a warning about 'Window System drivers fail', ignore
   vm: sudo umount /media/dvd/
@@ -56,7 +57,7 @@ application > Contents > MacOS > VBoxGuestAdditions.iso).
   
 Mount a share to the vm directory:
 
-  ht: VBoxManage sharedfolder add vbox --name vm --hostpath "$(pwd)/vm" --transient
+  ht: VBoxManage sharedfolder add abox --name vm --hostpath "$(pwd)/vm" --transient
   vm: mkdir ~/vm
   vm: sudo mount -t vboxsf -o uid=1000,gid=100 vm ~/vm
 
@@ -71,7 +72,7 @@ Setup SSH:
 Unmount the share:
 
   vm: sudo umount ~/vm
-  ht: VBoxManage sharedfolder remove vbox --name vm --transient
+  ht: VBoxManage sharedfolder remove abox --name vm --transient
 
 Remove the login banner (if you prefer):
 
@@ -80,23 +81,24 @@ Remove the login banner (if you prefer):
 Now take some standard snapshots and setup port forwarding:
 
   vm: exit
-  ht: VBoxManage snapshot vbox take BASE
-  ht: VBoxManage snapshot vbox take CURRENT
-  ht: VBoxManage controlvm vbox poweroff
-  ht: VBoxManage modifyvm vbox --natpf1 'vbox-ssh,tcp,,2222,,22'
-  ht: VBoxManage modifyvm vbox --natpf1 'vbox-http,tcp,,8888,,80'
-  ht: VBoxManage -q snapshot vbox restore CURRENT
-  ht: VBoxManage startvm vbox --type headless
+  ht: VBoxManage snapshot abox take BASE
+  ht: VBoxManage snapshot abox take CURRENT
+  ht: VBoxManage controlvm abox poweroff
+  ht: VBoxManage modifyvm abox --natpf1 'abox-ssh,tcp,,2220,,22'
+  ht: VBoxManage modifyvm abox --natpf1 'abox-http,tcp,,8880,,80'
+  ht: VBoxManage -q snapshot abox restore CURRENT
+  ht: VBoxManage startvm abox --type headless
 
-Now you can re-establish the share and access the box like this:
+Now you can re-establish the share and access the box through these linecook
+commands:
 
   ht: linecook share
   ht: linecook ssh
 
 To cleanup the port forwarding (run later, if ever):
 
-  ht: VBoxManage modifyvm vbox --natpf1 delete 'vbox-ssh'
-  ht: VBoxManage modifyvm vbox --natpf1 delete 'vbox-http'
+  ht: VBoxManage modifyvm abox --natpf1 delete 'abox-ssh'
+  ht: VBoxManage modifyvm abox --natpf1 delete 'abox-http'
 
 == Development
 
@@ -105,7 +107,7 @@ Linecook provides the following commands to manage and develop packages:
   # start the vm to a known snapshot
   ht: linecook start --snapshot=current
   
-  # build, transfer, run, and test the 'vbox.yml' package
+  # build, transfer, run, and test the 'abox.yml' package
   ht: linecook test
   
   # checkout the results (and or look in the vm directory)
@@ -124,13 +126,13 @@ Linecook provides the following commands to manage and develop packages:
 
 To develop multiple (potentially interacting) virtual machines, build each as
 above but customize your access to each machine on the host. For example if
-you made an 'alt' virtual machine:
+you made an 'bbox' virtual machine:
 
-  - name: alt
-  - hostname: alt-ubuntu
+  - name: bbox
+  - hostname: bbox-ubuntu
   
-  ht: VBoxManage modifyvm alt --natpf1 'alt-ssh,tcp,,2223,,22'
-  ht: VBoxManage modifyvm alt --natpf1 'alt-http,tcp,,8889,,80'
+  ht: VBoxManage modifyvm bbox --natpf1 'bbox-ssh,tcp,,2221,,22'
+  ht: VBoxManage modifyvm bbox --natpf1 'bbox-http,tcp,,8881,,80'
 
 Notice both the name and the ports are altered in the port forwarding
 commands. Now in the ssh config file, make entries for each host; the
@@ -138,25 +140,25 @@ configurations can be reorganized to be a little more DRY:
 
   [config/ssh]
   HostName localhost
-  User vbox
+  User linecook
   UserKnownHostsFile /dev/null
   StrictHostKeyChecking no
   IdentitiesOnly yes
   IdentityFile vm/ssh/id_rsa
   
-  Host vbox
-    Port 2222
+  Host abox
+    Port 2220
   
-  Host alt
-    Port 2223
+  Host bbox
+    Port 2221
 
 The same linecook commands will operate on a set of vms:
 
   # start all (or a subset) the vms to a known snapshot
   ht: linecook start --snapshot=current
   
-  # * build, transfer, run the 'vbox.yml' package on the vbox vm
-  # * build, transfer, run the 'alt.yml' package on the alt vm
+  # * build, transfer, run the 'abox.yml' package on the abox vm
+  # * build, transfer, run the 'bbox.yml' package on the bbox vm
   # * run the tests for each
   ht: linecook test
   
@@ -165,20 +167,20 @@ The same linecook commands will operate on a set of vms:
   
   # checkout the results, one at a time - note the vm directory will be
   # shared among all of the vms (typically does not cause conflicts)
-  ht: linecook ssh vbox
-  ht: linecook ssh alt
+  ht: linecook ssh abox
+  ht: linecook ssh bbox
   
   # etc...
 
 When running tests the package name corresponds to the host that it will be
-run on, ie 'vbox.yml' goes to the 'vbox' host as specified in 'config/ssh'.
-Implicitly the target virtual machine will also be named 'vbox' in VirtualBox.
+run on, ie 'abox.yml' goes to the 'abox' host as specified in 'config/ssh'.
+Implicitly the target virtual machine will also be named 'abox' in VirtualBox.
 If you name it something else, add a magic comment to the Host declaration
 like this:
 
   [config/ssh]
   ...
-  Host vbox    # [the_vm_name]
+  Host abox    # [the_vm_name]
   ...
 
 That's it.

@@ -1,5 +1,5 @@
 HostName localhost
-User vbox
+User linecook
 UserKnownHostsFile /dev/null
 StrictHostKeyChecking no
 IdentitiesOnly yes
@@ -7,5 +7,5 @@ IdentityFile vm/ssh/id_rsa
 ControlMaster auto
 ControlPath vm/ssh/socket-%r@%h:%p
 
-Host vbox   # [vbox]
+Host abox   # [abox]
   Port 2222
