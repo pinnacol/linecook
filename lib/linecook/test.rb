@@ -11,7 +11,11 @@ module Linecook
     LINECOOK_DIR = File.expand_path('../../..', __FILE__)
     LINECOOK = File.join(LINECOOK_DIR, 'bin/linecook')
     
-    def setup_cookbook(config=user_dir)
+    def cookbook_dir
+      File.directory?(method_dir) ? method_dir : user_dir
+    end
+    
+    def setup_cookbook(config=cookbook_dir)
       @cookbook = Cookbook.setup(config)
     end
     

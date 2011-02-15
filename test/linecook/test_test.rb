@@ -26,6 +26,18 @@ class LinecookTestTest < Test::Unit::TestCase
     assert_equal b, cookbook.manifest['files']['example.txt']
   end
   
+  def test_setup_cookbook_initializes_to_method_dir_if_it_exists
+    path = prepare('files/example.txt') {|io| }
+    cookbook = setup_cookbook
+    
+    assert_equal path, cookbook.manifest['files']['example.txt']
+  end
+  
+  # def test_setup_cookbook_initializes_to_user_dir_if_method_dir_does_not_exist
+  #   cookbook = setup_cookbook
+  #   assert_equal path, cookbook.manifest['files']['example.txt']
+  # end
+  
   #
   # setup_package test
   #
