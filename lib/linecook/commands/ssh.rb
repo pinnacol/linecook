@@ -8,7 +8,15 @@ module Linecook
     # Connects to a virtual machine using ssh, as configured in config/ssh.
     # 
     class Ssh < VboxCommand
-      def process(host='vbox')
+      def default_host
+        hosts(ssh_config_file).collect {|host, vm_name| host }.first
+      end
+      
+      def process(host=default_host)
+        if host.to_s.strip.empty?
+          raise CommandError.new("no host specified")
+        end
+        
         ssh = "ssh -F '#{ssh_config_file}' '#{host}' --"
 
         # Patterned after vagrant/ssh.rb (circa 0.6.6)
