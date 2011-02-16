@@ -98,12 +98,25 @@ end
 #
 
 namespace :vm do
-  task :setup do
-    sh 'bundle exec linecook start --snapshot base'
+  desc "start each vm at CURRENT and share vm directory"
+  task :start => :bundle do
+    sh 'bundle exec linecook start --snapshot CURRENT'
     sh 'bundle exec linecook share'
   end
   
-  task :teardown do
+  desc "snapshot each vm to a new CURRENT"
+  task :snapshot => :bundle do
+    sh 'bundle exec linecook snapshot CURRENT'
+  end
+  
+  desc "reset each vm to BASE and share vm directory"
+  task :reset => :bundle do
+    sh 'bundle exec linecook start --snapshot BASE'
+    sh 'bundle exec linecook share'
+  end
+  
+  desc "stop each vm"
+  task :stop => :bundle do
     sh 'bundle exec linecook stop'
   end
 end
@@ -131,10 +144,10 @@ end
 desc 'Run the tests'
 task :test do
   begin
-    Rake::Task["vm:setup"].invoke
+    Rake::Task["vm:start"].invoke
     Rake::Task["quicktest"].invoke
   ensure
-    Rake::Task["vm:teardown"].execute(nil)
+    Rake::Task["vm:stop"].execute(nil)
   end
 end
 
