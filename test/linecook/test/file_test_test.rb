@@ -12,6 +12,63 @@ class FileTestTest < Test::Unit::TestCase
     assert_equal __FILE__.chomp(File.extname(__FILE__)), class_dir
   end
   
+  def test_class_dir_can_be_set_at_the_class_level
+    path = prepare('file_test_parent_class.rb') do |io|
+      io.puts %q{
+        class FileTestAssignClassDir
+          include Linecook::Test::FileTest
+          self.class_dir = 'custom'
+        end
+      }
+    end
+    require path
+    
+    assert_equal 'custom', FileTestAssignClassDir.class_dir
+  end
+  
+  def test_subclass_guesses_class_dir_as_file_name_minus_extname
+    path = prepare('file_test_parent_class.rb') do |io|
+      io.puts %q{
+        class FileTestParentClass
+          include Linecook::Test::FileTest
+        end
+      }
+    end
+    require path
+    
+    path = prepare('file_test_child_class.rb') do |io|
+      io.puts %q{
+        class FileTestChildClass < FileTestParentClass
+        end
+      }
+    end
+    require path
+    
+    assert_equal path('file_test_child_class'), FileTestChildClass.class_dir
+  end
+  
+  def test_submodule_guesses_class_dir_as_file_name_minus_extname
+    path = prepare('file_test_submodule.rb') do |io|
+      io.puts %q{
+        module FileTestSubmodule
+          include Linecook::Test::FileTest
+        end
+      }
+    end
+    require path
+    
+    path = prepare('file_test_include_submodule.rb') do |io|
+      io.puts %q{
+        class FileTestIncludeSubmodule
+          include FileTestSubmodule
+        end
+      }
+    end
+    require path
+    
+    assert_equal path('file_test_include_submodule'), FileTestIncludeSubmodule.class_dir
+  end
+  
   #
   # method_dir test
   #
@@ -143,27 +200,3 @@ class FileTestTest < Test::Unit::TestCase
     assert_equal false, File.exists?(method_dir)
   end
 end
-
-class FileTestParentClassTest < Test::Unit::TestCase
-  include Linecook::Test::FileTest
-  def test_to_specify_a_test
-  end
-end
-
-class FileTestSubclassTest < FileTestParentClassTest
-  def test_subclass_guesses_class_dir_as_file_name_minus_extname
-    assert_equal __FILE__.chomp(File.extname(__FILE__)), class_dir
-  end
-end
-
-class FileTestAssignClassDirTest < Test::Unit::TestCase
-  include Linecook::Test::FileTest
-  
-  CLASS_DIR = __FILE__.chomp(File.extname(__FILE__)) + "_custom"
-  self.class_dir = CLASS_DIR
-  
-  def test_class_dir_can_be_manually_set_at_class_level
-    assert_equal CLASS_DIR, class_dir
-  end
-end
-
