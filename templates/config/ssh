@@ -8,4 +8,4 @@ ControlMaster auto
 ControlPath vm/ssh/socket-%r@%h:%p
 
 Host abox   # [abox]
-  Port 2222
+  Port 2220

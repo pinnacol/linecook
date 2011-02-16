@@ -75,7 +75,7 @@ end
 #
 
 desc "build helpers and packages"
-task :build do
+task :build => :bundle do
   force = (ENV['FORCE'] == 'true')
   sh "bundle exec linecook build #{force ? '--force' : nil}"
 end
@@ -99,7 +99,7 @@ desc 'Default: Run tests.'
 task :default => :test
 
 desc 'Run the tests assuming the vm is running'
-task :quicktest => [:helpers] do
+task :quicktest => :build do
   tests = Dir.glob('test/**/*_test.rb')
   tests.delete_if {|test| test =~ /_test\/test_/ }
   

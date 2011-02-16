@@ -34,12 +34,12 @@ class LinecookTest < Test::Unit::TestCase
       output = `BUNDLE_GEMFILE='#{gemfile}' 2>&1 bundle exec linecook helper example`
       assert_equal 0, $?.exitstatus, output
       
-      output = `BUNDLE_GEMFILE='#{gemfile}' 2>&1 bundle exec linecook package vbox`
+      output = `BUNDLE_GEMFILE='#{gemfile}' 2>&1 bundle exec linecook package abox`
       assert_equal 0, $?.exitstatus, output
-      assert_equal true, File.exists?('packages/vbox/example'), output
+      assert_equal true, File.exists?('packages/abox/example'), output
       
       assert_script %q{
-        % sh packages/vbox/example
+        % sh packages/abox/example
         a b c
         7 8 9
         Contents of an example file.
@@ -54,6 +54,9 @@ class LinecookTest < Test::Unit::TestCase
         Contents of a template file.
         Contents of a template file.
       }
+      
+      output = `BUNDLE_GEMFILE='#{gemfile}' 2>&1 bundle exec rake quicktest`
+      assert_equal 0, $?.exitstatus, output.gsub(/^/, '>')
     end
   end
   
