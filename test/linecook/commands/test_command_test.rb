@@ -14,6 +14,10 @@ class TestCommandTest < Test::Unit::TestCase
     @cmd = Test.new
   end
   
+  def relative_dir
+    method_dir[(user_dir.length + 1)..-1]
+  end
+  
   #
   # cmd test
   #
@@ -35,7 +39,7 @@ class TestCommandTest < Test::Unit::TestCase
     prepare('packages/abox.yml') {}
     
     assert_script %Q{
-      % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/test/#{method_name}' '#{method_dir}'
+      % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/#{relative_dir}' '#{method_dir}'
       build
       build test
       run
@@ -53,7 +57,7 @@ class TestCommandTest < Test::Unit::TestCase
     prepare('packages/abox.yml') {}
     
     assert_script %Q{
-      % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/test/#{method_name}' '#{method_dir}'  # [1] ...
+      % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/#{relative_dir}' '#{method_dir}'  # [1] ...
     }
   end
   
@@ -76,7 +80,7 @@ class TestCommandTest < Test::Unit::TestCase
     end
     
     assert_script %Q{
-      % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/test/#{method_name}' '#{method_dir}'
+      % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/#{relative_dir}' '#{method_dir}'
       build abox
       build abox_test
       build bbox
