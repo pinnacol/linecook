@@ -61,10 +61,25 @@ module Linecook
       recipe
     end
     
+    def build_package(host)
+      package.context['package'] ||= {'recipes' => { 'build' => host, 'test' => "#{host}_test"}}
+      package.build
+      package.export path("packages/#{host}")
+    end
+    
+    def build_packages(*packages)
+      cmd = "#{LINECOOK} build --force --quiet --project-dir '#{method_dir}'"
+      cmd += " '#{packages.join("' '")}'" unless packages.empty?
+      
+      result = sh(cmd)
+      assert_equal(0, $?.exitstatus, "% #{cmd}")
+      result
+    end
+    
     def assert_packages(*packages)
       relative_dir = method_dir[(user_dir.length + 1)..-1]
       
-      cmd = "#{LINECOOK} test --force --quiet --remote-test-dir 'vm/#{relative_dir}' '#{method_dir}'"
+      cmd = "#{LINECOOK} test --quiet --remote-test-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'"
       cmd += " '#{packages.join("' '")}'" unless packages.empty?
       
       result = sh(cmd)

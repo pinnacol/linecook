@@ -172,21 +172,52 @@ class LinecookTestTest < Test::Unit::TestCase
   no_cleanup
   
   def test_assert_packages_passes_if_default_package_in_method_dir_passes_linecook_test
+    build_packages
     assert_packages
   end
   
   def test_assert_packages_fails_if_default_package_in_method_dir_fails_linecook_test
+    build_packages
     err = assert_raises(Test::Unit::AssertionFailedError) { assert_packages }
     assert err.message.include?("<0> expected but was\n<1>")
   end
   
-  def test_assert_packages_only_builds_specified_packages
+  def test_assert_packages_only_tests_the_specified_packages
+    build_packages
     assert_packages 'abox'
     
     err = assert_raises(Test::Unit::AssertionFailedError) { assert_packages 'bbox' }
     assert err.message.include?("<0> expected but was\n<1>")
     
     err = assert_raises(Test::Unit::AssertionFailedError) { assert_packages 'abox', 'bbox' }
+    assert err.message.include?("<0> expected but was\n<1>")
+  end
+  
+  #
+  # build_package
+  #
+  
+  cleanup
+  
+  # def test_build_package_builds_package_into_method_dir
+  #   prepare('recipes/abox.rb') {|io| }
+  #   prepare('recipes/abox_test.rb') {|io| io.puts "target.puts 'true'"}
+  #   
+  #   build_package
+  # end
+  
+  def test_build_package_works_with_assert_packages
+    prepare('recipes/abox.rb') {|io| }
+    prepare('recipes/abox_test.rb') {|io| io.puts "target.puts 'true'"}
+    
+    build_package 'abox'
+    assert_packages
+    
+    prepare('recipes/abox_test.rb') {|io| io.puts "target.puts 'false'"}
+    setup_package
+    build_package 'abox'
+    
+    err = assert_raises(Test::Unit::AssertionFailedError) { assert_packages }
     assert err.message.include?("<0> expected but was\n<1>")
   end
 end

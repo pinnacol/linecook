@@ -39,9 +39,10 @@ class TestCommandTest < Test::Unit::TestCase
     prepare('packages/abox.yml') {}
     
     assert_script %Q{
-      % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/#{relative_dir}' '#{method_dir}'
+      % ruby #{LINECOOK} build --quiet --project-dir '#{method_dir}'
       build
       build test
+      % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'
       run
       run test
     }
@@ -57,7 +58,8 @@ class TestCommandTest < Test::Unit::TestCase
     prepare('packages/abox.yml') {}
     
     assert_script %Q{
-      % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/#{relative_dir}' '#{method_dir}'  # [1] ...
+      % ruby #{LINECOOK} build --quiet --project-dir '#{method_dir}' # ...
+      % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'  # [1] ...
     }
   end
   
@@ -80,11 +82,12 @@ class TestCommandTest < Test::Unit::TestCase
     end
     
     assert_script %Q{
-      % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/#{relative_dir}' '#{method_dir}'
+      % ruby #{LINECOOK} build --quiet --project-dir '#{method_dir}'
       build abox
       build abox_test
       build bbox
       build bbox_test
+      % ruby #{LINECOOK} test --quiet --remote-test-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'
       run abox
       run bbox
       run abox_test
