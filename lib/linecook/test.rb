@@ -61,14 +61,15 @@ module Linecook
       recipe
     end
     
-    def assert_packages(output=nil)
+    def assert_packages(*packages)
       relative_dir = method_dir[(user_dir.length + 1)..-1]
+      
       cmd = "#{LINECOOK} test --force --quiet --remote-test-dir 'vm/#{relative_dir}' '#{method_dir}'"
+      cmd += " '#{packages.join("' '")}'" unless packages.empty?
       
-      result = sh cmd
-      
-      _assert_output_equal(output, result, cmd) if output
-      assert_equal(0, $?.exitstatus, cmd)
+      result = sh(cmd)
+      assert_equal(0, $?.exitstatus, "% #{cmd}")
+      result
     end
   end
 end

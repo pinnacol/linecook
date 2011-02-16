@@ -166,17 +166,27 @@ class LinecookTestTest < Test::Unit::TestCase
   end
   
   #
-  # assert_package test
+  # assert_packages test
   #
   
   no_cleanup
   
-  def test_assert_package_passes_if_default_package_in_method_dir_passes_linecook_test
-    assert_package
+  def test_assert_packages_passes_if_default_package_in_method_dir_passes_linecook_test
+    assert_packages
   end
   
-  def test_assert_package_fails_if_default_package_in_method_dir_fails_linecook_test
-    err = assert_raises(Test::Unit::AssertionFailedError) { assert_package }
+  def test_assert_packages_fails_if_default_package_in_method_dir_fails_linecook_test
+    err = assert_raises(Test::Unit::AssertionFailedError) { assert_packages }
+    assert err.message.include?("<0> expected but was\n<1>")
+  end
+  
+  def test_assert_packages_only_builds_specified_packages
+    assert_packages 'abox'
+    
+    err = assert_raises(Test::Unit::AssertionFailedError) { assert_packages 'bbox' }
+    assert err.message.include?("<0> expected but was\n<1>")
+    
+    err = assert_raises(Test::Unit::AssertionFailedError) { assert_packages 'abox', 'bbox' }
     assert err.message.include?("<0> expected but was\n<1>")
   end
 end
