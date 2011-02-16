@@ -60,5 +60,13 @@ module Linecook
       assert_alike expected, recipe.result
       recipe
     end
+    
+    def assert_package(output=nil)
+      cmd = "#{LINECOOK} test --quiet --remote-test-dir 'vm/test/#{method_name}' '#{method_dir}'"
+      result = sh cmd
+      
+      _assert_output_equal(output, result, cmd) if output
+      assert_equal(0, $?.exitstatus, cmd)
+    end
   end
 end

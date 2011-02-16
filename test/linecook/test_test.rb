@@ -164,4 +164,19 @@ class LinecookTestTest < Test::Unit::TestCase
     setup_package('key' => 'value')
     assert_recipe('value') { target << attrs['key'] }
   end
+  
+  #
+  # assert_package test
+  #
+  
+  no_cleanup
+  
+  def test_assert_package_passes_if_default_package_in_method_dir_passes_linecook_test
+    assert_package
+  end
+  
+  def test_assert_package_fails_if_default_package_in_method_dir_fails_linecook_test
+    err = assert_raises(Test::Unit::AssertionFailedError) { assert_package }
+    assert err.message.include?("<0> expected but was\n<1>")
+  end
 end
