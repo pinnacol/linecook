@@ -184,26 +184,116 @@ class LinecookTestTest < Test::Unit::TestCase
   cleanup
   
   #
-  # end to end test
+  # end to end tests
   #
-  
-  def test_assert_and_test_recipe
-    setup_recipe('build') do
-      target.puts "echo run"
-      target.puts "echo content > file.txt"
-    end 
-    
-    setup_recipe('test') do
-      target.puts "echo run test"
-      target.puts "[ $(cat file.txt) = \"content\" ]"
+
+  # build recipe with helpers, run recipe on host, check output
+  def test_a_helper
+    set_helpers HelperModule
+    set_host 'abox'
+
+    assert_recipe %q{
+      echo 'a b c'
+    } do
+      echo "a", "b", "c"
     end
-    
-    package.export path("packages/abox")
-    result = assert_packages
-    
-    assert_output_equal %q{
-      run
-      run test
-    }, result
+
+    assert_recipe_matches %q{
+      echo 'a :...: c'
+    } do
+      echo "a", Time.now, "c"
+    end
+
+    assert_recipe_output %q{
+      a b c
+    } do
+      echo "a" "b" "c"
+    end
+
+    assert_recipe_output_matches %q{
+      a :...: c
+    } do
+      echo "a", Time.now, "c"
+    end
+  end
+
+  # build package for host, run 'run' recipe on host (no test), check output
+  def test_a_recipe
+    set_host 'abox'
+
+    setup_package(
+      'letters' => ['a', 'b', 'c']
+    )
+
+    # a)
+    # let use recipes/abox.rb
+
+    # b)
+    # prepare("recipes/abox.rb") do |io|
+    #   io.puts "extend #{HelperModule}"
+    #   io.puts "echo *attrs['letters']"
+    # end
+
+    # c)
+    setup_recipe 'run' do |io|
+      extend HelperModule
+      echo(*attrs['letters'])
+    end
+
+    assert_package(
+      'run'  => "echo a b c\n"
+    )
+
+    assert_package_output %q{
+      a b c
+    }
+
+    assert_package_matches({
+      'run'  => "echo a :...: c\n"
+    })
+
+    assert_package_output_matches %q{
+      a :...: c
+    }
+  end
+
+  # build helpers and packages, run and test each, check output
+  def test_a_package
+    prepare('helpers/project_test_helper/echo.erb') do |io|
+      io.puts "(args)"
+      io.puts "--"
+      io.puts "echo <%= args.join(' ')%>"
+    end
+
+    ['abox', 'bbox'].each do |box|
+      prepare("recipes/#{box}.rb") do |io|
+        io.puts "helpers 'project_test_helper'"
+        io.puts "echo 'run', '#{box}'"
+      end
+
+      prepare("recipes/#{box}_test.rb") do |io|
+        io.puts "helpers 'project_test_helper'"
+        io.puts "echo 'test', '#{box}'"
+      end
+
+      prepare("packages/#{box}.yml") {}
+    end
+
+    # just check exit status
+    assert_project_passes method_dir
+
+    assert_project_output %q{
+      run abox
+      run bbox
+      test abox
+      test bbox
+    }, method_dir
+
+    assert_project_output_matches %q{
+      run a:...:
+      run b:...:
+      test a:...:
+      test b:...:
+    }, method_dir
   end
 end
