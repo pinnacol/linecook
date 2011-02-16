@@ -4,11 +4,101 @@ module Linecook
       module ClassMethods
         attr_accessor :class_dir
         
-        def self.extended(base)
+        attr_reader :cleanup_method_registry
+        
+        def cleanup_methods
+          @cleanup_methods ||= begin
+            cleanup_methods = {}
+
+            ancestors.reverse.each do |ancestor|
+              next unless ancestor.kind_of?(ClassMethods)
+              ancestor.cleanup_method_registry.each_pair do |key, value|
+                if value.nil?
+                  cleanup_methods.delete(key)
+                else
+                  cleanup_methods[key] = value
+                end
+              end
+            end
+            
+            cleanup_methods
+          end
+        end
+        
+        def reset_cleanup_methods
+          @cleanup_methods = nil
+        end
+        
+        protected
+        
+        def self.initialize(base)
           # Infers the test directory from the calling file.
           #   'some_class_test.rb' => 'some_class_test'
-          calling_file = caller[2].gsub(/:\d+(:in .*)?$/, "")
+          calling_file = caller[1].gsub(/:\d+(:in .*)?$/, "")
           base.class_dir = calling_file.chomp(File.extname(calling_file))
+          
+          base.reset_cleanup_methods
+          unless base.instance_variable_defined?(:@cleanup_method_registry)
+            base.instance_variable_set(:@cleanup_method_registry, {})
+          end
+          
+          unless base.instance_variable_defined?(:@cleanup_paths)
+            base.instance_variable_set(:@cleanup_paths, ['.'])
+          end
+          
+          unless base.instance_variable_defined?(:@cleanup)
+            base.instance_variable_set(:@cleanup, true)
+          end
+        end
+        
+        def inherited(base) # :nodoc:
+          ClassMethods.initialize(base)
+          super
+        end
+        
+        def define_method_cleanup(method_name, dirs)
+          reset_cleanup_methods
+          cleanup_method_registry[method_name.to_sym] = dirs
+        end
+        
+        def remove_method_cleanup(method_name)
+          reset_cleanup_methods
+          cleanup_method_registry.delete(method_name.to_sym)
+        end
+        
+        def undef_method_cleanup(method_name)
+          reset_cleanup_methods
+          cleanup_method_registry[method_name.to_sym] = nil
+        end
+        
+        def cleanup_paths(*dirs)
+          @cleanup_paths = dirs
+        end
+        
+        def cleanup(*method_names)
+          if method_names.empty?
+            @cleanup = true
+          else
+            method_names.each do |method_name|
+              define_method_cleanup method_name, @cleanup_paths
+            end
+          end
+        end
+        
+        def no_cleanup(*method_names)
+          if method_names.empty?
+            @cleanup = false
+          else
+            method_names.each do |method_name|
+              undef_method_cleanup method_name
+            end
+          end
+        end
+        
+        def method_added(sym)
+          if @cleanup && !cleanup_method_registry.has_key?(sym.to_sym) && sym.to_s[0, 5] == "test_"
+            cleanup sym
+          end
         end
       end
     
@@ -16,59 +106,59 @@ module Linecook
         module_function
       
         def included(base)
-          base.extend base.kind_of?(Class) ? ClassMethods : ModuleMethods
+          base.extend ClassMethods
+          base.extend ModuleMethods unless base.kind_of?(Class)
+          
+          ClassMethods.initialize(base)
           super
         end
       end
-    
+      
       extend ModuleMethods
       
       attr_reader :user_dir
+      attr_reader :class_dir
       attr_reader :method_dir
       
       def setup
         super
         
         @user_dir   = File.expand_path('.')
-        @method_dir = File.expand_path(File.join(self.class.class_dir, method_name))
+        @class_dir  = self.class.class_dir
+        @method_dir = File.expand_path(method_name.to_s, class_dir)
         
-        cleanup method_dir
+        cleanup
       end
-    
+      
       def teardown
         Dir.chdir(user_dir)
         
         unless ENV["KEEP_OUTPUTS"] == "true"
-          cleanup method_dir, File.dirname(method_dir)
+          cleanup
+          Dir.rmdir(class_dir) rescue(SystemCallError)
         end
-      
+        
         super
       end
       
-      def cleanup(dir, base=dir)
-        unless dir.index(base) == 0
-          raise "invalid base directory"
+      def cleanup_methods
+        self.class.cleanup_methods
+      end
+      
+      def cleanup
+        if cleanup_paths = cleanup_methods[method_name.to_sym]
+          cleanup_paths.each {|relative_path| remove(relative_path) }
         end
-        
-        if File.exists?(dir)
-          FileUtils.rm_r(dir)
-          
-          while dir != base
-            dir = File.dirname(dir)
-          
-            begin
-              Dir.rmdir(dir)
-            rescue(SystemCallError)
-              break
-            end
-          end
-        end
-        
-        dir
       end
       
       def path(relative_path)
-        File.expand_path(relative_path, method_dir)
+        path = File.expand_path(relative_path, method_dir)
+        
+        unless path.index(method_dir) == 0
+          raise "does not make a path relative to method_dir: #{relative_path.inspect}"
+        end
+        
+        path
       end
       
       def prepare(relative_path, content=nil, &block)
@@ -86,6 +176,11 @@ module Linecook
         File.open(target, 'a', &block) if block
         
         target
+      end
+      
+      def remove(relative_path)
+        full_path = path(relative_path)
+        FileUtils.rm_r(full_path) if File.exists?(full_path)
       end
     end
   end
