@@ -32,21 +32,27 @@ Gem::Specification.new do |s|
   
   # list the files you want to include here.
   s.files = %W{
+    bin/linecook_test
     lib/linecook.rb
     lib/linecook/attributes.rb
     lib/linecook/commands.rb
+    lib/linecook/commands/build.rb
     lib/linecook/commands/command.rb
     lib/linecook/commands/command_error.rb
     lib/linecook/commands/env.rb
     lib/linecook/commands/helper.rb
-    lib/linecook/commands/helpers.rb
     lib/linecook/commands/init.rb
     lib/linecook/commands/package.rb
     lib/linecook/commands/preview.rb
-    lib/linecook/commands/vbox.rb
-    lib/linecook/vm.rb
+    lib/linecook/commands/share.rb
+    lib/linecook/commands/snapshot.rb
+    lib/linecook/commands/ssh.rb
+    lib/linecook/commands/start.rb
+    lib/linecook/commands/state.rb
+    lib/linecook/commands/stop.rb
+    lib/linecook/commands/test.rb
+    lib/linecook/commands/vbox_command.rb
     lib/linecook/cookbook.rb
-    lib/linecook/helper.rb
     lib/linecook/package.rb
     lib/linecook/recipe.rb
     lib/linecook/template.rb
@@ -55,7 +61,6 @@ Gem::Specification.new do |s|
     lib/linecook/test/file_test.rb
     lib/linecook/test/regexp_escape.rb
     lib/linecook/test/shell_test.rb
-    lib/linecook/test/vm_test.rb
     lib/linecook/utils.rb
     lib/linecook/version.rb
     templates/Gemfile
@@ -68,14 +73,14 @@ Gem::Specification.new do |s|
     templates/files/file.txt
     templates/helpers/project_name/cat.erb
     templates/helpers/project_name/echo.erb
-    templates/packages/project_name.yml
+    templates/packages/abox.yml
     templates/project_name.gemspec
     templates/recipes/project_name.rb
+    templates/recipes/project_name_test.rb
     templates/templates/template.txt.erb
     templates/test/project_name_test.rb
     templates/test/test_helper.rb
-    templates/vbox/setup/virtual_box
-    templates/vbox/ssh/id_rsa
-    templates/vbox/ssh/id_rsa.pub
+    templates/vm/ssh/id_rsa
+    templates/vm/ssh/id_rsa.pub
   }
 end
