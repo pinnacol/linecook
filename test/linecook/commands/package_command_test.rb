@@ -18,7 +18,7 @@ class PackageCommandTest < Test::Unit::TestCase
   # process test
   #
   
-  def test_process_builds_package_file
+  def test_process_builds_package_with_the_specified_name
     prepare('recipes/example.rb') do |io|
       io << 'target << "content"' 
     end
@@ -29,24 +29,24 @@ class PackageCommandTest < Test::Unit::TestCase
     end
     
     Dir.chdir(method_dir) do
-      package_dir = cmd.process('packages/vbox.yml')
+      package_dir = cmd.process('vbox')
       assert_equal "content", File.read("#{package_dir}/example")
     end
   end
   
-  def test_process_guesses_package_file_for_name
+  def test_process_allows_package_file_if_specified
     prepare('recipes/example.rb') do |io|
       io << 'target << "content"' 
     end
     
-    prepare('packages/vbox.yml') do |io|
+    prepare('path/to/vbox.yml') do |io|
       config = {"linecook" => {"package" => {"recipes" => "example"}}}
       YAML.dump(config, io)
     end
     
     Dir.chdir(method_dir) do
-      cmd.guess_name = true
-      package_dir = cmd.process('vbox')
+      cmd.file = true
+      package_dir = cmd.process('path/to/vbox.yml')
       assert_equal "content", File.read("#{package_dir}/example")
     end
   end
@@ -63,7 +63,6 @@ class PackageCommandTest < Test::Unit::TestCase
     prepare('packages/vbox.yml') {}
     
     Dir.chdir(method_dir) do
-      cmd.guess_name = true
       package_dir = cmd.process('vbox')
       
       assert_equal "build content", File.read("#{package_dir}/build")

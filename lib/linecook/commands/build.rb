@@ -12,7 +12,7 @@ module Linecook
       config :project_dir, '.', :short => :d              # the project directory
       config :force, false, :short => :f, &c.flag         # force creation
       config :quiet, false, &c.flag                       # silence output
-      config :guess_name, false, :long => :name, &c.flag  # specify package names
+      config :file, false, &c.flag                        # treat package name as file path
       
       def glob_helpers(project_dir)
         helpers_dir = File.expand_path('helpers', project_dir)
@@ -32,11 +32,11 @@ module Linecook
         helpers.sort_by {|name, sources| name }
       end
       
-      def glob_package_files(project_dir)
+      def glob_package_names(project_dir)
         packages_dir  = File.expand_path('packages', project_dir)
         package_files = Dir.glob("#{packages_dir}/*.yml")
         
-        if guess_name
+        unless file
           package_files.collect! do |path|
             File.basename(path).chomp('.yml')
           end
@@ -45,7 +45,7 @@ module Linecook
         package_files
       end
       
-      def process(*package_files)
+      def process(*package_names)
         helper = Helper.new(
           :project_dir => project_dir, 
           :force => force,
@@ -53,20 +53,24 @@ module Linecook
         )
         
         helpers = glob_helpers(project_dir)
-        helpers.each {|(name, sources)| helper.process(name, *sources) }
+        helpers.each do |(name, sources)|
+          helper.process(name, *sources)
+        end
         
         package = Package.new(
           :project_dir => project_dir,
           :force => force,
           :quiet => quiet,
-          :guess_name => guess_name
+          :file => file
         )
         
-        if package_files.empty?
-          package_files = glob_package_files(project_dir)
+        if package_names.empty?
+          package_names = glob_package_names(project_dir)
         end
         
-        package_files.collect! {|source| package.process(source) }
+        package_names.collect! do |package_name|
+          package.process(package_name)
+        end
       end
     end
   end

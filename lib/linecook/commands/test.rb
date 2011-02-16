@@ -11,17 +11,19 @@ module Linecook
       # config :keep_outputs, false
       config :shell, 'sh'
       config :force, false, &c.flag
-      config :quiet, false, &c.flag # silence output
+      config :quiet, false, &c.flag    # silence output
+      config :file, false, &c.flag     # treat package name as file path
       
       SCRIPT = File.expand_path('../../../../bin/linecook_test', __FILE__)
       
-      def process(project_dir='.')
+      def process(project_dir='.', *package_names)
         builder = Build.new(
           :project_dir => project_dir, 
           :force => force,
-          :quiet => quiet
+          :quiet => quiet,
+          :file  => file
         )
-        packages = builder.process
+        packages = builder.process(*package_names)
         
         ENV['REMOTE_TEST_DIR'] = remote_test_dir
         sh! "#{shell} #{SCRIPT} '#{project_dir}' '#{packages.join("' '")}'"
