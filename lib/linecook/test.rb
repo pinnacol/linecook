@@ -31,12 +31,25 @@ module Linecook
       @package ||= setup_package
     end
     
-    def setup_helpers(*helpers)
+    def set_helpers(*helpers)
       @helpers = helpers
     end
     
     def helpers
       @helpers ||= []
+    end
+    
+    def set_host(host)
+      @host = host
+    end
+    
+    def host
+      @host
+    end
+    
+    def ssh_config_file
+      method_ssh_config_file = path('config/ssh')
+      File.file?(method_ssh_config_file) ? method_ssh_config_file : 'config/ssh'
     end
     
     def setup_recipe(target_name=package.next_target_name('recipe'), &block)

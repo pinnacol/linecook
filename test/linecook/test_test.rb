@@ -62,14 +62,14 @@ class LinecookTestTest < Test::Unit::TestCase
   end
   
   #
-  # setup_helpers test
+  # set_helpers test
   #
   
-  def test_setup_helpers_sets_helpers
-    setup_helpers :a, :b
+  def test_set_helpers_sets_helpers
+    set_helpers :a, :b
     assert_equal [:a, :b], helpers
     
-    setup_helpers :x, :y
+    set_helpers :x, :y
     assert_equal [:x, :y], helpers
   end
   
@@ -94,16 +94,16 @@ class LinecookTestTest < Test::Unit::TestCase
   
   module HelperModule
     def echo(*args)
-      target.puts "echo #{args.join(' ')}"
+      target.puts "echo '#{args.join(' ')}'"
     end
   end
   
   def test_setup_recipe_extends_recipe_with_helpers
-    setup_helpers HelperModule
+    set_helpers HelperModule
     setup_recipe
     
     recipe.echo 'a', 'b', 'c'
-    assert_equal "echo a b c\n", recipe.result
+    assert_equal "echo 'a b c'\n", recipe.result
   end
   
   #
