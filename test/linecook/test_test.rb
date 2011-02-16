@@ -92,18 +92,6 @@ class LinecookTestTest < Test::Unit::TestCase
     assert_equal 'b', recipe.result
   end
   
-  def test_setup_recipe_resets_package
-    setup_recipe('recipe')
-    recipe.target << 'a'
-    recipe.close
-    assert_equal 'a', package.content('recipe')
-    
-    setup_recipe('recipe')
-    recipe.target << 'b'
-    recipe.close
-    assert_equal 'b', package.content('recipe')
-  end
-  
   module HelperModule
     def echo(*args)
       target.puts "echo #{args.join(' ')}"
@@ -193,31 +181,29 @@ class LinecookTestTest < Test::Unit::TestCase
     assert err.message.include?("<0> expected but was\n<1>")
   end
   
-  #
-  # build_package
-  #
-  
   cleanup
   
-  # def test_build_package_builds_package_into_method_dir
-  #   prepare('recipes/abox.rb') {|io| }
-  #   prepare('recipes/abox_test.rb') {|io| io.puts "target.puts 'true'"}
-  #   
-  #   build_package
-  # end
+  #
+  # end to end test
+  #
   
-  def test_build_package_works_with_assert_packages
-    prepare('recipes/abox.rb') {|io| }
-    prepare('recipes/abox_test.rb') {|io| io.puts "target.puts 'true'"}
+  def test_assert_and_test_recipe
+    setup_recipe('build') do
+      target.puts "echo run"
+      target.puts "echo content > file.txt"
+    end 
     
-    build_package 'abox'
-    assert_packages
+    setup_recipe('test') do
+      target.puts "echo run test"
+      target.puts "[ $(cat file.txt) = \"content\" ]"
+    end
     
-    prepare('recipes/abox_test.rb') {|io| io.puts "target.puts 'false'"}
-    setup_package
-    build_package 'abox'
+    package.export path("packages/abox")
+    result = assert_packages
     
-    err = assert_raises(Test::Unit::AssertionFailedError) { assert_packages }
-    assert err.message.include?("<0> expected but was\n<1>")
+    assert_output_equal %q{
+      run
+      run test
+    }, result
   end
 end

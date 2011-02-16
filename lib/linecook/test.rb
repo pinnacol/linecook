@@ -39,9 +39,11 @@ module Linecook
       @helpers ||= []
     end
     
-    def setup_recipe(target_name='recipe')
-      recipe = package.reset.setup_recipe(target_name)
+    def setup_recipe(target_name=package.next_target_name('recipe'), &block)
+      recipe = package.setup_recipe(target_name)
       helpers.each {|helper| recipe.extend helper }
+      
+      recipe.instance_eval(&block) if block_given?
       @recipe = recipe
     end
     
@@ -59,12 +61,6 @@ module Linecook
       recipe.instance_eval(&block) if block_given?
       assert_alike expected, recipe.result
       recipe
-    end
-    
-    def build_package(host)
-      package.context['package'] ||= {'recipes' => { 'build' => host, 'test' => "#{host}_test"}}
-      package.build
-      package.export path("packages/#{host}")
     end
     
     def build_packages(*packages)
