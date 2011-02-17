@@ -20,35 +20,31 @@ do
 done
 shift $(($OPTIND - 1))
 
-################################### run ####################################
+################################# transfer #################################
 
 errors=0
-while read script_name args
-do
-
 for package_dir in "$@"
 do
 host=$(basename -- "$package_dir")
 
 ssh -q -T -F "$ssh_config_file" "$host" -- <<SCRIPT
-cd "$remote_dir/$host"
-if [ -f "$script_name" ]
+rm -rf "$remote_dir/$host"
+if [ "$remote_dir" != "" ]
 then
-  chmod +x "$script_name"
-  sudo ./"$script_name" $args
+  mkdir -p "$remote_dir"
 fi
 SCRIPT
+
+scp -q -r -F "$ssh_config_file" "$package_dir" "$host:$remote_dir"
 
 status=$?
 if [ $status -ne 0 ]
 then
-  echo "[$status] $remote_dir/$host/$script_name $args" >&2
+  echo "[$status] $remote_dir/$host/$script_name " >&2
   errors=$(($errors+1))
 fi
-
-done
 done
 
 exit $errors
 
-################################## (run) ###################################
+################################ (transfer) ################################
