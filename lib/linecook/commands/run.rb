@@ -5,8 +5,8 @@ module Linecook
   module Commands
     
     # ::desc 
-    class Test < Command
-      TEST_SCRIPT = File.expand_path('../../../../bin/linecook_test', __FILE__)
+    class Run < Command
+      RUN_SCRIPT = File.expand_path('../../../../bin/linecook_run', __FILE__)
       
       config :project_dir, '.', :short => :d              # the project directory
       config :remote_dir, 'vm'
@@ -18,7 +18,7 @@ module Linecook
         package_names = glob_package_names(project_dir) if package_names.empty?
         package_dirs  = collect_package_dirs(package_names)
         
-        sh! "sh #{TEST_SCRIPT} -d'#{remote_dir}' '#{package_dirs.join("' '")}'"
+        sh! "sh #{RUN_SCRIPT} -d'#{remote_dir}' '#{package_dirs.join("' '")}'"
       end
       
       def glob_package_names(project_dir)

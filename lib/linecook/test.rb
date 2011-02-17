@@ -88,7 +88,7 @@ module Linecook
     def assert_packages(*packages)
       relative_dir = method_dir[(user_dir.length + 1)..-1]
       
-      cmd = "#{LINECOOK} test --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'"
+      cmd = "#{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'"
       cmd += " '#{packages.join("' '")}'" unless packages.empty?
       
       result = sh(cmd)

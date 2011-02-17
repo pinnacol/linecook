@@ -1,17 +1,17 @@
 require File.expand_path('../../../test_helper', __FILE__) 
-require 'linecook/commands/test'
+require 'linecook/commands/run'
 require 'linecook/test'
 
-class TestCommandTest < Test::Unit::TestCase
+class RunCommandTest < Test::Unit::TestCase
   include Linecook::Test
   
-  Test = Linecook::Commands::Test
+  Run = Linecook::Commands::Run
   
   attr_accessor :cmd
   
   def setup
     super
-    @cmd = Test.new
+    @cmd = Run.new
   end
   
   def relative_dir
@@ -42,7 +42,7 @@ class TestCommandTest < Test::Unit::TestCase
       % ruby #{LINECOOK} build --quiet --project-dir '#{method_dir}'
       build
       build test
-      % ruby #{LINECOOK} test --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'
+      % ruby #{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'
       run
       run test
     }
@@ -59,7 +59,7 @@ class TestCommandTest < Test::Unit::TestCase
     
     assert_script %Q{
       % ruby #{LINECOOK} build --quiet --project-dir '#{method_dir}' # ...
-      % ruby #{LINECOOK} test --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'  # [1] ...
+      % ruby #{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'  # [1] ...
     }
   end
   
@@ -87,7 +87,7 @@ class TestCommandTest < Test::Unit::TestCase
       build abox_test
       build bbox
       build bbox_test
-      % ruby #{LINECOOK} test --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'
+      % ruby #{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'
       run abox
       run bbox
       run abox_test
