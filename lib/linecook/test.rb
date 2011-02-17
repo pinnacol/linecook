@@ -120,6 +120,21 @@ module Linecook
       package
     end
     
+    def assert_project_passes(options={})
+      result, exitstatus, cmd = linecook_run(options)
+      assert_equal 0, exitstatus, cmd
+    end
+    
+    def assert_project_output(expected, options={})
+      result, exitstatus, cmd = linecook_run(options)
+      assert_output_equal expected, result, cmd
+    end
+    
+    def assert_project_output_matches(expected, options={})
+      result, exitstatus, cmd = linecook_run(options)
+      assert_alike expected, result, cmd
+    end
+    
     def linecook(cmd, options={}, *args)
       opts = []
       options.each_pair do |key, value|

@@ -259,41 +259,47 @@ class LinecookTestTest < Test::Unit::TestCase
 
   # build helpers and packages, run and test each, check output
   def test_a_package
+    prepare("cookbook") {}
+    
     prepare('helpers/project_test_helper/echo.erb') do |io|
-      io.puts "(args)"
+      io.puts "(*args)"
       io.puts "--"
       io.puts "echo <%= args.join(' ')%>"
     end
 
     ['abox', 'bbox'].each do |box|
       prepare("recipes/#{box}.rb") do |io|
+        io.puts "$:.unshift '#{path('lib')}'"
         io.puts "helpers 'project_test_helper'"
         io.puts "echo 'run', '#{box}'"
       end
 
       prepare("recipes/#{box}_test.rb") do |io|
+        io.puts "$:.unshift '#{path('lib')}'"
         io.puts "helpers 'project_test_helper'"
         io.puts "echo 'test', '#{box}'"
       end
 
       prepare("packages/#{box}.yml") {}
     end
-
+    
+    build_packages
+    
     # just check exit status
-    assert_project_passes method_dir
+    assert_project_passes
 
     assert_project_output %q{
       run abox
       run bbox
       test abox
       test bbox
-    }, method_dir
+    }
 
     assert_project_output_matches %q{
       run a:...:
       run b:...:
       test a:...:
       test b:...:
-    }, method_dir
+    }
   end
 end
