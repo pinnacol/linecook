@@ -70,10 +70,62 @@ module Linecook
       recipe
     end
     
-    def assert_recipe_match(expected, recipe=setup_recipe, &block)
+    def assert_recipe_matches(expected, recipe=setup_recipe, &block)
       recipe.instance_eval(&block) if block_given?
       assert_alike expected, recipe.result
       recipe
+    end
+    
+    def assert_recipe_output(expected, recipe=setup_recipe, &block)
+      recipe.instance_eval(&block) if block_given?
+      
+      package.export path("packages/#{host}")
+      result, exitstatus, cmd = linecook_run('run_script' => recipe.target_name)
+      
+      assert_output_equal(expected, result, cmd)
+      recipe
+    end
+    
+    def assert_recipe_output_matches(expected, recipe=setup_recipe, &block)
+      recipe.instance_eval(&block) if block_given?
+      
+      package.export path("packages/#{host}")
+      result, exitstatus, cmd = linecook_run('run_script' => recipe.target_name)
+      
+      assert_alike(expected, result, cmd)
+      recipe
+    end
+    
+    def linecook(cmd, options={}, *args)
+      opts = []
+      options.each_pair do |key, value|
+        key = key.to_s.gsub('_', '-')
+        
+        case value
+        when true
+          opts << "--#{key}"
+        when false
+        else 
+          opts << "--#{key} '#{value}'"
+        end
+      end
+      
+      args = args.collect! {|arg| "'#{arg}'" }
+      
+      cmd = [LINECOOK, cmd] + opts.sort + args
+      cmd = cmd.join(' ')
+      
+      [sh(cmd), $?.exitstatus, cmd]
+    end
+    
+    def linecook_run(options={}, *packages)
+      options = {
+        :remote_dir  => "vm/#{method_dir[(user_dir.length + 1)..-1]}",
+        :project_dir => method_dir,
+        :quiet       => true
+      }.merge(options)
+      
+      linecook 'run', options, *packages
     end
     
     def build_packages(*packages)

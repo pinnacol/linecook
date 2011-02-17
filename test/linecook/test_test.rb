@@ -207,7 +207,7 @@ class LinecookTestTest < Test::Unit::TestCase
     assert_recipe_output %q{
       a b c
     } do
-      echo "a" "b" "c"
+      echo "a", "b", "c"
     end
 
     assert_recipe_output_matches %q{

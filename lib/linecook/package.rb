@@ -328,12 +328,13 @@ module Linecook
       registry.each_key do |target_name|
         export_path = File.join(dir, target_name)
         export_dir  = File.dirname(export_path)
+        source_path = registry[target_name]
+        
+        next if source_path == export_path
         
         unless File.exists?(export_dir)
           FileUtils.mkdir_p(export_dir)
         end
-        
-        source_path = registry[target_name]
         
         if allow_move && tempfile?(source_path)
           FileUtils.mv(source_path, export_path)
