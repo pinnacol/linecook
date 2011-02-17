@@ -241,7 +241,7 @@ class LinecookTestTest < Test::Unit::TestCase
     end
 
     assert_package(
-      'run'  => "echo a b c\n"
+      'run'  => "echo 'a b c'\n"
     )
 
     assert_package_output %q{
@@ -249,7 +249,7 @@ class LinecookTestTest < Test::Unit::TestCase
     }
 
     assert_package_matches({
-      'run'  => "echo a :...: c\n"
+      'run'  => "echo 'a :...: c'\n"
     })
 
     assert_package_output_matches %q{

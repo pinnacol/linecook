@@ -78,22 +78,46 @@ module Linecook
     
     def assert_recipe_output(expected, recipe=setup_recipe, &block)
       recipe.instance_eval(&block) if block_given?
-      
-      package.export path("packages/#{host}")
-      result, exitstatus, cmd = linecook_run('run_script' => recipe.target_name)
-      
-      assert_output_equal(expected, result, cmd)
+      assert_package_output(expected, 'run_script' => recipe.target_name)
       recipe
     end
     
     def assert_recipe_output_matches(expected, recipe=setup_recipe, &block)
       recipe.instance_eval(&block) if block_given?
-      
-      package.export path("packages/#{host}")
-      result, exitstatus, cmd = linecook_run('run_script' => recipe.target_name)
-      
-      assert_alike(expected, result, cmd)
+      assert_package_output_matches(expected, 'run_script' => recipe.target_name)
       recipe
+    end
+    
+    def assert_package(expected)
+      package.export path("packages/#{host}")
+      assert_equal expected.keys.sort, package.registry.keys.sort
+      
+      expected.each_pair do |name, content|
+        _assert_output_equal content, package.content(name)
+      end
+    end
+    
+    def assert_package_matches(expected)
+      package.export path("packages/#{host}")
+      assert_equal expected.keys.sort, package.registry.keys.sort
+      
+      expected.each_pair do |name, content|
+        _assert_alike content, package.content(name)
+      end
+    end
+    
+    def assert_package_output(expected, options={})
+      package.export path("packages/#{host}")
+      result, exitstatus, cmd = linecook_run(options)
+      
+      assert_output_equal(expected, result, cmd)
+    end
+    
+    def assert_package_output_matches(expected, options={})
+      package.export path("packages/#{host}")
+      result, exitstatus, cmd = linecook_run(options)
+      assert_alike(expected, result, cmd)
+      package
     end
     
     def linecook(cmd, options={}, *args)
