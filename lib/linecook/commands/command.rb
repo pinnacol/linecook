@@ -24,16 +24,15 @@ module Linecook
       lazy_attr :args, :process
       lazy_register :process, Lazydoc::Arguments
       
+      attr_accessor :quiet
+      
       def initialize(config={})
+        @quiet = true
         initialize_config(config)
       end
       
       def log(action, msg)
         $stderr.puts("      %s  %s" % [action, msg])
-      end
-      
-      def quiet
-        false
       end
       
       def sh(cmd)
@@ -43,7 +42,7 @@ module Linecook
       
       def sh!(cmd)
         unless sh(cmd)
-          raise CommandError, "non-zero exit status: #{$?.exitstatus}"
+          raise CommandError.new("", $?.exitstatus)
         end
       end
       

@@ -54,5 +54,5 @@ begin
   cmd_class.new(parser.config).call ARGV
 rescue Linecook::Commands::CommandError
   puts $!.message
-  exit 1
+  exit $!.exitstatus
 end
