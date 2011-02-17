@@ -8,15 +8,17 @@ run_script=${RUN_SCRIPT:-run}
 test_script=${TEST_SCRIPT:-test}
 remote_dir=${REMOTE_TEST_DIR:-vm/test}
 
-usage="usage: %s [-F=SSH_CONFIG_FILE] [-r=RUN_SCRIPT] [-t=TEST_SCRIPT] [-d=REMOTE_DIR] [-h] PACKAGE_DIRS...\n"
+usage="usage: %s [-F SSH_CONFIG_FILE] [-s SSH_OPTS] [-c SCP_OPTS] [-r RUN_SCRIPT] [-t TEST_SCRIPT] [-D REMOTE_DIR] [-h] PACKAGE_DIRS...\n"
 option="       %s   %s\n"
-while getopts "F:r:c:d:vh" opt
+while getopts "F:s:c:r:t:D:h" opt
 do
   case $opt in
   F  ) ssh_config_file=$OPTARG ;;
+  s  ) ssh_opts=$OPTARG ;;
+  c  ) scp_opts=$OPTARG ;;
   r  ) run_script=$OPTARG ;;
-  c  ) test_script=$OPTARG ;;
-  d  ) remote_dir=$OPTARG ;;
+  t  ) test_script=$OPTARG ;;
+  D  ) remote_dir=$OPTARG ;;
   h  ) printf "$usage" $0
        printf "$option" "-h" "prints this help"
        exit 0 ;;
