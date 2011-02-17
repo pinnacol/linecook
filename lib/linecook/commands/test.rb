@@ -6,31 +6,37 @@ module Linecook
     
     # ::desc 
     class Test < Command
-      config :project_dir, '.', :short => :d              # the project directory
-      config :remote_test_dir, 'vm/test'
-      # config :default_host, 'vbox'
-      # config :keep_outputs, false
-      config :shell, 'sh'
-      config :quiet, false, &c.flag                       # silence output
+      TEST_SCRIPT = File.expand_path('../../../../bin/linecook_test', __FILE__)
       
-      SCRIPT = File.expand_path('../../../../bin/linecook_test', __FILE__)
+      config :project_dir, '.', :short => :d              # the project directory
+      config :remote_dir, 'vm'
+      config :ssh_config_file, 'config/ssh'
+      config :quiet, false, &c.flag                       # silence output
+      config :file, false, &c.flag                        # treat package name as file path
       
       def process(*package_names)
-        packages = package_names.empty? ? glob_package_dirs(project_dir) : collect_package_dirs(package_names)
+        package_names = glob_package_names(project_dir) if package_names.empty?
+        package_dirs  = collect_package_dirs(package_names)
         
-        ENV['REMOTE_TEST_DIR'] = remote_test_dir
-        sh! "#{shell} #{SCRIPT} '#{project_dir}' '#{packages.join("' '")}'"
+        sh! "sh #{TEST_SCRIPT} -d'#{remote_dir}' '#{package_dirs.join("' '")}'"
       end
       
-      def glob_package_dirs(project_dir)
+      def glob_package_names(project_dir)
         packages_dir = File.expand_path('packages', project_dir)
-        package_dirs = Dir.glob("#{packages_dir}/*")
-        package_dirs.select {|dir| File.directory?(dir) }
+        package_dirs = Dir.glob("#{packages_dir}/*").select {|dir| File.directory?(dir) }
+        
+        unless file
+          package_dirs.collect! do |path|
+            File.basename(path)
+          end
+        end
+        
+        package_dirs
       end
       
       def collect_package_dirs(package_names)
         package_names.collect do |name|
-          guess_package_dir(name)
+          file ? name : guess_package_dir(name)
         end
       end
       

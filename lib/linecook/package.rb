@@ -30,7 +30,7 @@ module Linecook
         
         package.context[PACKAGE_KEY] ||= begin
           name = host_name(package_file)
-          {'recipes' => { 'build' => name, 'test' => "#{name}_test"}}
+          {'recipes' => { 'run' => name, 'test' => "#{name}_test"}}
         end
         
         package

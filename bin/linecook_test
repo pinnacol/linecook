@@ -2,78 +2,71 @@
 ############################################################################
 
 ssh_config_file=${SSH_CONFIG_FILE:-config/ssh}
-remote_test_dir=${REMOTE_TEST_DIR:-vm/test}
-build_script=${BUILD_SCRIPT:-build}
+ssh_opts=${SSH_OPTS:--q -T}
+scp_opts=${SCP_OPTS:--q}
+run_script=${RUN_SCRIPT:-run}
 test_script=${TEST_SCRIPT:-test}
+remote_dir=${REMOTE_TEST_DIR:-vm/test}
 
-usage="usage: %s [-h] PROJECT_DIR\n"
+usage="usage: %s [-F=SSH_CONFIG_FILE] [-r=RUN_SCRIPT] [-t=TEST_SCRIPT] [-d=REMOTE_DIR] [-h] PACKAGE_DIRS...\n"
 option="       %s   %s\n"
-while getopts "h" opt
+while getopts "F:r:c:d:vh" opt
 do
   case $opt in
-  h)  printf "$usage" $0
-      printf "$option" "-h" "prints this help"
-      exit 0;;
-  ?)  printf "$usage" $0
-      exit 2;;
+  F  ) ssh_config_file=$OPTARG ;;
+  r  ) run_script=$OPTARG ;;
+  c  ) test_script=$OPTARG ;;
+  d  ) remote_dir=$OPTARG ;;
+  h  ) printf "$usage" $0
+       printf "$option" "-h" "prints this help"
+       exit 0 ;;
+  \? ) printf "$usage" $0
+       exit 2 ;;
   esac
 done
 shift $(($OPTIND - 1))
 
-assert_status_equal () {
-  expected=$1; actual=$2; lineno=$3
+check_status () {
+  exitstatus=$1; lineno=$2; message=$3
   
-  if [ $actual -ne $expected ]
-  then 
-    echo "[$0:$lineno] exit status $actual (expected $expected)"
-    exit 1
+  if [ $exitstatus -ne 0 ]
+  then
+    echo "[$0:$lineno] $message"
+    exit $exitstatus
   fi
 }
 
 ################################### test ###################################
-project_dir=$1
-shift
-
-if [ ! -d "$project_dir" ]
-then
-  echo "not a project directory: $project_dir"
-  exit 1
-else
-  # expand project_dir
-  cd -- "$project_dir" > /dev/null
-  project_dir=$(pwd)
-  cd - > /dev/null
-fi
 
 #
-# build packages
+# run packages
 #
 
 for package_dir in "$@"
 do
 host=$(basename -- "$package_dir")
 
-ssh -q -T -F "$ssh_config_file" "$host" -- <<SETUP
-rm -rf "$remote_test_dir/$host"
-if [ "$remote_test_dir" != "" ]
+ssh $ssh_opts -F "$ssh_config_file" "$host" -- <<SETUP
+rm -rf "$remote_dir/$host"
+if [ "$remote_dir" != "" ]
 then
-  mkdir -p "$remote_test_dir"
+  mkdir -p "$remote_dir"
 fi
 SETUP
+check_status $? $LINENO "remote dir setup failure: $remote_dir/$host"
 
-scp -q -r -F "$ssh_config_file" "$package_dir" "$host:$remote_test_dir"
-assert_status_equal 0 $? $LINENO
+scp $scp_opts -r -F "$ssh_config_file" "$package_dir" "$host:$remote_dir"
+check_status $? $LINENO "scp failure: $package_dir $host:$remote_dir"
 
-ssh -q -T -F "$ssh_config_file" "$host" -- <<RUN
-cd "$remote_test_dir/$host"
-if [ -f "$build_script" ]
+ssh $ssh_opts -F "$ssh_config_file" "$host" -- <<RUN
+cd "$remote_dir/$host"
+if [ -f "$run_script" ]
 then
-  chmod +x "$build_script"
-  sudo ./"$build_script"
+  chmod +x "$run_script"
+  sudo ./"$run_script"
 fi
 RUN
-
-assert_status_equal 0 $? $LINENO
+check_status $? $LINENO "non-zero exit status: $package_dir/$run_script"
 done
 
 #
@@ -84,15 +77,14 @@ for package_dir in "$@"
 do
 host=$(basename -- "$package_dir")
 
-ssh -q -T -F "$ssh_config_file" "$host" -- <<CHECK
-cd "$remote_test_dir/$host"
+ssh $ssh_opts -F "$ssh_config_file" "$host" -- <<TEST
+cd "$remote_dir/$host"
 if [ -f "$test_script" ]
 then
   chmod +x "$test_script"
   ./"$test_script"
 fi
-CHECK
-
-assert_status_equal 0 $? $LINENO
+TEST
+check_status $? $LINENO "non-zero exit status: $package_dir/$test_script"
 done
 ################################## (test) ##################################

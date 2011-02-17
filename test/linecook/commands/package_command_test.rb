@@ -53,7 +53,7 @@ class PackageCommandTest < Test::Unit::TestCase
   
   def test_process_guesses_package_config_as_per_host_name
     prepare('recipes/vbox.rb') do |io|
-      io << 'target << "build content"'
+      io << 'target << "run content"'
     end
     
     prepare('recipes/vbox_test.rb') do |io|
@@ -65,7 +65,7 @@ class PackageCommandTest < Test::Unit::TestCase
     Dir.chdir(method_dir) do
       package_dir = cmd.process('vbox')
       
-      assert_equal "build content", File.read("#{package_dir}/build")
+      assert_equal "run content", File.read("#{package_dir}/run")
       assert_equal "test content", File.read("#{package_dir}/test")
     end
   end
