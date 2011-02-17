@@ -28,13 +28,14 @@ do
 done
 shift $(($OPTIND - 1))
 
+success=0
 check_status () {
-  exitstatus=$1; lineno=$2; message=$3
+  status=$1; message=$2
   
-  if [ $exitstatus -ne 0 ]
+  if [ $status -ne 0 ]
   then
-    echo "[$0:$lineno] $message"
-    exit $exitstatus
+    echo "[$status] $message" >&2
+    success=1
   fi
 }
 
@@ -55,10 +56,8 @@ then
   mkdir -p "$remote_dir"
 fi
 SETUP
-check_status $? $LINENO "remote dir setup failure: $remote_dir/$host"
 
 scp $scp_opts -r -F "$ssh_config_file" "$package_dir" "$host:$remote_dir"
-check_status $? $LINENO "scp failure: $package_dir $host:$remote_dir"
 
 ssh $ssh_opts -F "$ssh_config_file" "$host" -- <<RUN
 cd "$remote_dir/$host"
@@ -68,7 +67,7 @@ then
   sudo ./"$run_script"
 fi
 RUN
-check_status $? $LINENO "non-zero exit status: $package_dir/$run_script"
+check_status $? "$remote_dir/$host/$run_script"
 done
 
 #
@@ -87,6 +86,10 @@ then
   ./"$test_script"
 fi
 TEST
-check_status $? $LINENO "non-zero exit status: $package_dir/$test_script"
+check_status $? "$remote_dir/$host/$test_script"
 done
+
+if [ $success -ne 0 ]
+then exit 1
+fi
 ################################### (run) ###################################

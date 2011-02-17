@@ -151,7 +151,7 @@ module Linecook
       
       args = args.collect! {|arg| "'#{arg}'" }
       
-      cmd = [LINECOOK, cmd] + opts.sort + args
+      cmd = ['2>&1', LINECOOK, cmd] + opts.sort + args
       cmd = cmd.join(' ')
       
       [sh(cmd), $?.exitstatus, cmd]
@@ -168,7 +168,7 @@ module Linecook
     end
     
     def build_packages(*packages)
-      cmd = "#{LINECOOK} build --force --quiet --project-dir '#{method_dir}'"
+      cmd = "2>&1 #{LINECOOK} build --force --quiet --project-dir '#{method_dir}'"
       cmd += " '#{packages.join("' '")}'" unless packages.empty?
       
       result = sh(cmd)
@@ -179,7 +179,7 @@ module Linecook
     def assert_packages(*packages)
       relative_dir = method_dir[(user_dir.length + 1)..-1]
       
-      cmd = "#{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'"
+      cmd = "2>&1 #{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'"
       cmd += " '#{packages.join("' '")}'" unless packages.empty?
       
       result = sh(cmd)
