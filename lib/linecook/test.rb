@@ -18,8 +18,6 @@ module Linecook
     
     def setup_cookbook(configs=nil, project_dir=method_dir)
       configs ||= Cookbook.config_file(project_dir)
-      configs ||= { Cookbook::PATHS_KEY => [project_dir, user_dir] }
-      
       @cookbook = Cookbook.setup(configs, project_dir)
     end
     
