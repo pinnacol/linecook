@@ -36,10 +36,10 @@ class LinecookTest < Test::Unit::TestCase
       
       output = `BUNDLE_GEMFILE='#{gemfile}' 2>&1 bundle exec linecook package abox`
       assert_equal 0, $?.exitstatus, output
-      assert_equal true, File.exists?('packages/abox/example'), output
+      assert_equal true, File.exists?('packages/abox/run'), output
       
       assert_script %q{
-        % sh packages/abox/example
+        % sh packages/abox/run
         a b c
         7 8 9
         Contents of an example file.

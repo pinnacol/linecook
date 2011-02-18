@@ -26,6 +26,6 @@ class <%= const_name %>Test < Test::Unit::TestCase
   no_cleanup
   
   def test_<%= project_name %>
-    assert_project_passes
+    assert_project
   end
 end
