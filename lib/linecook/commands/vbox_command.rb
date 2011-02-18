@@ -88,7 +88,7 @@ module Linecook
       end
       
       def start_ssh_socket(vm_name)
-        sh "ssh -MNf -F '#{ssh_config_file}' '#{vm_name}'"
+        sh "ssh -MNf -F '#{ssh_config_file}' '#{vm_name}' >/dev/null 2>&1 </dev/null"
       end
     end
   end
