@@ -52,11 +52,17 @@ module Linecook
       @host or raise("no host set")
     end
     
+    def runlist
+      @runlist ||= []
+    end
+    
     def setup_recipe(target_name=package.next_target_name('recipe'), &block)
       recipe = package.setup_recipe(target_name)
       helpers.each {|helper| recipe.extend helper }
       
       recipe.instance_eval(&block) if block_given?
+      runlist << target_name
+      
       @recipe = recipe
     end
     
@@ -86,6 +92,8 @@ module Linecook
     end
     
     def run_package(options={}, host=self.host)
+      options['runlist'] ||= prepare('runlist') {|io| io.puts runlist.join("\n") }
+      
       build_package host
       run_project options, host
     end

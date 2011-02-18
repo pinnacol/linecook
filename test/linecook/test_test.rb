@@ -175,15 +175,15 @@ class LinecookTestTest < Test::Unit::TestCase
     setup_helpers HelperModule
     setup_host 'abox'
     
-    setup_recipe 'bonk' do
+    setup_recipe do
       target.puts "echo b0nk"
       target.puts "exit 8"
     end
     
-    result, cmd = run_package('runlist' => 'bonk')
+    result, cmd = run_package
     assert_output_equal %{
       b0nk
-      [8] vm/test/linecook/test_test/test_a_package/abox/bonk 
+      [8] vm/test/linecook/test_test/test_a_package/abox/recipe 
     }, result, cmd
     
     assert_equal 1, $?.exitstatus, cmd
