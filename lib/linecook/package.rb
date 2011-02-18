@@ -234,7 +234,7 @@ module Linecook
     
     # Looks up the file with the specified name using file_path and registers
     # it to target_name.  Raises an error if the target is already registered.
-    def build_file(target_name, file_name)
+    def build_file(target_name, file_name=target_name)
       register target_name, file_path(file_name)
       self
     end
@@ -243,7 +243,7 @@ module Linecook
     # builds, and registers it to target_name.  The locals will be set for
     # access in the template context.  Raises an error if the target is
     # already registered. Returns self.
-    def build_template(target_name, template_name, locals=env)
+    def build_template(target_name, template_name=target_name, locals=env)
       content = load_template(template_name).build(locals)
       
       target = setup_tempfile(target_name)
@@ -255,7 +255,7 @@ module Linecook
     # Looks up the recipe with the specified name using recipe_path, evaluates
     # it, and registers the result to target_name.  Raises an error if the
     # target is already registered. Returns self.
-    def build_recipe(target_name, recipe_name)
+    def build_recipe(target_name, recipe_name=target_name)
       path = recipe_path(recipe_name)
       recipe = setup_recipe(target_name)
       recipe.instance_eval(File.read(path), path)
