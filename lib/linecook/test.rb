@@ -76,30 +76,6 @@ module Linecook
       recipe
     end
     
-    def assert_recipe_output(expected, recipe=setup_recipe, options={}, &block)
-      recipe.instance_eval(&block) if block_given?
-      
-      build_package
-      options['runlist'] = recipe.target_name
-      
-      result, exitstatus, cmd = run_project(options, host)
-      assert_output_equal expected, result, cmd
-      
-      recipe
-    end
-    
-    def assert_recipe_output_matches(expected, recipe=setup_recipe, options={}, &block)
-      recipe.instance_eval(&block) if block_given?
-      
-      build_package
-      options['runlist'] = recipe.target_name
-      
-      result, exitstatus, cmd = run_project(options, host)
-      assert_alike expected, result, cmd
-      
-      recipe
-    end
-    
     def build_package(host=self.host)
       package_dir = path("packages/#{host}")
       
@@ -109,30 +85,29 @@ module Linecook
       package_dir
     end
     
+    def run_package(options={}, host=self.host)
+      build_package host
+      run_project options, host
+    end
+    
     def build_project(options={})
       options = {
         'project_dir' => method_dir,
         'quiet'       => true
       }.merge(options)
       
-      linecook 'build', options
+      linecook('build', options)
     end
     
     def run_project(options={}, *package_names)
       options = {
-        'remote_dir'  => "vm/#{method_dir[(user_dir.length + 1)..-1]}",
         'ssh_config_file' => ssh_config_file,
-        'project_dir' => method_dir,
-        'quiet'       => true,
+        'project_dir'     => method_dir,
+        'remote_dir'      => "vm/#{method_dir[(user_dir.length + 1)..-1]}",
+        'quiet'           => true,
       }.merge(options)
       
       linecook('run', options, *package_names)
-    end
-    
-    def assert_project(*package_names)
-      build_project
-      result, exitstatus, cmd = run_project({}, *package_names)
-      assert_equal 0, exitstatus, "% #{cmd}\n#{result}"
     end
     
     def linecook(cmd, options={}, *args)
@@ -154,7 +129,7 @@ module Linecook
       cmd = ['2>&1', LINECOOK, cmd] + opts.sort + args
       cmd = cmd.join(' ')
       
-      [sh(cmd), $?.exitstatus, cmd]
+      [sh(cmd), cmd]
     end
   end
 end

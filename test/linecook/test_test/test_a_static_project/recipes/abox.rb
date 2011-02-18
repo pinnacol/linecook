@@ -1,0 +1,1 @@
+target.puts 'echo run'

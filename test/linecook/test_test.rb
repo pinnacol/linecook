@@ -154,69 +154,12 @@ class LinecookTestTest < Test::Unit::TestCase
   end
   
   #
-  # assert_packages test
-  #
-  
-  no_cleanup
-  
-  def test_assert_packages_passes_if_default_package_in_method_dir_passes_linecook_test
-    assert_project
-  end
-  
-  def test_assert_packages_fails_if_default_package_in_method_dir_fails_linecook_test
-    err = assert_raises(Test::Unit::AssertionFailedError) { assert_project }
-    assert err.message.include?("<0> expected but was\n<1>")
-  end
-  
-  def test_assert_packages_only_tests_the_specified_packages
-    assert_project('abox')
-    
-    err = assert_raises(Test::Unit::AssertionFailedError) { assert_project('bbox') }
-    assert err.message.include?("<0> expected but was\n<1>")
-    
-    err = assert_raises(Test::Unit::AssertionFailedError) { assert_project('abox', 'bbox') }
-    assert err.message.include?("<0> expected but was\n<1>")
-  end
-  
-  cleanup
-  
-  #
-  # end to end tests
+  # test scenarios
   #
   
   def test_a_recipe
     setup_helpers HelperModule
-    setup_host 'abox'
-
-    assert_recipe %q{
-      echo 'a b c'
-    } do
-      echo "a", "b", "c"
-    end
-
-    assert_recipe_matches %q{
-      echo 'a :...: c'
-    } do
-      echo "a", Time.now, "c"
-    end
-
-    assert_recipe_output %q{
-      a b c
-    } do
-      echo "a", "b", "c"
-    end
-
-    assert_recipe_output_matches %q{
-      a :...: c
-    } do
-      echo "a", Time.now, "c"
-    end
-  end
-  
-  def test_a_recipe_using_a_package
-    setup_helpers HelperModule
-    setup_host 'abox'
-
+    
     setup_package(
       'letters' => ['a', 'b', 'c']
     )
@@ -226,24 +169,24 @@ class LinecookTestTest < Test::Unit::TestCase
     } do
       echo(*attrs['letters'])
     end
-
-    assert_recipe_matches %q{
-      echo 'a :...: c'
-    } do
-      echo(*attrs['letters'])
+  end
+  
+  def test_a_package
+    setup_helpers HelperModule
+    setup_host 'abox'
+    
+    setup_recipe 'bonk' do
+      target.puts "echo b0nk"
+      target.puts "exit 8"
     end
     
-    assert_recipe_output %q{
-      a b c
-    } do
-      echo(*attrs['letters'])
-    end
+    result, cmd = run_package('runlist' => 'bonk')
+    assert_output_equal %{
+      b0nk
+      [8] vm/test/linecook/test_test/test_a_package/abox/bonk 
+    }, result, cmd
     
-    assert_recipe_output_matches %q{
-      a :...: c
-    } do
-      echo(*attrs['letters'])
-    end
+    assert_equal 1, $?.exitstatus, cmd
   end
 
   def test_a_project
@@ -271,23 +214,33 @@ class LinecookTestTest < Test::Unit::TestCase
       prepare("packages/#{box}.yml") {}
     end
     
-    build_project
-    result, exitstatus, cmd = run_project
+    result, cmd = build_project
+    assert_equal 0, $?.exitstatus, cmd
     
-    assert_equal 0, exitstatus
-    
+    result, cmd = run_project
     assert_output_equal %q{
       run abox
       run bbox
       test abox
       test bbox
-    }, result
-
-    assert_alike %q{
-      run a:...:
-      run b:...:
-      test a:...:
-      test b:...:
-    }, result
+    }, result, cmd
+    assert_equal 0, $?.exitstatus, cmd
   end
+  
+  no_cleanup
+  
+  def test_a_static_project
+    result, cmd = build_project
+    assert_equal 0, $?.exitstatus, cmd
+    
+    result, cmd = run_project
+    assert_output_equal %q{
+      run
+      test
+      [1] vm/test/linecook/test_test/test_a_static_project/abox/test 
+    }, result, cmd
+    assert_equal 1, $?.exitstatus, cmd
+  end
+  
+  cleanup
 end

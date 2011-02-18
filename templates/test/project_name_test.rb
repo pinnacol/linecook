@@ -26,6 +26,10 @@ class <%= const_name %>Test < Test::Unit::TestCase
   no_cleanup
   
   def test_<%= project_name %>
-    assert_project
+    result, cmd = build_project
+    assert_equal 0, $?.exitstatus, cmd
+    
+    result, cmd = run_project
+    assert_equal 0, $?.exitstatus, cmd
   end
 end
