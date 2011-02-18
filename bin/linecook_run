@@ -32,11 +32,12 @@ host=$(basename -- "$package_dir")
 
 ssh -q -T -F "$ssh_config_file" "$host" -- <<SCRIPT
 cd "$remote_dir/$host"
-if [ -f "$script_name" ]
-then
-  chmod +x "$script_name"
-  sudo ./"$script_name" $args
+if ! [ -f "$script_name" ]
+then exit 1
 fi
+
+chmod +x "$script_name"
+sudo ./"$script_name" $args
 SCRIPT
 
 status=$?
