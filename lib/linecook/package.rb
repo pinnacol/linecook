@@ -5,13 +5,9 @@ require 'tempfile'
 module Linecook
   class Package
     class << self
-      def load_env(package_file)
-        Utils.load_config(package_file)
-      end
-      
       def setup(env, cookbook=nil)
         unless env.kind_of?(Hash)
-          env = load_env(env)
+          env = Utils.load_config(env)
         end
         
         package = new(env)
@@ -28,20 +24,17 @@ module Linecook
         cookbook = Cookbook.init(project_dir)
         package  = setup(package_file, cookbook)
         
-        package.context[PACKAGE_KEY] ||= begin
-          name = host_name(package_file)
-          {'recipes' => { 'run' => name, 'test' => "#{name}_test"}}
+        if package_file
+          package.context[PACKAGE_KEY] ||= begin
+            name = File.basename(package_file).chomp(File.extname(package_file)) 
+            {'recipes' => { 'run' => name, 'test' => "#{name}_test"}}
+          end
         end
         
         package
       end
-      
-      def host_name(package_file)
-        package_file ? File.basename(package_file).chomp(File.extname(package_file)) : DEFAULT_HOST_NAME
-      end
     end
     
-    DEFAULT_HOST_NAME = 'vbox'
     CONTEXT_KEY   = 'linecook'
     COOKBOOK_KEY  = 'cookbook'
     MANIFEST_KEY  = 'manifest'

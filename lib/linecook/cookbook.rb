@@ -4,31 +4,23 @@ require 'lazydoc'
 module Linecook
   class Cookbook
     class << self
-      def config_file(project_dir)
+      def config_file(project_dir='.')
         Dir.glob(File.join(project_dir, '{C,c}ookbook')).first
       end
       
-      def load_config(project_dir)
-        path   = config_file(project_dir)
-        config = Utils.load_config(path)
-        
-        { PATHS_KEY => [project_dir] }.merge(config) 
-      end
-      
-      def setup(config)
-        if config.kind_of?(Hash)
-          new config
-        else
-          project_dir = config
-          config = load_config(project_dir)
-          new(config, project_dir)
+      def setup(config={}, project_dir='.')
+        unless config.kind_of?(Hash)
+          config = Utils.load_config(config)
         end
+        
+        config[PATHS_KEY] ||= [project_dir]
+        config[GEMS_KEY]  ||= gems
+        
+        new(config, project_dir)
       end
       
-      def init(project_dir)
-        cookbook = setup project_dir
-        cookbook.config[GEMS_KEY] ||= gems
-        cookbook
+      def init(project_dir='.')
+        setup config_file(project_dir), project_dir
       end
       
       def gems
@@ -114,6 +106,7 @@ module Linecook
       paths.each do |path|
         PATTERNS.each_pair do |type, (dirname, extname)|
           resource_dir = File.expand_path(File.join(path, dirname), project_dir)
+          
           pattern = File.join(resource_dir, "**/*#{extname}")
           
           Dir.glob(pattern).each do |full_path|

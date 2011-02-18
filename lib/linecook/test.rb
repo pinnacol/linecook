@@ -16,12 +16,11 @@ module Linecook
       File.file?(method_ssh_config_file) ? method_ssh_config_file : 'config/ssh'
     end
     
-    def cookbook_dir
-      File.directory?(method_dir) ? method_dir : user_dir
-    end
-    
-    def setup_cookbook(config=cookbook_dir)
-      @cookbook = Cookbook.setup(config)
+    def setup_cookbook(configs=nil, project_dir=method_dir)
+      configs ||= Cookbook.config_file(project_dir)
+      configs ||= { Cookbook::PATHS_KEY => [project_dir, user_dir] }
+      
+      @cookbook = Cookbook.setup(configs, project_dir)
     end
     
     def cookbook

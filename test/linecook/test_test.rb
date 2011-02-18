@@ -1,38 +1,51 @@
 require File.expand_path('../../test_helper', __FILE__)
 require 'linecook/test'
 
-class LinecookTestTest < Test::Unit::TestCase
+class TestTest < Test::Unit::TestCase
   include Linecook::Test
   
   #
   # setup_cookbook test
   #
   
-  def test_setup_cookbook_initializes_cookbook_to_dir
-    path = prepare('files/example.txt') {|io| }
-    cookbook = setup_cookbook method_dir
+  def test_setup_cookbook_initializes_project_dir_to_method_dir
+    cookbook = setup_cookbook
+    assert_equal method_dir, cookbook.project_dir
+  end
+  
+  def test_setup_cookbook_uses_config_if_specified
+    cookbook = setup_cookbook('paths' => 'a:b:c', 'gems' => 'x:y:z')
+    assert_equal ['a', 'b', 'c'], cookbook.paths
+    assert_equal ['x', 'y', 'z'], cookbook.gems
+  end
+  
+  def test_setup_cookbook_uses_cookbook_file_if_specified
+    cookbook_file = prepare('file') do |io|
+      YAML.dump({'paths' => 'a:b:c', 'gems' => 'x:y:z'}, io)
+    end
     
-    assert_equal path, cookbook.manifest['files']['example.txt']
+    cookbook = setup_cookbook(cookbook_file)
+    assert_equal ['a', 'b', 'c'], cookbook.paths
+    assert_equal ['x', 'y', 'z'], cookbook.gems
+  end
+  
+  def test_setup_cookbook_detects_and_uses_existing_cookbook_file
+    prepare('cookbook') {|io| YAML.dump({'paths' => 'a:b:c', 'gems' => 'x:y:z'}, io) }
+    
+    cookbook = setup_cookbook
+    assert_equal ['a', 'b', 'c'], cookbook.paths
+    assert_equal ['x', 'y', 'z'], cookbook.gems
   end
   
   def test_setup_cookbook_sets_cookbook
     a = prepare('a/files/example.txt') {|io| }
     b = prepare('b/files/example.txt') {|io| }
     
-    setup_cookbook path('a')
+    setup_cookbook(nil, path('a'))
     assert_equal a, cookbook.manifest['files']['example.txt']
     
-    setup_cookbook path('b')
+    setup_cookbook(nil, path('b'))
     assert_equal b, cookbook.manifest['files']['example.txt']
-  end
-  
-  def test_setup_cookbook_initializes_to_method_dir_if_it_exists
-    prepare('files/example.txt') {|io| }
-    assert_equal method_dir, setup_cookbook.project_dir
-  end
-  
-  def test_setup_cookbook_initializes_to_user_dir_if_method_dir_does_not_exist
-    assert_equal user_dir, setup_cookbook.project_dir
   end
   
   #
@@ -55,7 +68,7 @@ class LinecookTestTest < Test::Unit::TestCase
   def test_setup_package_uses_cookbook_as_currently_set
     prepare('files/example.txt') {|io| }
     
-    setup_cookbook method_dir
+    setup_cookbook({}, method_dir)
     setup_package
     
     assert_equal true, package.resource?('files', 'example.txt')
@@ -213,7 +226,7 @@ class LinecookTestTest < Test::Unit::TestCase
 
       prepare("packages/#{box}.yml") {}
     end
-    
+
     result, cmd = build_project
     assert_equal 0, $?.exitstatus, cmd
     
