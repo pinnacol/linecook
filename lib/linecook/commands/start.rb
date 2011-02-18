@@ -11,6 +11,7 @@ module Linecook
     class Start < VboxCommand
       config :type, 'headless'             # vm type (headless|gui)
       config :snapshot, '', :short => :s   # start snapshot
+      config :socket, false, &c.flag
       
       def process(*vm_names)
         each_vm_name(vm_names) do |vm_name|
@@ -20,6 +21,7 @@ module Linecook
           end
           
           start(vm_name, type)
+          start_ssh_socket(vm_name) if socket
         end
       end
     end

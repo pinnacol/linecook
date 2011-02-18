@@ -86,6 +86,10 @@ module Linecook
         sh! "VBoxManage sharedfolder add '#{vm_name}' --name '#{name}' --hostpath '#{local_dir}' --transient"
         ssh! vm_name, "sudo mount -t vboxsf -o uid=1000,gid=100 '#{name}' '#{remote_dir}'"
       end
+      
+      def start_ssh_socket(vm_name)
+        sh "ssh -MNf -F '#{ssh_config_file}' '#{vm_name}'"
+      end
     end
   end
 end
