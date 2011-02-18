@@ -12,19 +12,21 @@ are instructions for setting up a generic Ubuntu VM.
 == Setup
 
 Use the VirtualBox wizard to get started. The name can be changed along with
-any of the other settings (ex user), but be sure to propagate changes
-throughout the setup process.
+any of the other settings (ex user, ssh port), but be sure to propagate
+changes throughout the setup process.
 
   - name: abox
   - Linux/Ubuntu
   - 512 MB memory
   - 8 GB dynamically resizing drive
 
-Under Settings:
+Setup port forwarding on the command line (ht - host, vm - virtual machine):
 
-  - add the ubuntu iso to the cd/dvd device (under storage)
+  ht: VBoxManage modifyvm abox --natpf1 'abox-ssh,tcp,,2220,,22'
+  ht: VBoxManage modifyvm abox --natpf1 'abox-http,tcp,,8880,,80'
 
-Start the server and install ubuntu (use default settings unless specified):
+Add the ubuntu iso to the cd/dvd device under Settings > Storage. Now start
+the server and install ubuntu (use default settings unless specified):
 
   - hostname: abox-ubuntu
   - user/password: linecook
@@ -42,39 +44,16 @@ Login and setup sudo permissions for the linecook user:
   #
   # then exit (write out changes as prompted)
 
-Setup guest additions to allow shared folders. On OSX guest additions are
-located in the application package (view package contents on VirtualBox
-application > Contents > MacOS > VBoxGuestAdditions.iso).
-
-  (Devices > CD/DVD Devices): select the VBoxGuestAdditions.iso
-  vm: sudo apt-get install -y linux-headers-$(uname -r) build-essential ssh openssh-server
-  vm: sudo mkdir /media/dvd
-  vm: sudo mount /dev/dvd /media/dvd/             # run again if it fails 
-  vm: sudo sh /media/dvd/VBoxLinuxAdditions.run
-  # there may be a warning about 'Window System drivers fail', ignore
-  vm: sudo umount /media/dvd/
-  (Devices > CD/DVD Devices > Remove disk from virtual drive)
-  
-Mount a share to the vm directory:
-
-  ht: VBoxManage sharedfolder add abox --name vm --hostpath "$(pwd)/vm" --transient
-  vm: mkdir ~/vm
-  vm: sudo mount -t vboxsf -o uid=1000,gid=100 vm ~/vm
-
 Setup SSH:
 
+  vm: sudo apt-get install -y ssh openssh-server
   vm: mkdir ~/.ssh
-  vm: chmod 0700 ~/.ssh
-  vm: cat ~/vm/ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-  vm: chmod 0600 ~/.ssh/authorized_keys
   ht: chmod 0600 vm/ssh/id_rsa
+  ht: scp -P 2220 vm/ssh/id_rsa.pub linecook@localhost:~/.ssh/authorized_keys
+  vm: chmod 0700 ~/.ssh
+  vm: chmod 0600 ~/.ssh/authorized_keys
 
-Unmount the share:
-
-  vm: sudo umount ~/vm
-  ht: VBoxManage sharedfolder remove abox --name vm --transient
-
-Remove the login banner (if you prefer):
+Remove the login banner:
 
   vm: sudo rm /etc/motd
 
@@ -84,16 +63,14 @@ Now take some standard snapshots and setup port forwarding:
   ht: VBoxManage snapshot abox take BASE
   ht: VBoxManage snapshot abox take CURRENT
   ht: VBoxManage controlvm abox poweroff
-  ht: VBoxManage modifyvm abox --natpf1 'abox-ssh,tcp,,2220,,22'
-  ht: VBoxManage modifyvm abox --natpf1 'abox-http,tcp,,8880,,80'
   ht: VBoxManage -q snapshot abox restore CURRENT
   ht: VBoxManage startvm abox --type headless
 
-Now you can re-establish the share and access the box through these linecook
-commands:
+Now you can access the box through these linecook commands (the share only
+works if you have sshfs installed -- see below):
 
-  ht: linecook share
   ht: linecook ssh
+  ht: linecook share
 
 To cleanup the port forwarding (run later, if ever):
 

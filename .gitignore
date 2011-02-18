@@ -5,4 +5,4 @@
 /coverage
 Gemfile.lock
 .rvmrc
-vm/test
+vm/*box
