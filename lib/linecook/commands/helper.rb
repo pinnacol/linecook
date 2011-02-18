@@ -243,11 +243,9 @@ DOC
       DEFINITION_TEMPLATE_LINE = __LINE__ + 2
       DEFINITION_TEMPLATE = ERB.new(<<-DOC, nil, '<>').src
 <%= sections['head'] %>
-
 <% definitions.each do |desc, method_name, signature, body| %>
 <% desc.split("\n").each do |line| %>
-# <%= line %>
-<% end %>
+# <%= line %><% end %>
 def <%= method_name %><%= signature %>
 <%= body %>
 
