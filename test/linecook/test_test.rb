@@ -62,14 +62,14 @@ class LinecookTestTest < Test::Unit::TestCase
   end
   
   #
-  # set_helpers test
+  # setup_helpers test
   #
   
-  def test_set_helpers_sets_helpers
-    set_helpers :a, :b
+  def test_setup_helpers_sets_helpers
+    setup_helpers :a, :b
     assert_equal [:a, :b], helpers
     
-    set_helpers :x, :y
+    setup_helpers :x, :y
     assert_equal [:x, :y], helpers
   end
   
@@ -99,7 +99,7 @@ class LinecookTestTest < Test::Unit::TestCase
   end
   
   def test_setup_recipe_extends_recipe_with_helpers
-    set_helpers HelperModule
+    setup_helpers HelperModule
     setup_recipe
     
     recipe.echo 'a', 'b', 'c'
@@ -160,24 +160,21 @@ class LinecookTestTest < Test::Unit::TestCase
   no_cleanup
   
   def test_assert_packages_passes_if_default_package_in_method_dir_passes_linecook_test
-    build_packages
-    assert_packages
+    assert_project
   end
   
   def test_assert_packages_fails_if_default_package_in_method_dir_fails_linecook_test
-    build_packages
-    err = assert_raises(Test::Unit::AssertionFailedError) { assert_packages }
+    err = assert_raises(Test::Unit::AssertionFailedError) { assert_project }
     assert err.message.include?("<0> expected but was\n<1>")
   end
   
   def test_assert_packages_only_tests_the_specified_packages
-    build_packages
-    assert_packages 'abox'
+    assert_project('abox')
     
-    err = assert_raises(Test::Unit::AssertionFailedError) { assert_packages 'bbox' }
+    err = assert_raises(Test::Unit::AssertionFailedError) { assert_project('bbox') }
     assert err.message.include?("<0> expected but was\n<1>")
     
-    err = assert_raises(Test::Unit::AssertionFailedError) { assert_packages 'abox', 'bbox' }
+    err = assert_raises(Test::Unit::AssertionFailedError) { assert_project('abox', 'bbox') }
     assert err.message.include?("<0> expected but was\n<1>")
   end
   
@@ -186,11 +183,10 @@ class LinecookTestTest < Test::Unit::TestCase
   #
   # end to end tests
   #
-
-  # build recipe with helpers, run recipe on host, check output
-  def test_a_helper
-    set_helpers HelperModule
-    set_host 'abox'
+  
+  def test_a_recipe
+    setup_helpers HelperModule
+    setup_host 'abox'
 
     assert_recipe %q{
       echo 'a b c'
@@ -216,49 +212,41 @@ class LinecookTestTest < Test::Unit::TestCase
       echo "a", Time.now, "c"
     end
   end
-
-  # build package for host, run 'run' recipe on host (no test), check output
-  def test_a_recipe
-    set_host 'abox'
+  
+  def test_a_recipe_using_a_package
+    setup_helpers HelperModule
+    setup_host 'abox'
 
     setup_package(
       'letters' => ['a', 'b', 'c']
     )
-
-    # a)
-    # let use recipes/abox.rb
-
-    # b)
-    # prepare("recipes/abox.rb") do |io|
-    #   io.puts "extend #{HelperModule}"
-    #   io.puts "echo *attrs['letters']"
-    # end
-
-    # c)
-    setup_recipe 'run' do |io|
-      extend HelperModule
+    
+    assert_recipe %q{
+      echo 'a b c'
+    } do
       echo(*attrs['letters'])
     end
 
-    assert_package(
-      'run'  => "echo 'a b c'\n"
-    )
-
-    assert_package_output %q{
+    assert_recipe_matches %q{
+      echo 'a :...: c'
+    } do
+      echo(*attrs['letters'])
+    end
+    
+    assert_recipe_output %q{
       a b c
-    }
-
-    assert_package_matches({
-      'run'  => "echo 'a :...: c'\n"
-    })
-
-    assert_package_output_matches %q{
+    } do
+      echo(*attrs['letters'])
+    end
+    
+    assert_recipe_output_matches %q{
       a :...: c
-    }
+    } do
+      echo(*attrs['letters'])
+    end
   end
 
-  # build helpers and packages, run and test each, check output
-  def test_a_package
+  def test_a_project
     prepare("cookbook") {}
     
     prepare('helpers/project_test_helper/echo.erb') do |io|
@@ -283,23 +271,23 @@ class LinecookTestTest < Test::Unit::TestCase
       prepare("packages/#{box}.yml") {}
     end
     
-    build_packages
+    build_project
+    result, exitstatus, cmd = run_project
     
-    # just check exit status
-    assert_project_passes
-
-    assert_project_output %q{
+    assert_equal 0, exitstatus
+    
+    assert_output_equal %q{
       run abox
       run bbox
       test abox
       test bbox
-    }
+    }, result
 
-    assert_project_output_matches %q{
+    assert_alike %q{
       run a:...:
       run b:...:
       test a:...:
       test b:...:
-    }
+    }, result
   end
 end

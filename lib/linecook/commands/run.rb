@@ -15,7 +15,7 @@ module Linecook
       config :quiet, false, :short => :q, &c.flag            # silence output
       config :transfer, true, &c.switch
       config :file, false, &c.flag                           # treat package name as file path
-      config :runlist, nil
+      config :runlist, 'run:test'
       
       def process(*package_names)
         package_names = glob_package_names(project_dir) if package_names.empty?
@@ -32,12 +32,10 @@ module Linecook
       
       def source(runlist)
         case runlist
-        when nil
-          "<<DOC\nrun\ntest\nDOC"
         when '-'
           ""
         else
-          "< '#{runlist}'"
+          "<<DOC\n#{runlist.gsub(":", "\n")}\nDOC"
         end
       end
       

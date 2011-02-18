@@ -11,6 +11,11 @@ module Linecook
     LINECOOK_DIR = File.expand_path('../../..', __FILE__)
     LINECOOK = File.join(LINECOOK_DIR, 'bin/linecook')
     
+    def ssh_config_file
+      method_ssh_config_file = path('config/ssh')
+      File.file?(method_ssh_config_file) ? method_ssh_config_file : 'config/ssh'
+    end
+    
     def cookbook_dir
       File.directory?(method_dir) ? method_dir : user_dir
     end
@@ -31,7 +36,7 @@ module Linecook
       @package ||= setup_package
     end
     
-    def set_helpers(*helpers)
+    def setup_helpers(*helpers)
       @helpers = helpers
     end
     
@@ -39,17 +44,12 @@ module Linecook
       @helpers ||= []
     end
     
-    def set_host(host)
+    def setup_host(host)
       @host = host
     end
     
     def host
-      @host
-    end
-    
-    def ssh_config_file
-      method_ssh_config_file = path('config/ssh')
-      File.file?(method_ssh_config_file) ? method_ssh_config_file : 'config/ssh'
+      @host or raise("no host set")
     end
     
     def setup_recipe(target_name=package.next_target_name('recipe'), &block)
@@ -76,74 +76,74 @@ module Linecook
       recipe
     end
     
-    def assert_recipe_output(expected, recipe=setup_recipe, &block)
+    def assert_recipe_output(expected, recipe=setup_recipe, options={}, &block)
       recipe.instance_eval(&block) if block_given?
-      assert_package_output(expected, 'run_script' => recipe.target_name)
-      recipe
-    end
-    
-    def assert_recipe_output_matches(expected, recipe=setup_recipe, &block)
-      recipe.instance_eval(&block) if block_given?
-      assert_package_output_matches(expected, 'run_script' => recipe.target_name)
-      recipe
-    end
-    
-    def assert_package(expected)
-      package.export path("packages/#{host}")
-      assert_equal expected.keys.sort, package.registry.keys.sort
       
-      expected.each_pair do |name, content|
-        _assert_output_equal content, package.content(name)
-      end
-    end
-    
-    def assert_package_matches(expected)
-      package.export path("packages/#{host}")
-      assert_equal expected.keys.sort, package.registry.keys.sort
+      build_package
+      options['runlist'] = recipe.target_name
       
-      expected.each_pair do |name, content|
-        _assert_alike content, package.content(name)
-      end
-    end
-    
-    def assert_package_output(expected, options={})
-      package.export path("packages/#{host}")
-      result, exitstatus, cmd = linecook_run(options)
-      
-      assert_output_equal(expected, result, cmd)
-    end
-    
-    def assert_package_output_matches(expected, options={})
-      package.export path("packages/#{host}")
-      result, exitstatus, cmd = linecook_run(options)
-      assert_alike(expected, result, cmd)
-      package
-    end
-    
-    def assert_project_passes(options={})
-      result, exitstatus, cmd = linecook_run(options)
-      assert_equal 0, exitstatus, cmd
-    end
-    
-    def assert_project_output(expected, options={})
-      result, exitstatus, cmd = linecook_run(options)
+      result, exitstatus, cmd = run_project(options, host)
       assert_output_equal expected, result, cmd
+      
+      recipe
     end
     
-    def assert_project_output_matches(expected, options={})
-      result, exitstatus, cmd = linecook_run(options)
+    def assert_recipe_output_matches(expected, recipe=setup_recipe, options={}, &block)
+      recipe.instance_eval(&block) if block_given?
+      
+      build_package
+      options['runlist'] = recipe.target_name
+      
+      result, exitstatus, cmd = run_project(options, host)
       assert_alike expected, result, cmd
+      
+      recipe
+    end
+    
+    def build_package(host=self.host)
+      package_dir = path("packages/#{host}")
+      
+      package.build
+      package.export package_dir
+      
+      package_dir
+    end
+    
+    def build_project(options={})
+      options = {
+        'project_dir' => method_dir,
+        'quiet'       => true
+      }.merge(options)
+      
+      linecook 'build', options
+    end
+    
+    def run_project(options={}, *package_names)
+      options = {
+        'remote_dir'  => "vm/#{method_dir[(user_dir.length + 1)..-1]}",
+        'ssh_config_file' => ssh_config_file,
+        'project_dir' => method_dir,
+        'quiet'       => true,
+      }.merge(options)
+      
+      linecook('run', options, *package_names)
+    end
+    
+    def assert_project(*package_names)
+      build_project
+      result, exitstatus, cmd = run_project({}, *package_names)
+      assert_equal 0, exitstatus, "% #{cmd}\n#{result}"
     end
     
     def linecook(cmd, options={}, *args)
       opts = []
       options.each_pair do |key, value|
-        key = key.to_s.gsub('_', '-')
+        key = key.gsub('_', '-')
         
         case value
         when true
           opts << "--#{key}"
-        when false
+        when nil, false
         else 
           opts << "--#{key} '#{value}'"
         end
@@ -155,36 +155,6 @@ module Linecook
       cmd = cmd.join(' ')
       
       [sh(cmd), $?.exitstatus, cmd]
-    end
-    
-    def linecook_run(options={}, *packages)
-      options = {
-        :remote_dir  => "vm/#{method_dir[(user_dir.length + 1)..-1]}",
-        :project_dir => method_dir,
-        :quiet       => true
-      }.merge(options)
-      
-      linecook 'run', options, *packages
-    end
-    
-    def build_packages(*packages)
-      cmd = "2>&1 #{LINECOOK} build --force --quiet --project-dir '#{method_dir}'"
-      cmd += " '#{packages.join("' '")}'" unless packages.empty?
-      
-      result = sh(cmd)
-      assert_equal(0, $?.exitstatus, "% #{cmd}")
-      result
-    end
-    
-    def assert_packages(*packages)
-      relative_dir = method_dir[(user_dir.length + 1)..-1]
-      
-      cmd = "2>&1 #{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'"
-      cmd += " '#{packages.join("' '")}'" unless packages.empty?
-      
-      result = sh(cmd)
-      assert_equal(0, $?.exitstatus, "% #{cmd}")
-      result
     end
   end
 end
