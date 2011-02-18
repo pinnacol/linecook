@@ -81,9 +81,12 @@ module Linecook
       end
       
       def share(vm_name, name, local_dir, remote_dir)
+        share_dir = "#{local_dir}/#{vm_name}"
+        FileUtils.mkdir_p(share_dir) unless File.exists?(share_dir)
+        
         ssh vm_name, "sudo umount '#{remote_dir}' > /dev/null 2>&1"
         sh "VBoxManage sharedfolder remove '#{vm_name}' --name '#{name}' --transient > /dev/null 2>&1"
-        sh! "VBoxManage sharedfolder add '#{vm_name}' --name '#{name}' --hostpath '#{local_dir}' --transient"
+        sh! "VBoxManage sharedfolder add '#{vm_name}' --name '#{name}' --hostpath '#{share_dir}' --transient"
         ssh! vm_name, "sudo mount -t vboxsf -o uid=1000,gid=100 '#{name}' '#{remote_dir}'"
       end
       
