@@ -15,7 +15,7 @@ module Linecook
       config :quiet, false, :short => :q, &c.flag            # silence output
       config :transfer, true, &c.switch
       config :file, false, &c.flag                           # treat package name as file path
-      config :cmd_file, nil
+      config :runlist, nil
       
       def process(*package_names)
         package_names = glob_package_names(project_dir) if package_names.empty?
@@ -27,17 +27,17 @@ module Linecook
         }
         
         sh! "sh #{SCP_SCRIPT} #{format(opts)} #{package_dirs.join(' ')}" if transfer
-        sh! "sh #{RUN_SCRIPT} #{format(opts)} #{package_dirs.join(' ')} #{source(cmd_file)}"
+        sh! "sh #{RUN_SCRIPT} #{format(opts)} #{package_dirs.join(' ')} #{source(runlist)}"
       end
       
-      def source(cmd_file)
-        case cmd_file
+      def source(runlist)
+        case runlist
         when nil
           "<<DOC\nrun\ntest\nDOC"
         when '-'
           ""
         else
-          "< '#{cmd_file}'"
+          "< '#{runlist}'"
         end
       end
       
