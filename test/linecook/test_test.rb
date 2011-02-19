@@ -196,7 +196,7 @@ class TestTest < Test::Unit::TestCase
     result, cmd = run_package
     assert_output_equal %{
       b0nk
-      [8] vm/test/linecook/test_test/test_a_package/abox/recipe 
+      [8] test/linecook/test_test/test_a_package/abox/recipe 
     }, result, cmd
     
     assert_equal 1, $?.exitstatus, cmd
@@ -250,7 +250,7 @@ class TestTest < Test::Unit::TestCase
     assert_output_equal %q{
       run
       test
-      [1] vm/test/linecook/test_test/test_a_static_project/abox/test 
+      [1] test/linecook/test_test/test_a_static_project/abox/test 
     }, result, cmd
     assert_equal 1, $?.exitstatus, cmd
   end
