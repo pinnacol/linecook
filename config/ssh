@@ -1,6 +1,5 @@
 HostName localhost
 User linecook
-IdentityFile vm/ssh/id_rsa
 UserKnownHostsFile /dev/null
 StrictHostKeyChecking no
 IdentitiesOnly yes
