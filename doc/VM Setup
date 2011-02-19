@@ -25,6 +25,7 @@ the server and install ubuntu (use default settings unless specified):
 
   - hostname: abox-ubuntu
   - user/password: linecook
+  - select openssh-server in packages to install
 
 When the server has rebooted and is ready at the login screen, remove the
 install iso, take a snapshot and setup port forwarding.
@@ -40,7 +41,7 @@ install iso, take a snapshot and setup port forwarding.
 Transfer your ssh key to the vm. Help to generate ssh keys can be found on
 GitHub (http://help.github.com/key-setup-redirect):
 
-  scp -P 2220 ~/.ssh/id_rsa.pub linecook@localhost:pubkey
+  scp -P 2220 ~/.ssh/id_rsa.pub linecook@localhost:id_rsa.pub
   
 Login and setup sudo permissions for the linecook user:
 
@@ -55,12 +56,10 @@ Login and setup sudo permissions for the linecook user:
 
 Setup SSH:
 
-  vm: sudo apt-get install -y ssh openssh-server
-  vm: mkdir ~/.ssh
-  vm: cat pubkey >> ~/.ssh/authorized_keys
-  vm: chmod 0700 ~/.ssh
-  vm: chmod 0600 ~/.ssh/authorized_keys
-  vm: rm pubkey
+  vm: mkdir .ssh
+  vm: mv id_rsa.pub .ssh/authorized_keys
+  vm: chmod 0700 .ssh
+  vm: chmod 0600 .ssh/authorized_keys
 
 Remove the login banner and exit:
 
@@ -83,12 +82,15 @@ Setup a ssh config file:
   UserKnownHostsFile /dev/null
   StrictHostKeyChecking no
   IdentitiesOnly yes
+  ControlMaster auto
+  ControlPath ~/.ssh/socket-%r@%h:%p
   
   Host abox
-    Port 2220
+  Port 2220
 
-Now you can access and control the box via these linecook commands. The share
-command only works if you have sshfs set up:
+Now you can access and control the box via these linecook commands. Note the
+share command only works if you have sshfs set up (see the {Shared
+Folders}[link:doc/Shared Folders] docs):
 
   # start the vm to a known snapshot
   linecook start --snapshot=current

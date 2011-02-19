@@ -104,6 +104,7 @@ module Linecook
       linecook('build', options)
     end
     
+    # pick up user dir as a gem... bundler!
     def run_project(options={}, *package_names)
       options = {
         'ssh_config_file' => ssh_config_file,

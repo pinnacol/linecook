@@ -1,0 +1,19 @@
+= Shared Folders
+
+Linecook provides support for sharing folders with virtual machines using
+{sshfs}[http://fuse.sourceforge.net/sshfs.html] which establishes the share
+over ssh. Shared folders are convenient to access the virtual machine for
+things like debugging during development, but are not required in any way.
+
+Installation on OS X is pretty easy:
+
+* Download and install {MacFUSE}[http://code.google.com/p/macfuse/]
+* Install {Homebrew}[https://github.com/mxcl/homebrew]
+
+Then:
+
+  brew install sshfs-fuse
+
+Now you can setup a share using:
+
+  linecook share

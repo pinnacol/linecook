@@ -4,7 +4,7 @@ UserKnownHostsFile /dev/null
 StrictHostKeyChecking no
 IdentitiesOnly yes
 ControlMaster auto
-ControlPath vm/ssh/socket-%r@%h:%p
+ControlPath ~/.ssh/socket-%r@%h:%p
 
 Host abox
 Port 2220
