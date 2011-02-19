@@ -16,7 +16,6 @@ module Linecook
       File.file?(method_ssh_config_file) ? method_ssh_config_file : 'config/ssh'
     end
     
-    # pick up user dir as a gem... bundler!
     def setup_cookbook(configs=nil, project_dir=method_dir)
       configs ||= Cookbook.config_file(project_dir)
       @cookbook = Cookbook.setup(configs, project_dir)
@@ -109,7 +108,7 @@ module Linecook
       options = {
         'ssh_config_file' => ssh_config_file,
         'project_dir'     => method_dir,
-        'remote_dir'      => method_dir[(user_dir.length + 1)..-1],
+        'remote_dir'      => "vm/#{method_dir[(user_dir.length + 1)..-1]}",
         'quiet'           => true,
       }.merge(options)
       
