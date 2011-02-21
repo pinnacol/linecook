@@ -318,6 +318,10 @@ module Linecook
       
       allow_move = options[:allow_move]
       
+      if File.exists?(dir)
+        FileUtils.rm_r(dir)
+      end
+      
       registry.each_key do |target_name|
         export_path = File.join(dir, target_name)
         export_dir  = File.dirname(export_path)

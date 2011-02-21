@@ -312,4 +312,15 @@ class PackageTest < Test::Unit::TestCase
     registry = package.export path('export/dir')
     assert_equal path('export/dir/target/path'), registry['target/path']
   end
+  
+  def test_export_replaces_existing_dir
+    a = prepare('export/dir/a') {|io| io << 'old' }
+    b = prepare('export/dir/b') {|io| io << 'old' }
+    package.registry['a'] = prepare('file') {|io| io << 'new' }
+    
+    package.export path('export/dir')
+    
+    assert_equal 'new', File.read(a)
+    assert_equal false, File.exists?(b)
+  end
 end
