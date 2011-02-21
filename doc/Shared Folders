@@ -5,10 +5,19 @@ Linecook provides support for sharing folders with virtual machines using
 over ssh. Shared folders are convenient to access the virtual machine for
 things like debugging during development, but are not required in any way.
 
-Installation on OS X is pretty easy:
+== Installation on OS X:
 
 * Download and install {MacFUSE}[http://code.google.com/p/macfuse/]
 * Install {Homebrew}[https://github.com/mxcl/homebrew]
+
+If you are using Snow Leopard (ignore for Leopard), the MacFUSE configurations
+need to be tweaked in order to keep things running (see this
+{issue}[https://github.com/mxcl/homebrew/issues/3340]). As per this
+{patch}[https://gist.github.com/544112], open the pkgconfig/fuse.pc file and
+change the Libs config to use -lfuse_ino64 like this:
+
+ [/usr/local/lib/pkgconfig/fuse.pc]
+ Libs: -L${libdir} -lfuse_ino64 -pthread  -liconv
 
 Then:
 
