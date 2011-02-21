@@ -31,7 +31,6 @@ module Linecook
         FileUtils.mkdir_p(share_dir) unless File.exists?(share_dir)
         
         sh  "umount '#{share_dir}' > /dev/null 2>&1"
-        puts "sshfs -F '#{File.expand_path(ssh_config_file)}' -o ControlMaster=no '#{host}:#{remote_dir}' '#{share_dir}'"
         sh! "sshfs -F '#{File.expand_path(ssh_config_file)}' -o ControlMaster=no '#{host}:#{remote_dir}' '#{share_dir}'"
       end
       

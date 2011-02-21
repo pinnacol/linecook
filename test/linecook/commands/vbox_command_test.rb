@@ -42,28 +42,28 @@ class VboxCommandTest < Test::Unit::TestCase
   end
   
   #
-  # hosts test
+  # load_hosts test
   #
   
-  def test_hosts_loads_host_vm_pairs_from_config_file
+  def test_load_hosts_loads_host_vm_pairs_from_config_file
     path = prepare('config/ssh') do |io|
       io.puts 'Host a # [one]'
       io.puts 'Host b # [two]'
     end
     
-    assert_equal([['a', 'one'], ['b', 'two']], cmd.hosts(path))
+    assert_equal([['a', 'one'], ['b', 'two']], cmd.load_hosts(path))
   end
   
-  def test_hosts_uses_host_name_as_vm_name_if_no_vm_name_is_specified
+  def test_load_hosts_uses_host_name_as_vm_name_if_no_vm_name_is_specified
     path = prepare('config/ssh') do |io|
       io.puts 'Host a'
       io.puts 'Host b'
     end
-    assert_equal([['a', 'a'], ['b', 'b']], cmd.hosts(path))
+    assert_equal([['a', 'a'], ['b', 'b']], cmd.load_hosts(path))
   end
   
-  def test_hosts_loads_no_hosts_if_no_hosts_are_specified
+  def test_load_hosts_loads_no_hosts_if_no_hosts_are_specified
     path = prepare('config/ssh') {|io| }
-    assert_equal([], cmd.hosts(path))
+    assert_equal([], cmd.load_hosts(path))
   end
 end
