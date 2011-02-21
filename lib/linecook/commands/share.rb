@@ -31,6 +31,7 @@ module Linecook
         # after sshfs
         start_ssh_socket(vm_name)
         
+        sh  "umount '#{share_dir}' > /dev/null 2>&1"
         sh! "sshfs -F '#{ssh_config_file}' '#{vm_name}:#{remote_dir}' '#{share_dir}'"
       end
       
