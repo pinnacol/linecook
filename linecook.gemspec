@@ -28,11 +28,14 @@ Gem::Specification.new do |s|
     History
     README
     License.txt
+    doc/Shared\ Folders
+    doc/VM\ Setup
   }
   
   # list the files you want to include here.
   s.files = %W{
-    bin/linecook_test
+    bin/linecook_run
+    bin/linecook_scp
     lib/linecook.rb
     lib/linecook/attributes.rb
     lib/linecook/commands.rb
@@ -44,13 +47,13 @@ Gem::Specification.new do |s|
     lib/linecook/commands/init.rb
     lib/linecook/commands/package.rb
     lib/linecook/commands/preview.rb
+    lib/linecook/commands/run.rb
     lib/linecook/commands/share.rb
     lib/linecook/commands/snapshot.rb
     lib/linecook/commands/ssh.rb
     lib/linecook/commands/start.rb
     lib/linecook/commands/state.rb
     lib/linecook/commands/stop.rb
-    lib/linecook/commands/test.rb
     lib/linecook/commands/vbox_command.rb
     lib/linecook/cookbook.rb
     lib/linecook/package.rb
@@ -64,7 +67,6 @@ Gem::Specification.new do |s|
     lib/linecook/utils.rb
     lib/linecook/version.rb
     templates/Gemfile
-    templates/README
     templates/Rakefile
     templates/_gitignore
     templates/attributes/project_name.rb
@@ -75,12 +77,10 @@ Gem::Specification.new do |s|
     templates/helpers/project_name/echo.erb
     templates/packages/abox.yml
     templates/project_name.gemspec
-    templates/recipes/project_name.rb
-    templates/recipes/project_name_test.rb
+    templates/recipes/abox.rb
+    templates/recipes/abox_test.rb
     templates/templates/template.txt.erb
     templates/test/project_name_test.rb
     templates/test/test_helper.rb
-    templates/vm/ssh/id_rsa
-    templates/vm/ssh/id_rsa.pub
   }
 end

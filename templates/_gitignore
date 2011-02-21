@@ -2,4 +2,4 @@
 .bundle
 *.gem
 /rdoc
-vbox/log
+vm
