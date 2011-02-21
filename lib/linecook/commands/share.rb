@@ -27,12 +27,8 @@ module Linecook
         share_dir = File.expand_path(vm_name, local_dir)
         FileUtils.mkdir_p(share_dir) unless File.exists?(share_dir)
         
-        # a persistent socket appears necessary to prevent ssh from hanging
-        # after sshfs
-        start_ssh_socket(vm_name)
-        
         sh  "umount '#{share_dir}' > /dev/null 2>&1"
-        sh! "sshfs -F '#{ssh_config_file}' '#{vm_name}:#{remote_dir}' '#{share_dir}'"
+        sh! "sshfs -F '#{ssh_config_file}' -o ControlMaster=no '#{vm_name}:#{remote_dir}' '#{share_dir}'"
       end
       
       def process(*vm_names)
@@ -47,7 +43,7 @@ module Linecook
       
       private
       
-      REWRITE_FIELDS = %w{IdentityFile ControlPath}
+      REWRITE_FIELDS = %w{IdentityFile ControlPath UserKnownHostsFile}
       
       def rewrite_ssh_configs(str)
         REWRITE_FIELDS.each do |field|
