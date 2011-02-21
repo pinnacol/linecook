@@ -15,8 +15,12 @@ module Linecook
       
       def process(*vm_names)
         each_vm_name(vm_names) do |vm_name|
+          if running?(vm_name)
+            stop(vm_name)
+            sleep 0.5
+          end
+          
           unless snapshot.empty?
-            stop(vm_name) if running?(vm_name)
             reset(vm_name, snapshot)
           end
           
