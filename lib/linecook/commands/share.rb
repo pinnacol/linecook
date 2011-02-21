@@ -4,12 +4,16 @@ require 'tempfile'
 module Linecook
   module Commands
     
-    # ::desc setup a vm shared folder
+    # ::desc share a vm folder using sshfs
     #
-    # Sets up a transient shared folder with one or more VirtualBox virtual
-    # machines. By default all virtual machines configured in config/ssh will
-    # share the specified folder.  The virtual machines must be running for
+    # Sets up shared folder using sshfs. By default all virtual machines
+    # configured in config/ssh will share the host:vm remote directory into
+    # the vm/host local directory.  The virtual machines must be running for
     # shares to be established.
+    #
+    # NOTE: sshfs does not resolve ssh config paths relative to pwd.  Be sure
+    # the ssh_config_file uses full paths (even relative paths like
+    # ~/.ssh/id_rsa will not work).
     # 
     class Share < VboxCommand
       config :local_dir, 'vm'    # the local share dir
@@ -28,7 +32,7 @@ module Linecook
         FileUtils.mkdir_p(share_dir) unless File.exists?(share_dir)
         
         sh  "umount '#{share_dir}' > /dev/null 2>&1"
-        sh! "sshfs -F '#{ssh_config_file}' -o ControlMaster=no '#{vm_name}:#{remote_dir}' '#{share_dir}'"
+        sh! "sshfs -F '#{File.expand_path(ssh_config_file)}' -o ControlMaster=no '#{vm_name}:#{remote_dir}' '#{share_dir}'"
       end
       
       def process(*vm_names)
@@ -38,31 +42,6 @@ module Linecook
         
         each_vm_name(vm_names) do |vm_name|
           share(vm_name)
-        end
-      end
-      
-      private
-      
-      REWRITE_FIELDS = %w{IdentityFile ControlPath UserKnownHostsFile}
-      
-      def rewrite_ssh_configs(str)
-        REWRITE_FIELDS.each do |field|
-          str.gsub!(/^#{field}\s*(.*)$/) do |match|
-            "#{field} #{File.expand_path($1)}"
-          end
-        end
-        
-        str
-      end
-      
-      alias original_ssh_config_file ssh_config_file
-      
-      def ssh_config_file
-        @full_path_ssh_config_file ||= begin
-          @full_path_ssh_config_tempfile = Tempfile.new('full_path_ssh_config_file')
-          @full_path_ssh_config_tempfile << rewrite_ssh_configs(File.read(original_ssh_config_file))
-          @full_path_ssh_config_tempfile.close
-          @full_path_ssh_config_tempfile.path
         end
       end
     end
