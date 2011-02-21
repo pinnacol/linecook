@@ -9,6 +9,10 @@ are instructions for setting up a generic Ubuntu VM.
 2. Download a Ubuntu ISO (http://www.ubuntu.com/server/get-ubuntu/download)
 3. Build the Box
 
+<b>NOTE these instructions are for building a dev box only.</b> In particular
+they give a group sudo permissions without a password, which may not be in you
+best production interests.
+
 == Ubuntu
 
 Use the VirtualBox wizard to get started. The name can be changed along with
@@ -40,7 +44,7 @@ install iso, take a snapshot and setup port forwarding.
   VBoxManage startvm abox
 
 Transfer your ssh key to the vm. Help to generate ssh keys can be found on
-GitHub (http://help.github.com/key-setup-redirect):
+{GitHub}[http://help.github.com/key-setup-redirect]:
 
   scp -P 2220 -o UserKnownHostsFile=/dev/null ~/.ssh/id_rsa.pub linecook@localhost:id_rsa.pub
   
@@ -66,8 +70,8 @@ Remove the login banner:
 
   vm: sudo rm /etc/motd
 
-Make a directory for shares (if you want to {share folders}[link:doc/Shared
-Folders]) and exit:
+Make a directory for shares (if you want to {share
+folders}[link:files/doc/doc/Shared%20Folders.html]) and exit:
 
   vm: mkdir vm
   vm: exit
@@ -94,7 +98,7 @@ Setup a ssh config file:
 
 Now you can access and control the box via these linecook commands. Note the
 share command only works if you have sshfs set up (see the {Shared
-Folders}[link:doc/Shared Folders] docs):
+Folders}[link:files/doc/doc/Shared%20Folders.html] docs):
 
   # start the vm to a known snapshot
   linecook start --snapshot=current

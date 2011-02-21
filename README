@@ -80,8 +80,8 @@ generated from the example.yml file.
 
   % rake build
 
-Start the VM and run the script in the package (see the
-{docs}[link:templates/README] for setting up a VM).
+Start the VM and run the script in the package (see the docs for {setting up a
+VM}[link:files/doc/VM%20Setup.html]).
 
   % linecook start
   % linecook share vbox
