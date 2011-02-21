@@ -9,7 +9,7 @@ module Linecook
     # 
     class Ssh < VboxCommand
       def default_host
-        hosts(ssh_config_file).collect {|host, vm_name| host }.first
+        load_hosts(ssh_config_file).collect {|host, vm_name| host }.first
       end
       
       def process(host=default_host)
