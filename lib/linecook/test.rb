@@ -132,10 +132,13 @@ module Linecook
       
       args = args.collect! {|arg| "'#{arg}'" }
       
-      cmd = ['2>&1', LINECOOK, cmd] + opts.sort + args
-      cmd = cmd.join(' ')
+      output = prepare('output')
       
-      [sh(cmd), cmd]
+      cmd = [LINECOOK, cmd] + opts.sort + args + ["> '#{output}'", "2>&1"]
+      cmd = cmd.join(' ')
+      system(cmd)
+      
+      [File.read(output), cmd]
     end
   end
 end
