@@ -25,7 +25,7 @@ the server and install ubuntu (use default settings unless specified):
 
   - hostname: abox-ubuntu
   - user/password: linecook
-  - select openssh-server in packages to install
+  - select 'OpenSSH Server' in packages to install
 
 When the server has rebooted and is ready at the login screen, remove the
 install iso, take a snapshot and setup port forwarding.
@@ -66,19 +66,17 @@ Remove the login banner:
 
   vm: sudo rm /etc/motd
 
-Make a directory for shares (if you want to share folders) and exit:
+Make a directory for shares (if you want to {share folders}[link:doc/Shared
+Folders]) and exit:
 
   vm: mkdir vm
   vm: exit
 
-Now take some standard snapshots and setup port forwarding:
+Now take some standard snapshots:
 
   VBoxManage snapshot abox take BASE
   VBoxManage snapshot abox take CURRENT
   VBoxManage controlvm abox poweroff
-  # wait to fully power off
-  VBoxManage -q snapshot abox restore CURRENT
-  VBoxManage startvm abox --type headless
 
 Setup a ssh config file:
 
@@ -104,7 +102,7 @@ Folders}[link:doc/Shared Folders] docs):
   # build, transfer, run, and test packages
   linecook run
   
-  # setup a share to a vm (requires sshfs)
+  # setup an sshfs share
   linecook share
   
   # checkout the results
@@ -142,7 +140,7 @@ commands. Add entries for each host in the ssh config file:
   [config/ssh]
   ...
   Host bbox
-    Port 2221
+  Port 2221
 
 The same linecook commands will operate on a set of vms:
 
