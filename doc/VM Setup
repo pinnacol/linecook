@@ -33,6 +33,7 @@ install iso, take a snapshot and setup port forwarding.
   (Devices > CD/DVD Devices > Remove disk from virtual drive)
   VBoxManage snapshot abox take RAW
   VBoxManage controlvm abox poweroff
+  # wait to fully power off
   VBoxManage modifyvm abox --natpf1 'abox-ssh,tcp,,2220,,22'
   VBoxManage modifyvm abox --natpf1 'abox-http,tcp,,8880,,80'
   VBoxManage -q snapshot abox restore RAW
@@ -41,7 +42,7 @@ install iso, take a snapshot and setup port forwarding.
 Transfer your ssh key to the vm. Help to generate ssh keys can be found on
 GitHub (http://help.github.com/key-setup-redirect):
 
-  scp -P 2220 ~/.ssh/id_rsa.pub linecook@localhost:id_rsa.pub
+  scp -P 2220 -o UserKnownHostsFile=/dev/null ~/.ssh/id_rsa.pub linecook@localhost:id_rsa.pub
   
 Login and setup sudo permissions for the linecook user:
 
@@ -61,9 +62,13 @@ Setup SSH:
   vm: chmod 0700 .ssh
   vm: chmod 0600 .ssh/authorized_keys
 
-Remove the login banner and exit:
+Remove the login banner:
 
   vm: sudo rm /etc/motd
+
+Make a directory for shares (if you want to share folders) and exit:
+
+  vm: mkdir vm
   vm: exit
 
 Now take some standard snapshots and setup port forwarding:
@@ -71,6 +76,7 @@ Now take some standard snapshots and setup port forwarding:
   VBoxManage snapshot abox take BASE
   VBoxManage snapshot abox take CURRENT
   VBoxManage controlvm abox poweroff
+  # wait to fully power off
   VBoxManage -q snapshot abox restore CURRENT
   VBoxManage startvm abox --type headless
 

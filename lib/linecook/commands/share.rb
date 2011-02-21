@@ -13,7 +13,7 @@ module Linecook
     # 
     class Share < VboxCommand
       config :local_dir, 'vm'    # the local share dir
-      config :remote_dir, nil    # the remote share dir
+      config :remote_dir, 'vm'   # the remote share dir
       
       def sshfs_path
         @sshfs_path ||= `which sshfs`
