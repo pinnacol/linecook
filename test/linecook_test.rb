@@ -70,21 +70,6 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal [], Dir.glob("#{example_dir}/*")
   end
   
-  def test_init_regenerates_cookbook_on_force
-    example_readme = path('example/README')
-    
-    output = `2>&1 ruby #{LINECOOK} init example`
-    assert_equal 0, $?.exitstatus, output
-    
-    assert_equal true, File.exists?(example_readme)
-    FileUtils.rm(example_readme)
-    
-    output = `2>&1 ruby #{LINECOOK} init example --force`
-    assert_equal 0, $?.exitstatus, output
-    
-    assert_equal true, File.exists?(example_readme)
-  end
-  
   def test_init_does_not_allow_force_for_parent_dirs_or_current_dir
     example_dir = path('parent/current')
     FileUtils.mkdir_p(example_dir)
