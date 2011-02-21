@@ -167,14 +167,14 @@ module Linecook
     
     # Registers the specified file into package and returns the target_path to
     # the file.
-    def file_path(target_name, file_name=target_name)
+    def file_path(file_name, target_name=file_name)
       @package.build_file(target_name, file_name)
       target_path target_name
     end
     
     # Looks up, builds, and registers the specified template and returns the
     # target_path to the resulting file.
-    def template_path(target_name, template_name=target_name, locals={})
+    def template_path(template_name, target_name=template_name, locals={})
       locals[:attrs] ||= attrs
       
       @package.build_template(target_name, template_name, locals)
@@ -183,7 +183,7 @@ module Linecook
     
     # Looks up, builds, and registers the specified recipe and returns the
     # target_path to the resulting file.
-    def recipe_path(target_name, recipe_name=target_name)
+    def recipe_path(recipe_name, target_name=recipe_name)
       @package.build_recipe(target_name, recipe_name)
       target_path target_name
     end
