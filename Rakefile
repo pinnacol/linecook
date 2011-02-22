@@ -98,7 +98,7 @@ end
 #
 
 namespace :vm do
-  desc "start each vm at CURRENT and share vm directory"
+  desc "start each vm at CURRENT"
   task :start => :bundle do
     sh 'bundle exec linecook start --socket --snapshot CURRENT'
   end
@@ -108,9 +108,10 @@ namespace :vm do
     sh 'bundle exec linecook snapshot CURRENT'
   end
   
-  desc "reset each vm to BASE and share vm directory"
+  desc "reset each vm to BASE"
   task :reset => :bundle do
-    sh 'bundle exec linecook start --socket --snapshot BASE'
+    sh 'bundle exec linecook snapshot --reset BASE'
+    sh 'bundle exec linecook snapshot CURRENT'
   end
   
   desc "stop each vm"
