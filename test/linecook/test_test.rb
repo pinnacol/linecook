@@ -193,13 +193,17 @@ class TestTest < Test::Unit::TestCase
       target.puts "exit 8"
     end
     
-    result, cmd = run_package
+    stdout, msg = run_package
     assert_output_equal %{
       b0nk
-      [8] vm/test/linecook/test_test/test_a_package/abox/recipe 
-    }, result, cmd
+    }, stdout, msg
     
-    assert_equal 1, $?.exitstatus, cmd
+    assert_alike %{
+      % :...:
+      [8] vm/test/linecook/test_test/test_a_package/abox/recipe 
+    }, msg
+    
+    assert_equal 1, $?.exitstatus, msg
   end
 
   def test_a_project
@@ -227,32 +231,31 @@ class TestTest < Test::Unit::TestCase
       prepare("packages/#{box}.yml") {}
     end
 
-    result, cmd = build_project
-    assert_equal 0, $?.exitstatus, cmd
+    stdout, msg = build_project
+    assert_equal 0, $?.exitstatus, msg
     
-    result, cmd = run_project
+    stdout, msg = run_project
     assert_output_equal %q{
       run abox
       run bbox
       test abox
       test bbox
-    }, result, cmd
-    assert_equal 0, $?.exitstatus, cmd
+    }, stdout, msg
+    assert_equal 0, $?.exitstatus, msg
   end
   
-  no_cleanup
+  cleanup_paths 'log'
   
   def test_a_static_project
-    result, cmd = build_project
-    assert_equal 0, $?.exitstatus, cmd
+    stdout, msg = build_project
+    assert_equal 0, $?.exitstatus, msg
     
-    result, cmd = run_project
+    stdout, msg = run_project
     assert_output_equal %q{
       run
       test
-      [1] vm/test/linecook/test_test/test_a_static_project/abox/test 
-    }, result, cmd
-    assert_equal 1, $?.exitstatus, cmd
+    }, stdout, msg
+    assert_equal 1, $?.exitstatus, msg
   end
   
   cleanup

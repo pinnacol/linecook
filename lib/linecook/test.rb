@@ -117,6 +117,16 @@ module Linecook
     end
     
     def linecook(cmd, options={}, *args)
+      stdout = prepare("log/#{cmd}.out")
+      stderr = prepare("log/#{cmd}.err")
+      
+      command = "#{linecook_cmd(cmd, options, *args)} 2> '#{stderr}' > '#{stdout}'"
+      system(command)
+      
+      [File.read(stdout), "% #{command}\n#{File.read(stderr)}"]
+    end
+    
+    def linecook_cmd(cmd, options={}, *args)
       opts = []
       options.each_pair do |key, value|
         key = key.gsub('_', '-')
@@ -132,10 +142,8 @@ module Linecook
       
       args = args.collect! {|arg| "'#{arg}'" }
       
-      cmd = ['2>&1', LINECOOK, cmd] + opts.sort + args
-      cmd = cmd.join(' ')
-      
-      [sh(cmd), cmd]
+      cmd = [LINECOOK, cmd] + opts.sort + args
+      cmd.join(' ')
     end
   end
 end
