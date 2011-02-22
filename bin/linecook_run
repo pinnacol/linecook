@@ -2,7 +2,7 @@
 ############################################################################
 
 ssh_config_file=${SSH_CONFIG_FILE:-config/ssh}
-remote_dir=${REMOTE_DIR:-vm/pkg}
+remote_dir=${REMOTE_DIR:-pkg}
 
 usage="usage: %s [-F SSH_CONFIG_FILE] [-D REMOTE_DIR] [-h] PACKAGE_DIRS...\n"
 option="       %s   %s\n"
@@ -33,7 +33,7 @@ do
 host=$(basename -- "$package_dir")
 
 ssh -q -T -F "$ssh_config_file" "$host" -- <<SCRIPT
-cd "$remote_dir/$host"
+cd "$remote_dir"
 if ! [ -f "$script_name" ]
 then exit 1
 fi
@@ -45,7 +45,7 @@ SCRIPT
 status=$?
 if [ $status -ne 0 ]
 then
-  echo "[$status] $remote_dir/$host/$script_name $args" >&2
+  echo "[$status] $remote_dir/$script_name $args" >&2
   errors=$(($errors+1))
 fi
 

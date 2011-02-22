@@ -109,7 +109,7 @@ module Linecook
       options = {
         'ssh_config_file' => ssh_config_file,
         'project_dir'     => method_dir,
-        'remote_dir'      => "vm/#{method_dir[(user_dir.length + 1)..-1]}",
+        'remote_dir'      => method_dir[(user_dir.length + 1)..-1],
         'quiet'           => true,
       }.merge(options)
       
