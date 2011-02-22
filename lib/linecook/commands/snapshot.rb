@@ -7,10 +7,26 @@ module Linecook
     #
     # Takes the specified snapshot of one or more VirtualBox virtual machines.
     # By default all virtual machines configured in config/ssh will have a
-    # snapshot taken.
+    # snapshot taken.  If the snapshot name is already taken, the previous
+    # snapshot will be renamed.
+    #
+    # Snapshot can also reset a hierarchy of renamed snapshots using the
+    # --reset flag. For example, if there exists a snapshot 'CURRENT' then
+    # these command will leave you with snapshots CURRENT_0 (the original),
+    # CURRENT_1, and CURRENT (the latest):
+    #
+    #   linecook snapshot CURRENT
+    #   linecook snapshot CURRENT
+    #
+    # To reset:
+    #
+    #   liencook snapshot --reset CURRENT
+    #
+    # After which there will only be a single 'CURRENT' snapshot, which
+    # corresponds to the original snapshot.
     #
     class Snapshot < VboxCommand
-      config :reset, false, :long => :reset, &c.flag
+      config :reset, false, :long => :reset, &c.flag  # reset a snapshot
       
       def process(snapshot, *vm_names)
         each_vm_name(vm_names) do |vm_name|

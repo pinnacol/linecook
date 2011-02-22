@@ -5,8 +5,8 @@ module Linecook
     class VboxCommand < Command
       registry.delete_if {|key, value| value == self }
       
-      config :ssh_config_file, 'config/ssh'
-      config :quiet, false, &c.flag
+      config :ssh_config_file, 'config/ssh'    # the ssh config file
+      config :quiet, false, &c.flag            # silence output
       
       # Matches a host declaration in a ssh config file. After the match:
       #
