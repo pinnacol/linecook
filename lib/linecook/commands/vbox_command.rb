@@ -86,6 +86,10 @@ module Linecook
         sh! "VBoxManage -q snapshot #{vm_name} restore #{snapshot.upcase}"
       end
       
+      def discardstate(vm_name)
+        sh! "VBoxManage discardstate #{vm_name}"
+      end
+      
       def share(vm_name, name, local_dir, remote_dir)
         share_dir = "#{local_dir}/#{vm_name}"
         FileUtils.mkdir_p(share_dir) unless File.exists?(share_dir)
