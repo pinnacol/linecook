@@ -85,9 +85,68 @@ module Linecook
         sh! "VBoxManage -q snapshot #{vm_name} restore #{snapshot.upcase}"
       end
       
+      def snapshots(vm_name)
+        info = `VBoxManage -q showvminfo #{vm_name}`
+        snapshots = {}
+        
+        stack = [{}]
+        parent  = nil
+        
+        info.each_line do |line|
+          next unless line =~ /^(\s+)Name\: (.*?) \(/
+          depth = $1.length / 3
+          name = $2
+          
+          if depth > stack.length
+            stack.push stack.last[parent]
+          elsif depth < stack.length
+            stack.pop
+          end
+          
+          snapshot = {}
+          snapshots[name]  = snapshot
+          stack.last[name] = snapshot
+          parent = name
+        end
+        
+        snapshots
+      end
+      
+      def inside_out_each(key, value, &block)
+        value.each_pair do |k, v|
+          inside_out_each(k, v, &block)
+        end
+        
+        yield(key)
+      end
+      
       def snapshot(vm_name, snapshot)
-        sh "VBoxManage -q snapshot #{vm_name} delete #{snapshot.upcase} > /dev/null"
-        sh! "VBoxManage -q snapshot #{vm_name} take #{snapshot.upcase}"
+        snapshot = snapshot.upcase
+        
+        count = snapshots(vm_name).keys.grep(/\A#{snapshot}(?:_|\z)/).length
+        if count > 0
+          sh! "VBoxManage -q snapshot #{vm_name} edit #{snapshot} --name #{snapshot}_#{count - 1}"
+        end
+        
+        sh! "VBoxManage -q snapshot #{vm_name} take #{snapshot}"
+      end
+      
+      def restore_snapshot(vm_name, snapshot)
+        stop(vm_name) if running?(vm_name)
+        snapshot = snapshot.upcase
+        
+        hierarchy = snapshots(vm_name)
+        parent = hierarchy.keys.select {|key| key =~ /\A#{snapshot}(?:_\d+)\z/ }.first
+        parent ||= snapshot
+        
+        children = hierarchy[parent]
+        children.each do |key, value|
+          inside_out_each(key, value) do |child|
+            sh! "VBoxManage -q snapshot #{vm_name} delete #{child}"
+          end
+        end
+        
+        sh! "VBoxManage -q snapshot #{vm_name} edit #{parent} --name #{snapshot}"
       end
       
       def share(vm_name, name, local_dir, remote_dir)
