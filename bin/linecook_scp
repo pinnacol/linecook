@@ -24,7 +24,6 @@ shift $(($OPTIND - 1))
 
 ################################# transfer #################################
 
-errors=0
 for package_dir in "$@"
 do
 host=$(basename -- "$package_dir")
@@ -43,10 +42,8 @@ status=$?
 if [ $status -ne 0 ]
 then
   echo "[$status] $remote_dir/$script_name " >&2
-  errors=$(($errors+1))
+  exit 1
 fi
 done
-
-exit $errors
 
 ################################ (transfer) ################################

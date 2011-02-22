@@ -24,7 +24,6 @@ shift $(($OPTIND - 1))
 
 ################################### run ####################################
 
-errors=0
 while read script_name args
 do
 
@@ -46,12 +45,10 @@ status=$?
 if [ $status -ne 0 ]
 then
   echo "[$status] $remote_dir/$script_name $args" >&2
-  errors=$(($errors+1))
+  exit 1
 fi
 
 done
 done
-
-exit $errors
 
 ################################## (run) ###################################
