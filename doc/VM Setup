@@ -29,7 +29,7 @@ the server and install ubuntu (use default settings unless specified):
 
   - hostname: abox-ubuntu
   - user/password: linecook
-  - select 'OpenSSH Server' in packages to install
+  - select 'OpenSSH server' in packages to install
 
 When the server has rebooted and is ready at the login screen, remove the
 install iso, take a snapshot and setup port forwarding.
@@ -91,22 +91,22 @@ Setup a ssh config file:
   StrictHostKeyChecking no
   IdentitiesOnly yes
   ControlMaster auto
-  ControlPath ~/.ssh/socket-%r@%h:%p
+  ControlPath /tmp/socket-%r@%h:%p
   
   Host abox
   Port 2220
 
-Now you can access and control the box via these linecook commands. Note the
-share command only works if you have sshfs set up (see the {Shared
+Now you can control the box via these linecook commands. Note the share
+command only works if you have sshfs set up (see the {Shared
 Folders}[link:files/doc/doc/Shared%20Folders.html] docs):
 
   # start the vm to a known snapshot
-  linecook start --snapshot=current
+  linecook start --snapshot current
   
   # build, transfer, run, and test packages
   linecook run
   
-  # setup an sshfs share
+  # setup an sshfs share (optional)
   linecook share
   
   # checkout the results
@@ -116,7 +116,8 @@ Folders}[link:files/doc/doc/Shared%20Folders.html] docs):
   linecook snapshot current
   
   # return to go
-  linecook start --snapshot=base
+  linecook snapshot --reset current
+  linecook start --snapshot current
   
   # stop the vm and go home
   linecook stop
@@ -139,17 +140,17 @@ you made an 'bbox' virtual machine:
   VBoxManage modifyvm bbox --natpf1 'bbox-http,tcp,,8881,,80'
 
 Notice both the name and the ports are altered in the port forwarding
-commands. Add entries for each host in the ssh config file:
+commands. Add an entry for the host in the ssh config file:
 
   [config/ssh]
   ...
   Host bbox
   Port 2221
 
-The same linecook commands will operate on a set of vms:
+The same linecook commands will now operate on a set of vms:
 
   # start all (or a subset) the vms to a known snapshot
-  linecook start --snapshot=current
+  linecook start --snapshot current
   
   # * build, transfer, run the 'abox.yml' package on the abox vm
   # * build, transfer, run the 'bbox.yml' package on the bbox vm
@@ -165,11 +166,11 @@ The same linecook commands will operate on a set of vms:
   
   # etc...
 
-When running tests the package name corresponds to the host that it will be
-run on, ie 'abox.yml' goes to the 'abox' host as specified in 'config/ssh'.
-Implicitly the target virtual machine will also be named 'abox' in VirtualBox.
-If you name it something else, add a magic comment to the Host declaration
-like this:
+Note the name of a package corresponds to the host that it will be run on, ie
+'abox.yml' goes to the 'abox' host as specified in 'config/ssh'. Implicitly
+the virtual machine will also be named 'abox' in VirtualBox. If you name it
+something else, declare the vm name using a linecook-specific comment next to
+the Host declaration like this:
 
   [config/ssh]
   ...
