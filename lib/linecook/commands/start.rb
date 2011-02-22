@@ -21,7 +21,7 @@ module Linecook
           end
           
           unless snapshot.empty?
-            reset(vm_name, snapshot)
+            restore(vm_name, snapshot)
           end
           
           start(vm_name, type)
