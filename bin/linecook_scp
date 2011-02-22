@@ -9,15 +9,15 @@ option="       %s   %s\n"
 while getopts "F:D:h" opt
 do
   case $opt in
-  F  ) ssh_config_file=$OPTARG ;;
-  D  ) remote_dir=$OPTARG ;;
-  h  ) printf "$usage" $0
-       printf "$option" "-F" "the ssh config file"
-       printf "$option" "-D" "the remote package dir"
-       printf "$option" "-h" "prints this help"
-       exit 0 ;;
-  \? ) printf "$usage" $0
-       exit 2 ;;
+  F  )  ssh_config_file=$OPTARG ;;
+  D  )  remote_dir=$OPTARG ;;
+  h  )  printf "$usage" $0
+        printf "$option" "-F" "the ssh config file"
+        printf "$option" "-D" "the remote package dir"
+        printf "$option" "-h" "prints this help"
+        exit 0 ;;
+  \? )  printf "$usage" $0
+        exit 2 ;;
   esac
 done
 shift $(($OPTIND - 1))
