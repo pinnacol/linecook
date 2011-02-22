@@ -66,14 +66,9 @@ Setup SSH:
   vm: chmod 0700 .ssh
   vm: chmod 0600 .ssh/authorized_keys
 
-Remove the login banner:
+Remove the login banner and exit:
 
   vm: sudo rm /etc/motd
-
-Make a directory for shares (if you want to {share
-folders}[link:files/doc/doc/Shared%20Folders.html]) and exit:
-
-  vm: mkdir vm
   vm: exit
 
 Now take some standard snapshots:

@@ -7,8 +7,8 @@ module Linecook
     # ::desc share a vm folder using sshfs
     #
     # Sets up shared folder using sshfs. By default all hosts configured in
-    # config/ssh will share their host:vm remote directory into the vm/host
-    # local directory.
+    # config/ssh will share their remote_dir into the vm/host local
+    # directory.
     #
     # NOTE: sshfs does not resolve ssh config paths relative to pwd.  Be sure
     # the ssh_config_file uses full paths (even relative paths like
@@ -16,7 +16,7 @@ module Linecook
     # 
     class Share < VboxCommand
       config :local_dir, 'vm'    # the local share dir
-      config :remote_dir, 'vm'   # the remote share dir
+      config :remote_dir, nil    # the remote share dir
       
       def sshfs_path
         @sshfs_path ||= `which sshfs`
