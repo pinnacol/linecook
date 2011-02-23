@@ -1,5 +1,11 @@
 #!/usr/bin/env ruby
 
+if File.exists?('Gemfile')
+  require 'rubygems'
+  require 'bundler'
+  Bundler.setup
+end
+
 require 'linecook/version'
 require 'linecook/commands'
 registry = Linecook::Commands::Command.registry
