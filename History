@@ -1,3 +1,9 @@
+== 0.15.1 2011/02/23
+
+* made linecook use Gemfile if available
+* updated scaffold for new project
+* added package file to package dependencies
+
 == 0.15.0 2011/02/23
 
 Continued overhaul of testing methods and structure.

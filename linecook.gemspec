@@ -72,14 +72,16 @@ Gem::Specification.new do |s|
     templates/attributes/project_name.rb
     templates/config/ssh
     templates/cookbook
-    templates/files/file.txt
-    templates/helpers/project_name/cat.erb
-    templates/helpers/project_name/echo.erb
+    templates/files/help.txt
+    templates/helpers/project_name/assert_content_equal.erb
+    templates/helpers/project_name/create_dir.erb
+    templates/helpers/project_name/create_file.erb
+    templates/helpers/project_name/install_file.erb
     templates/packages/abox.yml
     templates/project_name.gemspec
     templates/recipes/abox.rb
     templates/recipes/abox_test.rb
-    templates/templates/template.txt.erb
+    templates/templates/todo.txt.erb
     templates/test/project_name_test.rb
     templates/test/test_helper.rb
   }
