@@ -29,7 +29,8 @@ module Linecook
         package_dir = File.expand_path(package_dir)
         package = Linecook::Package.init(package_file, project_dir)
         
-        if force || !FileUtils.uptodate?(package_dir, dependencies(package))
+        dependencies = package_dependencies(package) + [package_file]
+        if force || !FileUtils.uptodate?(package_dir, dependencies)
           package.build
           package.export(package_dir)
           $stdout.puts package_dir unless quiet
@@ -42,7 +43,7 @@ module Linecook
         File.expand_path("packages/#{name}.yml", project_dir)
       end
       
-      def dependencies(package)
+      def package_dependencies(package)
         dependencies = []
         package.manifest.values.collect do |resources|
           dependencies.concat resources.values
