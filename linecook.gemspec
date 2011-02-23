@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   # add dependencies
   s.add_dependency('rake', '~> 0.8.7')
   s.add_dependency('configurable', '~> 0.7.0')
-  s.add_development_dependency('bundler', '~> 1.0.7')
+  s.add_dependency('bundler', '~> 1.0.7')
   
   # list extra rdoc files here.
   s.extra_rdoc_files = %W{
