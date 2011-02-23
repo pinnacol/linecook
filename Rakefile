@@ -97,27 +97,26 @@ end
 # VM Tasks
 #
 
-namespace :vm do
-  desc "start each vm at CURRENT"
-  task :start => :bundle do
-    sh 'bundle exec linecook start --socket --snapshot CURRENT'
-  end
-  
-  desc "snapshot each vm to a new CURRENT"
-  task :snapshot => :bundle do
-    sh 'bundle exec linecook snapshot CURRENT'
-  end
-  
-  desc "reset each vm to BASE"
-  task :reset => :bundle do
-    sh 'bundle exec linecook snapshot --reset BASE'
-    sh 'bundle exec linecook snapshot CURRENT'
-  end
-  
-  desc "stop each vm"
-  task :stop => :bundle do
-    sh 'bundle exec linecook stop'
-  end
+desc "start each vm at CURRENT"
+task :start => :bundle do
+  sh 'bundle exec linecook start --socket --snapshot CURRENT'
+end
+
+desc "snapshot each vm to a new CURRENT"
+task :snapshot => :bundle do
+  sh 'bundle exec linecook snapshot CURRENT'
+end
+
+desc "reset each vm to BASE"
+task :reset => :bundle do
+  sh 'bundle exec linecook snapshot --reset BASE'
+  sh 'bundle exec linecook snapshot CURRENT'
+  sh 'bundle exec linecook start --socket --snapshot CURRENT'
+end
+
+desc "stop each vm"
+task :stop => :bundle do
+  sh 'bundle exec linecook stop'
 end
 
 #
@@ -143,10 +142,10 @@ end
 desc 'Run the tests'
 task :test do
   begin
-    Rake::Task["vm:start"].invoke
+    Rake::Task["start"].invoke
     Rake::Task["quicktest"].invoke
   ensure
-    Rake::Task["vm:stop"].execute(nil)
+    Rake::Task["stop"].execute(nil)
   end
 end
 
