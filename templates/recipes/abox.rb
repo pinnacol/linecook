@@ -6,13 +6,17 @@ attributes '<%= project_name %>'
 # Write to the target script using 'target'
 target.puts '# An example script.'
 
-# Helpers are available, as are attributes.
-echo *attrs['<%= project_name %>']['letters']
-echo *attrs['<%= project_name %>']['numbers']
+# Attributes are available, as are helpers.
+file = "~/#{attrs['<%= project_name %>']['year']}/resolutions.txt"
+content = attrs['<%= project_name %>']['resolutions'].join("\n")
+create_file file, content
 
-# Use file_path to register a file into the package
-# and return a relative path to it.
-cat file_path('file.txt')
+# Use file_path to add a file to the package and return a path to it.
+source = file_path('help.txt')
+target = "~/#{attrs['<%= project_name %>']['year']}/help.txt"
+install_file source, target
 
-# Same for templates.  Provide locals as a trailing hash.
-cat template_path('template.txt', 'template.txt', :n => 10)
+# Same for templates.  Attributes are available in the template.
+source = template_path('todo.txt')
+target = "~/#{attrs['<%= project_name %>']['year']}/todo.txt"
+install_file source, target

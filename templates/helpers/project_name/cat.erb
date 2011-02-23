@@ -1,9 +1,0 @@
-An example of a helper definition. Definitions are compiled into a helper
-module named like the definition directory.
-
-This is the documentation, followed by the method signature and then the ERB
-template. The arguments in the method signature are available in the template.
-
-(*sources)
---
-cat<%= "<" + '% sources.each do |source| %' + ">" + ' $(dirname $0)/"' + "<" + '%= source %' + ">" + '"' + "<" + '% end %' + ">" %>

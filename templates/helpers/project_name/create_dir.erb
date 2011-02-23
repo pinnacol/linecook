@@ -1,0 +1,8 @@
+Creates a directory and parents as needed.
+(dir)
+--
+if ! [ -d <%= '<' %>%= dir %<%= '>' %> ]
+then
+  echo "Create dir: <%= '<' %>%= dir %<%= '>' %>"
+  mkdir -p <%= '<' %>%= dir %<%= '>' %>
+fi

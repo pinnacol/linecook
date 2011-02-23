@@ -1,0 +1,7 @@
+Installs a file.
+(source, target)
+--
+<%= '<' %>% create_dir File.dirname(target) %<%= '>' %>
+
+echo "Install file: <%= '<' %>%= target %<%= '>' %>"
+cp <%= '<' %>%= source %<%= '>' %> <%= '<' %>%= target %<%= '>' %>
