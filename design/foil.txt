@@ -1,0 +1,21 @@
+# http://wiki.opscode.com/display/chef/Resources
+
+  # linecook would define this as helpers
+  service "example_service" do
+
+    # monolithic design - no way to really keep up
+    case node[:platform]
+    when "CentOS","RedHat","Fedora"
+      service_name "redhat_name"
+    else
+      service_name "other_name"
+    end
+  
+    supports :restart => true
+    action [ :enable, :start ]
+  end
+
+# even MORE setup, no portability
+
+In order to use the "password" attribute in Chef 0.5.6, you must have "ruby-shadow" installed. You can get this by installing the debian package "libshadow-ruby1.8".
+
