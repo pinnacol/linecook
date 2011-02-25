@@ -17,6 +17,7 @@ class <%= const_name %>Test < Test::Unit::TestCase
         echo "Create dir: dir"
         mkdir -p dir
       fi
+      
     }){
       helpers '<%= project_name %>'
       create_dir 'dir'

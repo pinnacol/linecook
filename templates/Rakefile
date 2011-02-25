@@ -83,7 +83,7 @@ task :build => :bundle do
 end
 
 desc "run packages"
-task :run => :bundle do
+task :run => :build do
   sh "bundle exec linecook run #{package}"
 end
 
