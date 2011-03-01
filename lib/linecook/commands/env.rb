@@ -5,15 +5,17 @@ require 'yaml'
 # http://snippets.dzone.com/posts/show/5811
 class Hash # :nodoc:
   undef_method :to_yaml
-  
+
   # Replacing the to_yaml function so it'll serialize hashes sorted (by their keys)
   #
   # Original function is in /usr/lib/ruby/1.8/yaml/rubytypes.rb
   def to_yaml( opts = {} )
     YAML::quick_emit( object_id, opts ) do |out|
       out.map( taguri, to_yaml_style ) do |map|
-        sort.each do |k, v|
-          map.add( k, v )
+        keys.sort_by do |k|
+          k.to_s
+        end.each do |k|
+          map.add( k, fetch(k) )
         end
       end
     end
@@ -47,11 +49,14 @@ module Linecook
         current
       end
       
+      def serialize(env, target="")
+        YAML.dump(env, target)
+      end
+      
       def process(*keys)
         package  = Linecook::Package.init(package_file, project_dir)
         env = select(package.env, *keys)
-        
-        YAML.dump(env, $stdout)
+        serialize(env, $stdout)
       end
     end
   end

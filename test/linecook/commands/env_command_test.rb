@@ -43,4 +43,25 @@ class EnvCommandTest < Test::Unit::TestCase
     assert_equal nil, cmd.select(env, :a, :x)
     assert_equal nil, cmd.select(env, :x)
   end
+  
+  #
+  # serialize test
+  #
+  
+  def test_serialize_sorts_hash_keys_by_string
+    env = {
+      :a => 'A', 'b' => 'B', 
+      :c => {:x => 'X', 'y' => 'Y', :z => 'Z'}
+    }
+    
+    assert_output_equal %q{
+    --- 
+    :a: A
+    b: B
+    :c: 
+      :x: X
+      y: Y
+      :z: Z
+    }, cmd.serialize(env)
+  end
 end
