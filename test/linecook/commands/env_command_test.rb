@@ -64,4 +64,15 @@ class EnvCommandTest < Test::Unit::TestCase
       :z: Z
     }, cmd.serialize(env)
   end
+  
+  def test_serialize_sorting_tricks_dont_mess_up_serialization_in_general
+    env = {
+      :a => 'A', 'b' => 'B', 
+      :c => {:x => 'X', 'y' => 'Y', :z => 'Z'}
+    }
+    
+    assert_equal env, YAML.load(YAML.dump(env))
+    assert_equal env, YAML.load(cmd.serialize(env))
+    assert_equal env, YAML.load(YAML.dump(env))
+  end
 end
