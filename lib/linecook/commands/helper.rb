@@ -249,7 +249,7 @@ DOC
 def <%= method_name %><%= signature %>
 <%= body %>
 
-  nil
+  self
 end
 
 def _<%= method_name %>(*args, &block) # :nodoc:

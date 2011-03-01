@@ -153,7 +153,7 @@ class HelperCommandTest < Test::Unit::TestCase
           # aaa
           def a(*args)
             body
-            nil
+            self
           end
           
           def _a(*args, &block) # :nodoc:
@@ -196,7 +196,7 @@ class HelperCommandTest < Test::Unit::TestCase
           
           def a()
             body
-            nil
+            self
           end
           
           def _a(*args, &block) # :nodoc:
@@ -209,5 +209,53 @@ class HelperCommandTest < Test::Unit::TestCase
       
       footer
     }, cmd.build('A::B', [header, head, foot, footer, definition])
+  end
+  
+  #
+  # examples
+  #
+  
+  def test_generated_helpers_allow_method_chaining
+    echo_def = prepare('echo.erb') do |io| 
+      io.puts outdent(%q{
+      (*args)
+      --
+      echo <%= args.join(' ') %>
+      })
+    end
+    
+    heredoc_def = prepare('heredoc.erb') do |io| 
+      io.puts outdent(%q{
+      ()
+      rstrip
+      --
+       <<DOC
+      <% yield %>
+      DOC
+      })
+    end
+    
+    helper_file = prepare('helper.rb') do |io|
+      io << cmd.build("HelperCommandTestModules::ChainHelper", [echo_def, heredoc_def])
+    end
+    
+    load helper_file
+    setup_helpers ::HelperCommandTestModules::ChainHelper
+    
+    assert_recipe %q{
+      echo a b c
+      echo <<DOC
+      x
+      y
+      z
+      DOC
+    } do
+      echo 'a', 'b', 'c'
+      echo.heredoc do
+        target.puts "x"
+        target.puts "y"
+        target.puts "z"
+      end
+    end
   end
 end
