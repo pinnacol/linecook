@@ -38,15 +38,6 @@ class LinecookTest < Test::Unit::TestCase
       assert_equal 0, $?.exitstatus, output
       assert_equal true, File.exists?('packages/abox/run'), output
       
-      assert_script %q{
-        % cd packages/abox; bash run; bash test
-        Create file: ~/2011/resolutions.txt
-        Install file: ~/2011/help.txt
-        Install file: ~/2011/todo.txt
-        Check file: ~/2011/resolutions.txt
-        Check file: ~/2011/todo.txt
-      }
-      
       output = `BUNDLE_GEMFILE='#{gemfile}' 2>&1 bundle exec rake quicktest`
       assert_equal 0, $?.exitstatus, output.gsub(/^/, '>')
     end
