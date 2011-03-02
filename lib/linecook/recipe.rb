@@ -1,4 +1,5 @@
 require 'linecook/attributes'
+require 'linecook/utils'
 require 'erb'
 
 module Linecook
@@ -61,11 +62,15 @@ module Linecook
     # The name of target in package
     attr_reader :target_name
     
+    # Returns the current indentation string.
+    attr_reader :current_indent
+    
     def initialize(package, target_name)
       @package     = package
       @target_name = target_name
       @target      = package.setup_tempfile(target_name)
       @attributes  = {}
+      @current_indent = ""
     end
     
     # Returns self.  In the context of a compiled ERB helper, this method
@@ -216,11 +221,11 @@ module Linecook
       str
     end
     
-    # Indents the output of the block.
+    # Indents the output of the block.  See current_indent.
     def indent(indent='  ', &block)
-      capture(&block).split("\n").each do |line|
-        concat "#{indent}#{line}\n"
-      end
+      @current_indent += indent
+      concat capture(false, &block).gsub!(/^/, indent)
+      @current_indent.chomp! indent
       self
     end
     
