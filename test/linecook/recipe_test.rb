@@ -31,7 +31,7 @@ class RecipeTest < Test::Unit::TestCase
     end
   end
 
-  def test_template_documentation
+  def test_recipe_documentation
     package = Package.new
     recipe  = package.setup_recipe
     
@@ -44,23 +44,6 @@ class RecipeTest < Test::Unit::TestCase
     expected = %{
 echo 'a b c'
 echo 'x y z'
-}
-    assert_equal expected, "\n" + recipe.result
-
-    recipe  = package.setup_recipe
-    recipe.extend Helper
-    recipe.instance_eval do
-      echo 'outer'
-      indent do
-        echo 'inner'
-      end
-      echo 'outer'
-    end
-
-    expected = %{
-echo 'outer'
-  echo 'inner'
-echo 'outer'
 }
     assert_equal expected, "\n" + recipe.result
   end
@@ -298,59 +281,6 @@ echo 'outer'
     
     assert_equal 'A', package.content('a')
     assert_equal 'B', package.content('b')
-  end
-  
-  #
-  # indent test
-  #
-  
-  def test_indent_indents_target_output_during_block
-    recipe.target.puts 'a'
-    recipe.indent do
-      recipe.target.puts 'b'
-      recipe.target.puts 'b'
-    end
-    recipe.target.puts 'a'
-    
-    assert_equal "a\n  b\n  b\na\n", recipe.result
-  end
-  
-  def test_indent_allows_specification_of_indent
-    recipe.target.puts 'a'
-    recipe.indent('.') do
-      recipe.target.puts 'b'
-      recipe.target.puts 'b'
-    end
-    recipe.target.puts 'a'
-    
-    assert_equal "a\n.b\n.b\na\n", recipe.result
-  end
-  
-  def test_indents_may_be_nested
-    recipe.target.puts 'a'
-    recipe.indent do
-      recipe.target.puts 'b'
-      recipe.indent do
-        recipe.target.puts 'c'
-        recipe.target.puts 'c'
-      end
-      recipe.target.puts 'b'
-    end
-    recipe.target.puts 'a'
-    
-    assert_equal "a\n  b\n    c\n    c\n  b\na\n", recipe.result
-  end
-  
-  def test_current_indent_returns_current_indentation
-    assert_equal '', recipe.current_indent
-    recipe.indent do
-      assert_equal '  ', recipe.current_indent
-      recipe.indent '.' do
-        assert_equal '  .', recipe.current_indent
-      end
-      assert_equal '  ', recipe.current_indent
-    end
-    assert_equal '', recipe.current_indent
   end
   
   #

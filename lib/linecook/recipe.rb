@@ -33,26 +33,6 @@ module Linecook
   #   # echo 'x y z'
   #   # }
   #
-  # Recipes control the _erbout context, such that reformatting is possible
-  # before any content is emitted. This allows such things as indentation.
-  #
-  #   recipe = package.setup_recipe
-  #   recipe.extend Helper
-  #   recipe.instance_eval do
-  #     echo 'outer'
-  #     indent do
-  #       echo 'inner'
-  #     end
-  #     echo 'outer'
-  #   end
-  #
-  #   "\n" + template.result
-  #   # => %{
-  #   # echo 'outer'
-  #   #   echo 'inner'
-  #   # echo 'outer'
-  #   # }
-  #
   # See _erbout and _erbout= for the ERB trick that makes this all possible.
   class Recipe
     
@@ -62,15 +42,11 @@ module Linecook
     # The name of target in package
     attr_reader :target_name
     
-    # Returns the current indentation string.
-    attr_reader :current_indent
-    
     def initialize(package, target_name)
       @package     = package
       @target_name = target_name
       @target      = package.setup_tempfile(target_name)
       @attributes  = {}
-      @current_indent = ""
     end
     
     # Returns self.  In the context of a compiled ERB helper, this method
@@ -219,14 +195,6 @@ module Linecook
       str = redirect.string
       str.strip! if strip
       str
-    end
-    
-    # Indents the output of the block.  See current_indent.
-    def indent(indent='  ', &block)
-      @current_indent += indent
-      concat capture(false, &block).gsub!(/^/, indent)
-      @current_indent.chomp! indent
-      self
     end
     
     # Strips whitespace from the end of target. To do so the target is rewound
