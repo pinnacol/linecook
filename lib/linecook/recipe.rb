@@ -229,28 +229,6 @@ module Linecook
       self
     end
     
-    # Indents the output of the block within each of the nestings.  Nestings
-    # are [start_line, end_line] pairs which are used to wrap the output.
-    def nest(*nestings)
-      options  = nestings.last.kind_of?(Hash) ? nestings.pop : {}
-      indent   = options[:indent] || "  "
-      line_sep = options[:line_sep] || "\n"
-      
-      content = capture { yield }
-      return content if nestings.empty?
-      
-      depth = nestings.length
-      lines = [indent * depth + content.gsub(/#{line_sep}/, line_sep + indent * depth)]
-
-      nestings.reverse_each do |(start_line, end_line)|
-        depth -= 1
-        lines.unshift(indent * depth + start_line)
-        lines << (indent * depth + end_line)
-      end
-
-      concat lines.join(line_sep)
-    end
-    
     # Strips whitespace from the end of target. To do so the target is rewound
     # in chunks of n chars and then re-written without whitespace.
     #
