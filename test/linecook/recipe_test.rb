@@ -287,22 +287,27 @@ echo 'x y z'
   # rstrip test
   #
   
-  def test_rstrip_rstrips_target
-    recipe.target << " a b \n "
-    recipe.rstrip
+  def test_rstrip_rstrips_target_and_returns_stripped_whitespace
+    recipe.target << " a b \n \t\r\n "
+    assert_equal " \n \t\r\n ", recipe.rstrip
     assert_equal " a b", recipe.result
   end
   
   def test_rstrip_removes_all_whitespace_up_to_start
     recipe.target << "  \n "
-    recipe.rstrip
+    assert_equal "  \n ", recipe.rstrip
     assert_equal "", recipe.result
   end
   
   def test_rstrip_removes_lots_of_whitespace
     recipe.target << "a b"
-    recipe.target << " " * 100
-    recipe.rstrip
+    recipe.target << " " * 10
+    recipe.target << "\t" * 10
+    recipe.target << "\n" * 10
+    recipe.target << " " * 10
+    
+    expected = (" " * 10) + ("\t" * 10) + ("\n" * 10) + (" " * 10)
+    assert_equal expected, recipe.rstrip
     assert_equal "a b", recipe.result
   end
 end

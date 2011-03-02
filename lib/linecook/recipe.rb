@@ -198,7 +198,8 @@ module Linecook
     end
     
     # Strips whitespace from the end of target. To do so the target is rewound
-    # in chunks of n chars and then re-written without whitespace.
+    # in chunks of n chars and then re-written without whitespace.  Returns
+    # the stripped whitespace.
     #
     # Yields to a block if given, before performing the rstrip.
     def rstrip(n=10)
@@ -209,12 +210,19 @@ module Linecook
       start = pos - n
       
       target.pos = start
-      tail = target.read(n).rstrip
+      tail = target.read(n)
+      whitespace = tail.slice!(/\s+\z/)
       
       target.pos = start
       target.truncate start
       
-      tail.length == 0 && start > 0 ? rstrip(n) : concat(tail)
+      if tail.length == 0 && start > 0
+        # not done with rstrip, recurse.
+        return "#{rstrip(n)}#{whitespace}"
+      end
+        
+      concat(tail)
+      whitespace
     end
   end
 end
