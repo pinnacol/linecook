@@ -1,9 +1,9 @@
 require File.expand_path('../../test_helper', __FILE__)
 require 'linecook/package'
-require 'linecook/test/file_test'
+require 'linecook/test'
 
 class RecipeTest < Test::Unit::TestCase
-  include Linecook::Test::FileTest
+  include Linecook::Test
   
   Package = Linecook::Package
   Recipe = Linecook::Recipe
@@ -44,6 +44,23 @@ class RecipeTest < Test::Unit::TestCase
     expected = %{
 echo 'a b c'
 echo 'x y z'
+}
+    assert_equal expected, "\n" + recipe.result
+    
+    recipe  = package.setup_recipe
+    recipe.extend Helper
+    recipe.instance_eval do
+      echo 'outer'
+      indent do
+        echo 'inner'
+      end
+      echo 'outer'
+    end
+
+    expected = %{
+echo 'outer'
+  echo 'inner'
+echo 'outer'
 }
     assert_equal expected, "\n" + recipe.result
   end
@@ -310,4 +327,149 @@ echo 'x y z'
     assert_equal expected, recipe.rstrip
     assert_equal "a b", recipe.result
   end
+  
+  #
+  # indent test
+  #
+
+  def test_indent_documentation
+    setup_recipe do
+      target.puts 'a'
+      indent do
+        target.puts 'b'
+        outdent do
+          target.puts 'c'
+          indent do
+            target.puts 'd'
+          end
+          target.puts 'c'
+        end
+        target.puts 'b'
+      end
+      target.puts 'a'
+    end
+
+    assert_equal %q{
+a
+  b
+c
+  d
+c
+  b
+a
+}, "\n" + recipe.result
+  end
+
+  def test_indent_indents_target_output_during_block
+    assert_recipe %q{
+      a
+        b
+        b
+      a
+    } do
+      target.puts 'a'
+      indent do
+        target.puts 'b'
+        target.puts 'b'
+      end
+      target.puts 'a'
+    end
+  end
+
+  def test_indent_allows_specification_of_indent
+    assert_recipe %q{
+      a
+      .b
+      .b
+      a
+    } do
+      target.puts 'a'
+      indent('.') do
+        target.puts 'b'
+        target.puts 'b'
+      end
+      target.puts 'a'
+    end
+  end
+
+  def test_indents_may_be_nested
+    assert_recipe %q{
+      a
+        b
+          c
+          c
+        b
+      a
+    } do
+      target.puts 'a'
+      indent do
+        target.puts 'b'
+        indent do
+          target.puts 'c'
+          target.puts 'c'
+        end
+        target.puts 'b'
+      end
+      target.puts 'a'
+    end
+  end
+
+  #
+  # outdent test
+  #
+
+  def test_outdent_does_nothing_outside_of_indent
+    assert_recipe %q{
+      a
+       b
+        c
+    } do
+      outdent do
+        target.puts 'a'
+        target.puts ' b'
+        target.puts '  c'
+      end
+    end
+  end
+
+  def test_outdent_strips_the_current_indentation_off_of_a_section
+    assert_recipe %q{
+      a
+      +b
+      c
+      -x
+      --y
+      z
+      z
+      --y
+      -x
+      c
+      +b
+      a
+    } do
+      target.puts 'a'
+      indent('+') do
+        target.puts 'b'
+        outdent do
+          target.puts 'c'
+          indent('-') do
+            target.puts 'x'
+            indent('-') do
+              target.puts 'y'
+              outdent do
+                target.puts 'z'
+                target.puts 'z'
+              end
+              target.puts 'y'
+            end
+            target.puts 'x'
+          end
+          target.puts 'c'
+        end
+        target.puts 'b'
+      end
+      target.puts 'a'
+    end
+  end
+
 end

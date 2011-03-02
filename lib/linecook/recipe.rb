@@ -33,6 +33,26 @@ module Linecook
   #   # echo 'x y z'
   #   # }
   #
+  # Recipes control the _erbout context, such that reformatting is possible
+  # before any content is emitted. This allows such things as indentation.
+  #
+  #   recipe = package.setup_recipe
+  #   recipe.extend Helper
+  #   recipe.instance_eval do
+  #     echo 'outer'
+  #     indent do
+  #       echo 'inner'
+  #     end
+  #     echo 'outer'
+  #   end
+  #
+  #   "\n" + template.result
+  #   # => %{
+  #   # echo 'outer'
+  #   #   echo 'inner'
+  #   # echo 'outer'
+  #   # }
+  #
   # See _erbout and _erbout= for the ERB trick that makes this all possible.
   class Recipe
     
@@ -223,6 +243,100 @@ module Linecook
         
       concat(tail)
       whitespace
+    end
+    
+    # An array used for tracking indents currently in use.
+    def indents
+      @indents ||= []
+    end
+
+    # Indents the output of the block.  Indents may be nested. To prevent a
+    # section from being indented, enclose it within outdent which resets
+    # indentation to nothing for the duration of a block.
+    #
+    # Example:
+    #
+    #   target.puts 'a'
+    #   indent do
+    #     target.puts 'b'
+    #     outdent do
+    #       target.puts 'c'
+    #       indent do
+    #         target.puts 'd'
+    #       end
+    #       target.puts 'c'
+    #     end
+    #     target.puts 'b'
+    #   end
+    #   target.puts 'a'
+    #
+    #   "\n" + result
+    #   # => %q{
+    #   # a
+    #   #   b
+    #   # c
+    #   #   d
+    #   # c
+    #   #   b
+    #   # a
+    #   # }
+    #
+    def indent(indent='  ', &block)
+      indents << indents.last.to_s + indent
+      str = capture(&block)
+      indents.pop
+
+      unless str.empty?
+        str.gsub!(/^/, indent)
+
+        if indents.empty?
+          outdents.each do |flag|
+            str.gsub!(/#{flag}(\d+):(.*?)#{flag}/m) do
+              $2.gsub!(/^.{#{$1.to_i}}/, '')
+            end
+          end
+          outdents.clear
+        end
+
+        target.puts str
+      end
+
+      self
+    end
+
+    # An array used for tracking outdents currently in use.
+    def outdents
+      @outdents ||= []
+    end
+
+    # Resets indentation to nothing for a section of text indented by indent.
+    #
+    # === Notes
+    #
+    # Outdent works by setting a text flag around the outdented section; the flag
+    # and indentation is later stripped out using regexps.  For that reason, be
+    # sure flag is not something that will appear anywhere else in the section.
+    #
+    # The default flag is like ':outdent_N:' where N is a big random number.
+    def outdent(flag=nil)
+      current_indent = indents.last
+
+      if current_indent.nil?
+        yield
+      else
+        flag ||= ":outdent_#{rand(10000000)}:"
+        outdents << flag
+
+        target << "#{flag}#{current_indent.length}:#{rstrip}"
+        indents << ''
+
+        yield
+
+        indents.pop
+        target << "#{flag}#{rstrip}"
+      end
+
+      self
     end
   end
 end
