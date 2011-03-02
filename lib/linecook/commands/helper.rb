@@ -112,7 +112,7 @@ module Linecook
           found_signature
         end
         
-        [desc.join("\n"), found_signature ? signature.join("\n") : '()', body]
+        [desc.join("\n"), found_signature ? signature.join("\n") : '()', body.to_s]
       end
       
       # helper to reformat special basenames (in particular -check and -bang)

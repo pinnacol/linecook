@@ -116,6 +116,11 @@ class HelperCommandTest < Test::Unit::TestCase
     assert_equal ["", '()', "body\n"], cmd.parse_definition("body\n")
   end
   
+  def test_parse_definition_returns_all_empty_for_whitespace_string
+    assert_def_equal ["", '()', ""], %{
+    }
+  end
+  
   #
   # method_name test
   #
