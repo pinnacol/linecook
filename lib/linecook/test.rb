@@ -1,4 +1,3 @@
-require 'linecook/cookbook'
 require 'linecook/package'
 require 'linecook/test/file_test'
 require 'linecook/test/shell_test'

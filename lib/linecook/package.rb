@@ -1,3 +1,4 @@
+require 'linecook/cookbook'
 require 'linecook/recipe'
 require 'linecook/template'
 require 'tempfile'

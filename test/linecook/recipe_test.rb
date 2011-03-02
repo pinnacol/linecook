@@ -1,5 +1,4 @@
 require File.expand_path('../../test_helper', __FILE__)
-require 'linecook/package'
 require 'linecook/test'
 
 class RecipeTest < Test::Unit::TestCase
@@ -471,5 +470,4 @@ a
       target.puts 'a'
     end
   end
-
 end
