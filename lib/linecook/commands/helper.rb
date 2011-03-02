@@ -121,6 +121,7 @@ module Linecook
         case basename
         when /-check$/ then basename.sub(/-check$/, '?')
         when /-bang$/  then basename.sub(/-bang$/, '!')
+        when /-eq$/    then basename.sub(/-eq$/, '=')
         else basename
         end
       end

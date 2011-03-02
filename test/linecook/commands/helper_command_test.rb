@@ -137,6 +137,10 @@ class HelperCommandTest < Test::Unit::TestCase
     assert_equal 'method_name!', cmd.method_name('method_name-bang')
   end
   
+  def test_method_name_replaces_eq_names_with_equals_sign
+    assert_equal 'method_name=', cmd.method_name('method_name-eq')
+  end
+  
   #
   # build test
   #
