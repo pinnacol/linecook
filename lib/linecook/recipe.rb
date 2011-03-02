@@ -46,7 +46,7 @@ module Linecook
   #     echo 'outer'
   #   end
   #
-  #   "\n" + template.result
+  #   "\n" + recipe.result
   #   # => %{
   #   # echo 'outer'
   #   #   echo 'inner'
@@ -151,10 +151,12 @@ module Linecook
       extend @package.load_helper(helper_name)
     end
     
+    # Delegates to Package#next_target_name.
     def next_target_name(target_name)
       @package.next_target_name(target_name)
     end
     
+    # Delegates to Package#next_variable_name.
     def next_variable_name(context)
       @package.next_variable_name(context)
     end

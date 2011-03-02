@@ -191,6 +191,8 @@ module Linecook
       resource_path('recipes', recipe_name)
     end
     
+    # Loads the attributes file with the specified name and evaluates in the
+    # context of Attributes.  Returns the new Attributes object.
     def load_attributes(attributes_name=nil)
       attributes = Attributes.new
       
@@ -202,10 +204,15 @@ module Linecook
       attributes
     end
     
+    # Load the template file with the specified name and wraps as a Template. 
+    # Returns the new Template object.
     def load_template(template_name)
       Template.new template_path(template_name)
     end
     
+    # Loads and returns the helper constant specified by helper_name.  The
+    # helper_name is underscored to determine a require path and camelized to
+    # determine the constant name.
     def load_helper(helper_name)
       require Utils.underscore(helper_name)
       Utils.constantize(helper_name)
@@ -297,6 +304,7 @@ module Linecook
       self
     end
     
+    # Closes and clears all tempfiles, the registry, and counters.
     def reset
       close
       tempfiles.clear
