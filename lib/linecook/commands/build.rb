@@ -20,8 +20,11 @@ module Linecook
         helpers = []
         
         Dir.glob("#{helpers_dir}/*/**/*").each do |source|
-          next if File.directory?(source)
-          (sources[File.dirname(source)] ||= []) << source
+          if File.directory?(source)
+            sources[source] ||= []
+          else
+            (sources[File.dirname(source)] ||= []) << source
+          end
         end
         
         sources.each_pair do |dir, sources|
