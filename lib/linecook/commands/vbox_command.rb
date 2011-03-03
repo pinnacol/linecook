@@ -45,7 +45,7 @@ module Linecook
           hosts = load_hosts(ssh_config_file).collect {|host, vm_name| host }
         end
         
-        hosts.each do |host|
+        hosts.uniq.each do |host|
           yield(host)
         end
       end
@@ -55,7 +55,7 @@ module Linecook
           vm_names = load_hosts(ssh_config_file).collect {|host, vm_name| vm_name }
         end
         
-        vm_names.each do |vm_name|
+        vm_names.uniq.each do |vm_name|
           yield(vm_name)
         end
       end

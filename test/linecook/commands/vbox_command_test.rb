@@ -66,4 +66,48 @@ class VboxCommandTest < Test::Unit::TestCase
     path = prepare('config/ssh') {|io| }
     assert_equal([], cmd.load_hosts(path))
   end
+  
+  #
+  # each_host test
+  #
+  
+  def test_each_host_iterates_hosts
+    results = []
+    cmd.each_host ['a', 'b', 'c'] do |host|
+      results << host
+    end
+    
+    assert_equal ['a', 'b', 'c'], results
+  end
+  
+  def test_each_host_skips_duplicates
+    results = []
+    cmd.each_host ['a', 'b', 'a', 'c', 'a'] do |host|
+      results << host
+    end
+    
+    assert_equal ['a', 'b', 'c'], results
+  end
+  
+  #
+  # each_vm_name test
+  #
+  
+  def test_each_vm_name_iterates_vm_names
+    results = []
+    cmd.each_vm_name ['a', 'b', 'c'] do |name|
+      results << name
+    end
+    
+    assert_equal ['a', 'b', 'c'], results
+  end
+  
+  def test_each_vm_name_skips_duplicates
+    results = []
+    cmd.each_vm_name ['a', 'b', 'a', 'c', 'a'] do |host|
+      results << host
+    end
+    
+    assert_equal ['a', 'b', 'c'], results
+  end
 end
