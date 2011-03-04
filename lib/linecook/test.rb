@@ -13,13 +13,14 @@ module Linecook
         @host = host
       end
       
-      def allow_hosts(pattern)
-        unless pattern.kind_of?(Regexp)
-          pattern = /\A#{pattern}\z/
+      def only_hosts(*patterns)
+        patterns.collect! do |pattern|
+          pattern.kind_of?(Regexp) ? pattern : /\A#{pattern}\z/
         end
+        
         @skip_test_suite = false
-        unless host =~ pattern
-          skip_test "unallowed host (#{host})"
+        unless patterns.any? {|pattern| host =~ pattern }
+          skip_test "not for host (#{host})"
         end
       end
       
