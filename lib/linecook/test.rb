@@ -71,10 +71,10 @@ module Linecook
     LINECOOK_DIR = File.expand_path('../../..', __FILE__)
     LINECOOK = File.join(LINECOOK_DIR, 'bin/linecook')
     
-    def method_name
-      @host_method_name ||= begin
+    def method_dir
+      @host_method_dir ||= begin
         if test_host = ENV['LINECOOK_TEST_HOST']
-          File.join(super.to_s, test_host)
+          File.join(super, test_host)
         else
           super
         end
