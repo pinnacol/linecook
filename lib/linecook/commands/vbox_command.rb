@@ -54,6 +54,7 @@ module Linecook
       def each_vm_name(vm_names=[])
         if vm_names.empty?
           vm_names = load_hosts(ssh_config_file).collect {|host, vm_name| vm_name }
+          vm_names.delete('*')
         end
         
         vm_names.uniq.each do |vm_name|

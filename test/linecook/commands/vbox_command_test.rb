@@ -135,12 +135,13 @@ class VboxCommandTest < Test::Unit::TestCase
     assert_equal ['a', 'b', 'c'], results
   end
   
-  def test_each_vm_name_iterates_hosts_in_ssh_config_file_by_default
+  def test_each_vm_name_iterates_non_splat_hosts_in_ssh_config_file_by_default
     cmd.ssh_config_file = prepare('config/ssh') do |io|
       io.puts 'Host a # [one]'
       io.puts 'Host b # [two]'
       io.puts 'Host c # [two]'
       io.puts 'Host * # [three]'
+      io.puts 'Host *'
     end
     
     results = []
