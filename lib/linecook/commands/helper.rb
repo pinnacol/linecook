@@ -40,6 +40,10 @@ module Linecook
         sources = default_sources(const_path) if sources.empty?
         target  = File.expand_path(File.join('lib', "#{const_path}.rb"), project_dir)
         
+        if sources.empty?
+          raise CommandError, "no sources specified (and none found under 'helpers/#{const_path}')"
+        end
+        
         if force || !FileUtils.uptodate?(target, sources)
           content = build(const_name, sources)
           
