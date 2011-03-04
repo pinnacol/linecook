@@ -6,7 +6,7 @@ module Linecook
   module Test
     module ClassMethods
       def host
-        @host ||= ENV['LINECOOK_TEST_HOST'] || 'test'
+        @host ||= ENV['LINECOOK_TEST_HOST'] || name
       end
       
       def use_host(host)
