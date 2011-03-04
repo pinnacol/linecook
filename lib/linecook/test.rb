@@ -71,6 +71,16 @@ module Linecook
     LINECOOK_DIR = File.expand_path('../../..', __FILE__)
     LINECOOK = File.join(LINECOOK_DIR, 'bin/linecook')
     
+    def method_name
+      @host_method_name ||= begin
+        if test_host = ENV['LINECOOK_TEST_HOST']
+          File.join(super.to_s, test_host)
+        else
+          super
+        end
+      end
+    end
+    
     def ssh_config_file
       method_ssh_config_file = path('config/ssh')
       File.file?(method_ssh_config_file) ? method_ssh_config_file : 'config/ssh'
