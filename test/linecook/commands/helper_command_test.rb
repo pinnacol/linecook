@@ -249,7 +249,7 @@ class HelperCommandTest < Test::Unit::TestCase
     end
     
     load helper_file
-    setup_helpers ::HelperCommandTestModules::ChainHelper
+    use_helpers ::HelperCommandTestModules::ChainHelper
     
     assert_recipe %q{
       echo a b c

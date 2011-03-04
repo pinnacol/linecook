@@ -75,14 +75,14 @@ class TestTest < Test::Unit::TestCase
   end
   
   #
-  # setup_helpers test
+  # use_helpers test
   #
   
-  def test_setup_helpers_sets_helpers
-    setup_helpers :a, :b
+  def test_use_helpers_sets_helpers
+    use_helpers :a, :b
     assert_equal [:a, :b], helpers
     
-    setup_helpers :x, :y
+    use_helpers :x, :y
     assert_equal [:x, :y], helpers
   end
   
@@ -112,7 +112,7 @@ class TestTest < Test::Unit::TestCase
   end
   
   def test_setup_recipe_extends_recipe_with_helpers
-    setup_helpers HelperModule
+    use_helpers HelperModule
     setup_recipe
     
     recipe.echo 'a', 'b', 'c'
@@ -171,7 +171,7 @@ class TestTest < Test::Unit::TestCase
   #
   
   def test_a_recipe
-    setup_helpers HelperModule
+    use_helpers HelperModule
     
     setup_package(
       'letters' => ['a', 'b', 'c']
@@ -185,8 +185,8 @@ class TestTest < Test::Unit::TestCase
   end
   
   def test_a_package
-    setup_helpers HelperModule
-    setup_host 'abox'
+    use_helpers HelperModule
+    use_host 'abox'
     
     setup_recipe do
       target.puts "echo b0nk"

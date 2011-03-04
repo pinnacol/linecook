@@ -9,7 +9,7 @@ module Linecook
         @host ||= ENV['LINECOOK_TEST_HOST'] || 'test'
       end
       
-      def setup_host(host)
+      def use_host(host)
         @host = host
       end
       
@@ -92,7 +92,7 @@ module Linecook
       @package ||= setup_package
     end
     
-    def setup_helpers(*helpers)
+    def use_helpers(*helpers)
       @helpers = helpers
     end
     
@@ -100,7 +100,7 @@ module Linecook
       @helpers ||= []
     end
     
-    def setup_host(host)
+    def use_host(host)
       @host = host
     end
     

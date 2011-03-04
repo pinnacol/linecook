@@ -23,9 +23,7 @@ class <%= const_name %>Test < Test::Unit::TestCase
       create_dir 'dir'
     }
     
-    # set a host and run all recipes you've created in the test:
-    setup_host 'abox'
-    
+    # now run all recipes you've created in the test
     assert_output_equal %{
       Create dir: dir
     }, *run_package

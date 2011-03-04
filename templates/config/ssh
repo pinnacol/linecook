@@ -8,3 +8,6 @@ ControlPath /tmp/socket-%r@%h:%p
 
 Host abox   # [abox]
 Port 2220
+
+Host test   # [abox]
+Port 2220
