@@ -67,6 +67,17 @@ class VboxCommandTest < Test::Unit::TestCase
     assert_equal([], cmd.load_hosts(path))
   end
   
+  def test_load_hosts_ignores_splat_host
+    path = prepare('config/ssh') do |io|
+      io.puts 'Host * # [ignored]'
+      io.puts 'Host a # [one]'
+      io.puts 'Host b # [two]'
+      io.puts 'Host * # [ignored]'
+    end
+    
+    assert_equal([['a', 'one'], ['b', 'two']], cmd.load_hosts(path))
+  end
+  
   #
   # each_host test
   #
