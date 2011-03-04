@@ -15,7 +15,7 @@ module Linecook
       #   $2:: The vm name (if present)
       #        (ex: 'Host name # [vm_name]' => 'vm_name')
       #
-      HOST_REGEXP = /^\s*Host\s+(\w+)(?:\s*#\s*\[(\w+)\])?/
+      HOST_REGEXP = /^\s*Host\s+([^\s#]+)(?:\s*#\s*\[(.*?)\])?/
       
       # Returns a hash of (host, vm_name) pairs as declared in a ssh config
       # file.  Basically this means parsing out the name in each config like:
@@ -40,9 +40,10 @@ module Linecook
         hosts
       end
       
-      def each_host(hosts)
+      def each_host(hosts=[])
         if hosts.empty?
           hosts = load_hosts(ssh_config_file).collect {|host, vm_name| host }
+          hosts.delete('*')
         end
         
         hosts.uniq.each do |host|
@@ -50,7 +51,7 @@ module Linecook
         end
       end
       
-      def each_vm_name(vm_names)
+      def each_vm_name(vm_names=[])
         if vm_names.empty?
           vm_names = load_hosts(ssh_config_file).collect {|host, vm_name| vm_name }
         end

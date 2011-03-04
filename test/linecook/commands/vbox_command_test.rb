@@ -54,6 +54,13 @@ class VboxCommandTest < Test::Unit::TestCase
     assert_equal([['a', 'one'], ['b', 'two']], cmd.load_hosts(path))
   end
   
+  def test_load_hosts_allows_punctuation_in_host_names
+    path = prepare('config/ssh') do |io|
+      io.puts 'Host a::b # [c]'
+    end
+    assert_equal([['a::b', 'c']], cmd.load_hosts(path))
+  end
+  
   def test_load_hosts_uses_host_name_as_vm_name_if_no_vm_name_is_specified
     path = prepare('config/ssh') do |io|
       io.puts 'Host a'
@@ -65,17 +72,6 @@ class VboxCommandTest < Test::Unit::TestCase
   def test_load_hosts_loads_no_hosts_if_no_hosts_are_specified
     path = prepare('config/ssh') {|io| }
     assert_equal([], cmd.load_hosts(path))
-  end
-  
-  def test_load_hosts_ignores_splat_host
-    path = prepare('config/ssh') do |io|
-      io.puts 'Host * # [ignored]'
-      io.puts 'Host a # [one]'
-      io.puts 'Host b # [two]'
-      io.puts 'Host * # [ignored]'
-    end
-    
-    assert_equal([['a', 'one'], ['b', 'two']], cmd.load_hosts(path))
   end
   
   #
@@ -100,6 +96,23 @@ class VboxCommandTest < Test::Unit::TestCase
     assert_equal ['a', 'b', 'c'], results
   end
   
+  def test_each_host_iterates_non_splat_hosts_in_ssh_config_file_by_default
+    cmd.ssh_config_file = prepare('config/ssh') do |io|
+      io.puts 'Host a'
+      io.puts 'Host b'
+      io.puts 'Host b'
+      io.puts 'Host c'
+      io.puts 'Host *'
+    end
+    
+    results = []
+    cmd.each_host do |host|
+      results << host
+    end
+    
+    assert_equal ['a', 'b', 'c'], results
+  end
+  
   #
   # each_vm_name test
   #
@@ -115,10 +128,26 @@ class VboxCommandTest < Test::Unit::TestCase
   
   def test_each_vm_name_skips_duplicates
     results = []
-    cmd.each_vm_name ['a', 'b', 'a', 'c', 'a'] do |host|
-      results << host
+    cmd.each_vm_name ['a', 'b', 'a', 'c', 'a'] do |name|
+      results << name
     end
     
     assert_equal ['a', 'b', 'c'], results
+  end
+  
+  def test_each_vm_name_iterates_hosts_in_ssh_config_file_by_default
+    cmd.ssh_config_file = prepare('config/ssh') do |io|
+      io.puts 'Host a # [one]'
+      io.puts 'Host b # [two]'
+      io.puts 'Host c # [two]'
+      io.puts 'Host * # [three]'
+    end
+    
+    results = []
+    cmd.each_vm_name do |name|
+      results << name
+    end
+    
+    assert_equal ['one', 'two', 'three'], results
   end
 end
