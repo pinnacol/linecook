@@ -116,17 +116,8 @@ module Linecook
       
       extend ModuleMethods
       
-      attr_reader :user_dir
-      attr_reader :class_dir
-      attr_reader :method_dir
-      
       def setup
         super
-        
-        @user_dir   = File.expand_path('.')
-        @class_dir  = self.class.class_dir
-        @method_dir = File.expand_path(method_name.to_s, class_dir)
-        
         cleanup
       end
       
@@ -135,10 +126,27 @@ module Linecook
         
         unless ENV["KEEP_OUTPUTS"] == "true"
           cleanup
-          Dir.rmdir(class_dir) rescue(SystemCallError)
+          
+          dir = method_dir
+          while dir != class_dir
+            dir = File.dirname(dir)
+            Dir.rmdir(dir)
+          end rescue(SystemCallError)
         end
         
         super
+      end
+      
+      def user_dir
+        @user_dir   ||= File.expand_path('.')
+      end
+      
+      def class_dir
+        @class_dir  ||= File.expand_path(self.class.class_dir, user_dir)
+      end
+      
+      def method_dir
+        @method_dir ||= File.expand_path(method_name.to_s, class_dir)
       end
       
       def cleanup_methods

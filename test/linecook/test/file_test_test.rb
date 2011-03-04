@@ -9,7 +9,7 @@ class FileTestTest < Test::Unit::TestCase
   #
   
   def test_include_guesses_class_dir_as_file_name_minus_extname
-    assert_equal __FILE__.chomp(File.extname(__FILE__)), class_dir
+    assert_equal File.expand_path(__FILE__.chomp(File.extname(__FILE__))), class_dir
   end
   
   def test_class_dir_can_be_set_at_the_class_level
