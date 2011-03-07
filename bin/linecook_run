@@ -37,8 +37,7 @@ if ! [ -f "$script_name" ]
 then exit 1
 fi
 
-chmod +x "$script_name"
-./"$script_name" $args
+"." "./$script_name" $args
 SCRIPT
 
 status=$?
