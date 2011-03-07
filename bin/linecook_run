@@ -2,15 +2,15 @@
 ############################################################################
 
 ssh_config_file=${SSH_CONFIG_FILE:-config/ssh}
-remote_dir=${REMOTE_DIR:-pkg}
+remote_package_dir=${REMOTE_PACKAGE_DIR:-pkg}
 
-usage="usage: %s [-F SSH_CONFIG_FILE] [-D REMOTE_DIR] [-h] PACKAGE_DIRS...\n"
+usage="usage: %s [-F SSH_CONFIG_FILE] [-D REMOTE_PACKAGE_DIR] [-h] PACKAGE_DIRS...\n"
 option="       %s   %s\n"
 while getopts "F:D:h" opt
 do
   case $opt in
   F  )  ssh_config_file=$OPTARG ;;
-  D  )  remote_dir=$OPTARG ;;
+  D  )  remote_package_dir=$OPTARG ;;
   h  )  printf "$usage" $0
         printf "$option" "-F" "the ssh config file"
         printf "$option" "-D" "the remote package dir"
@@ -32,7 +32,7 @@ do
 host=$(basename -- "$package_dir")
 
 ssh -q -T -F "$ssh_config_file" "$host" -- <<SCRIPT
-cd "$remote_dir"
+cd "$remote_package_dir"
 if ! [ -f "$script_name" ]
 then exit 1
 fi
@@ -43,7 +43,7 @@ SCRIPT
 status=$?
 if [ $status -ne 0 ]
 then
-  echo "[$status] $remote_dir/$script_name $args" >&2
+  echo "[$status] $remote_package_dir/$script_name $args" >&2
   exit 1
 fi
 
