@@ -33,10 +33,6 @@ host=$(basename -- "$package_dir")
 
 ssh -q -T -F "$ssh_config_file" "$host" -- <<SCRIPT
 cd "$remote_package_dir"
-if ! [ -f "$script_name" ]
-then exit 1
-fi
-
 "." "./$script_name" $args
 SCRIPT
 

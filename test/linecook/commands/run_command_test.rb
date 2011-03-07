@@ -63,6 +63,25 @@ class RunCommandTest < Test::Unit::TestCase
     }
   end
   
+  def test_test_exits_with_status_1_for_missing_runlist_script
+    prepare('recipes/not_in_runlist.rb') {|io| }
+    
+    prepare('packages/abox.yml') do |io|
+      YAML.dump({
+        'linecook' => {
+          'package' => {
+            'recipes' => ['not_in_runlist']
+          }
+        }
+      }, io)
+    end
+    
+    assert_script %Q{
+      % ruby #{LINECOOK} build --quiet --project-dir '#{method_dir}' # ...
+      % ruby #{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'  # [1] ...
+    }
+  end
+  
   def test_test_builds_and_tests_each_package
     ['abox', 'bbox'].each do |box|
       prepare("recipes/#{box}.rb") do |io|
