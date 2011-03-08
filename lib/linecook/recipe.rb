@@ -161,11 +161,16 @@ module Linecook
       @package.next_variable_name(context)
     end
     
+    def package_dir
+      n = target_name.count('/') - 1
+      "$(dirname $0#{n > 0 ? '/..' * n : nil})"
+    end
+    
     # The path to the named target, as it should be referenced in the final
     # script.  By default target_path simply returns target_name; this method
     # exists as a hook to rewrite target names to paths.
     def target_path(target_name=self.target_name)
-      target_name
+      File.join(package_dir, target_name)
     end
     
     # Registers the specified file into package and returns the target_path to
