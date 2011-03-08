@@ -192,11 +192,20 @@ module Linecook
     end
     
     # Captures the output for a block, registers it, and returns the
-    # target_path to the resulting file.
+    # target_path to the resulting file.  The current target_name is updated
+    # to target_name for the duration of the block.
     def capture_path(target_name,  content=nil, &block)
       tempfile = @package.setup_tempfile(target_name)
       tempfile << content if content
-      tempfile << capture(false) { instance_eval(&block) } if block
+      tempfile << capture(false) do
+        current = @target_name
+        begin
+          @target_name = target_name
+          instance_eval(&block)
+        ensure
+          @target_name = current
+        end
+      end if block
       tempfile.close
       
       target_path target_name

@@ -299,6 +299,20 @@ echo 'outer'
     assert_equal 'B', package.content('b')
   end
   
+  def test_capture_path_updates_target_name_for_block
+    setup_recipe 'recipe' do
+      target.puts target_name
+      capture_path('target') do
+        target.puts target_name
+      end
+      target.puts target_name
+    end
+    
+    recipe.close
+    assert_equal "recipe\nrecipe\n", package.content('recipe')
+    assert_equal "target\n", package.content('target')
+  end
+  
   #
   # rstrip test
   #
