@@ -223,7 +223,7 @@ echo 'outer'
     path = prepare('example.txt') {|io| io << 'content'}
     package.manifest['files'] = {'source' => path}
     
-    assert_equal '$(dirname $0)/target', recipe.file_path('source', 'target')
+    assert_equal '${0%/file}/target', recipe.file_path('source', 'target')
     assert_equal 'content', package.content('target')
   end
   
@@ -235,7 +235,7 @@ echo 'outer'
     path = prepare('example.rb') {|io| io << "target.puts 'content'"}
     package.manifest['recipes'] = {'source' => path}
     
-    assert_equal '$(dirname $0)/target', recipe.recipe_path('source', 'target')
+    assert_equal '${0%/file}/target', recipe.recipe_path('source', 'target')
     
     assert_equal "", package.content(recipe.target_name)
     assert_equal "content\n", package.content('target')
@@ -249,7 +249,7 @@ echo 'outer'
     path = prepare('example.erb') {|io| io << "got <%= key %>" }
     package.manifest['templates'] = {'source' => path}
     
-    assert_equal '$(dirname $0)/target', recipe.template_path('source', 'target', :key => 'value')
+    assert_equal '${0%/file}/target', recipe.template_path('source', 'target', :key => 'value')
     assert_equal 'got value', package.content('target')
   end
   
