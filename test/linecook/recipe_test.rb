@@ -70,7 +70,7 @@ echo 'outer'
   
   def test_target_name_is_the_name_of_target_in_package
     assert_equal 'file', recipe.target_name
-    assert_equal recipe.target.path, package.registry['file']
+    assert_equal recipe.target.path, package.source_path('file')
   end
   
   #
@@ -249,7 +249,7 @@ echo 'outer'
     path = prepare('example.erb') {|io| io << "got <%= key %>" }
     package.manifest['templates'] = {'source' => path}
     
-    assert_equal '${0%/file}/target', recipe.template_path('source', 'target', :key => 'value')
+    assert_equal '${0%/file}/target', recipe.template_path('source', 'target', 0600, :key => 'value')
     assert_equal 'got value', package.content('target')
   end
   
@@ -258,7 +258,7 @@ echo 'outer'
     package.manifest['templates'] = {'source' => path}
     
     recipe.attrs['key'] = 'val'
-    recipe.template_path('source', 'target',  :key => 'ue')
+    recipe.template_path('source', 'target', 0600, :key => 'ue')
     
     assert_equal 'got value', package.content('target')
   end
@@ -268,7 +268,7 @@ echo 'outer'
     package.manifest['templates'] = {'source' => path}
     
     recipe.attrs['key'] = 'ignored'
-    recipe.template_path('source', 'target', :attrs => {'key' => 'value'})
+    recipe.template_path('source', 'target', 0600, :attrs => {'key' => 'value'})
     
     assert_equal 'got value', package.content('target')
   end
@@ -279,11 +279,6 @@ echo 'outer'
   
   def test_capture_path_creates_file_from_recipe_block
     recipe.capture_path('target') { target << 'content'}
-    assert_equal 'content', package.content('target')
-  end
-  
-  def test_capture_path_creates_file_from_content
-    path = recipe.capture_path('target', 'content')
     assert_equal 'content', package.content('target')
   end
   

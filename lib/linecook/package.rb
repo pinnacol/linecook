@@ -119,14 +119,14 @@ module Linecook
     # Registers the source_path to target_name in the registry and
     # revese_registry.  Raises an error if the source_path is already
     # registered.
-    def register(target_name, source_path)
+    def register(target_name, source_path, mode=0600)
       source_path = File.expand_path(source_path)
       
-      if registry.has_key?(target_name) && registry[target_name] != source_path
-        raise "already registered: #{target_name.inspect}"
+      if registry.has_key?(target_name) && registry[target_name] != [source_path, mode]
+        raise "already registered: #{target_name} (%s, %o)" % registry[target_name]
       end
       
-      registry[target_name] = source_path
+      registry[target_name] = [source_path, mode]
       target_name
     end
     
@@ -219,17 +219,17 @@ module Linecook
     end
     
     # Returns a recipe bound to self.
-    def setup_recipe(target_name = next_target_name)
-      Recipe.new(self, target_name)
+    def setup_recipe(target_name = next_target_name, mode=0700)
+      Recipe.new(self, target_name, mode)
     end
     
     # Generates a tempfile for the target path and registers it with self. As
     # with register, the target_name will be incremented as needed.  Returns
     # the open tempfile.
-    def setup_tempfile(target_name = next_target_name)
+    def setup_tempfile(target_name = next_target_name, mode=0600)
       tempfile = Tempfile.new File.basename(target_name)
       
-      register(target_name, tempfile.path)
+      register(target_name, tempfile.path, mode)
       tempfiles << tempfile
       
       tempfile
@@ -242,8 +242,8 @@ module Linecook
     
     # Looks up the file with the specified name using file_path and registers
     # it to target_name.  Raises an error if the target is already registered.
-    def build_file(target_name, file_name=target_name)
-      register target_name, file_path(file_name)
+    def build_file(target_name, file_name=target_name, mode=0600)
+      register target_name, file_path(file_name), mode
       self
     end
     
@@ -251,10 +251,10 @@ module Linecook
     # builds, and registers it to target_name.  The locals will be set for
     # access in the template context.  Raises an error if the target is
     # already registered. Returns self.
-    def build_template(target_name, template_name=target_name, locals=env)
+    def build_template(target_name, template_name=target_name, mode=0600, locals=env)
       content = load_template(template_name).build(locals)
       
-      target = setup_tempfile(target_name)
+      target = setup_tempfile(target_name, mode)
       target << content
       target.close
       self
@@ -263,9 +263,9 @@ module Linecook
     # Looks up the recipe with the specified name using recipe_path, evaluates
     # it, and registers the result to target_name.  Raises an error if the
     # target is already registered. Returns self.
-    def build_recipe(target_name, recipe_name=target_name)
+    def build_recipe(target_name, recipe_name=target_name, mode=0700)
       path = recipe_path(recipe_name)
-      recipe = setup_recipe(target_name)
+      recipe = setup_recipe(target_name, mode)
       recipe.instance_eval(File.read(path), path)
       recipe.close
       
@@ -275,15 +275,15 @@ module Linecook
     # Builds the files, templates, and recipes for self.  Returns self.
     def build
       files.each do |target_name, file_name|
-        build_file(target_name, file_name)
+        build_file(target_name, *file_name)
       end
       
       templates.each do |target_name, template_name|
-        build_template(target_name, template_name)
+        build_template(target_name, *template_name)
       end
       
       recipes.each do |target_name, recipe_name|
-        build_recipe(target_name, recipe_name)
+        build_recipe(target_name, *recipe_name)
       end
       
       self
@@ -292,8 +292,22 @@ module Linecook
     # Returns the content of the source_path for target_name, as registered in
     # self.  Returns nil if the target is not registered.
     def content(target_name, length=nil, offset=nil)
-      path = registry[target_name]
+      path = source_path(target_name)
       path ? File.read(path, length, offset) : nil
+    end
+    
+    # Returns the source_path for target_name, as registered in self.  Returns
+    # nil if the target is not registered.
+    def source_path(target_name)
+      entry = registry[target_name]
+      entry ? entry[0] : nil
+    end
+    
+    # Returns the mode for target_name, as registered in self.  Returns nil if
+    # the target is not registered.
+    def mode(target_name)
+      entry = registry[target_name]
+      entry ? entry[1] : nil
     end
     
     # Closes all tempfiles and returns self.
@@ -334,7 +348,7 @@ module Linecook
       registry.each_key do |target_name|
         export_path = File.join(dir, target_name)
         export_dir  = File.dirname(export_path)
-        source_path = registry[target_name]
+        source_path, mode = registry[target_name]
         
         next if source_path == export_path
         
@@ -348,7 +362,9 @@ module Linecook
           FileUtils.cp(source_path, export_path)
         end
         
-        registry[target_name] = export_path
+        FileUtils.chmod(mode, export_path)
+        
+        registry[target_name] = [export_path, mode]
       end
       
       tempfiles.clear

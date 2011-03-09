@@ -62,10 +62,10 @@ module Linecook
     # The name of target in package
     attr_reader :target_name
     
-    def initialize(package, target_name)
+    def initialize(package, target_name, mode)
       @package     = package
       @target_name = target_name
-      @target      = package.setup_tempfile(target_name)
+      @target      = package.setup_tempfile(target_name, mode)
       @attributes  = {}
     end
     
@@ -175,33 +175,32 @@ module Linecook
     
     # Registers the specified file into package and returns the target_path to
     # the file.
-    def file_path(file_name, target_name=file_name)
-      @package.build_file(target_name, file_name)
+    def file_path(file_name, target_name=file_name, mode=0600)
+      @package.build_file(target_name, file_name, mode)
       target_path target_name
     end
     
     # Looks up, builds, and registers the specified template and returns the
     # target_path to the resulting file.
-    def template_path(template_name, target_name=template_name, locals={})
+    def template_path(template_name, target_name=template_name, mode=0600, locals={})
       locals[:attrs] ||= attrs
       
-      @package.build_template(target_name, template_name, locals)
+      @package.build_template(target_name, template_name, mode, locals)
       target_path target_name
     end
     
     # Looks up, builds, and registers the specified recipe and returns the
     # target_path to the resulting file.
-    def recipe_path(recipe_name, target_name=recipe_name)
-      @package.build_recipe(target_name, recipe_name)
+    def recipe_path(recipe_name, target_name=recipe_name, mode=0700)
+      @package.build_recipe(target_name, recipe_name, mode)
       target_path target_name
     end
     
     # Captures the output for a block, registers it, and returns the
     # target_path to the resulting file.  The current target_name is updated
     # to target_name for the duration of the block.
-    def capture_path(target_name,  content=nil, &block)
-      tempfile = @package.setup_tempfile(target_name)
-      tempfile << content if content
+    def capture_path(target_name, mode=0600, &block)
+      tempfile = @package.setup_tempfile(target_name, mode)
       tempfile << capture(false) do
         current = @target_name
         begin

@@ -84,19 +84,31 @@ class PackageTest < Test::Unit::TestCase
   
   def test_register_registers_source_file_to_target_file
     package.register('target/path', 'source/path')
-    assert_equal File.expand_path('source/path'), package.registry['target/path']
+    assert_equal [File.expand_path('source/path'), 0600], package.registry['target/path']
+  end
+  
+  def test_register_registers_source_file_to_target_file_with_specified_mode
+    package.register('target/path', 'source/path', 0700)
+    assert_equal [File.expand_path('source/path'), 0700], package.registry['target/path']
   end
   
   def test_register_raises_error_for_target_registered_to_a_different_source
     package.register('target/path', 'source/a')
     
     err = assert_raises(RuntimeError) { package.register('target/path', 'source/b') }
-    assert_equal 'already registered: "target/path"', err.message
+    assert_equal %{already registered: target/path (#{File.expand_path('source/a')}, 600)}, err.message
   end
-
-  def test_register_does_not_raise_error_for_double_register_of_same_source_and_target
-    package.register('target/path', 'source/a')
-    assert_nothing_raised { package.register('target/path', 'source/a') }
+  
+  def test_register_raises_error_for_target_registered_with_a_different_mode
+    package.register('target/path', 'source/a', 0600)
+    
+    err = assert_raises(RuntimeError) { package.register('target/path', 'source/b', 0644) }
+    assert_equal %{already registered: target/path (#{File.expand_path('source/a')}, 600)}, err.message
+  end
+  
+  def test_register_does_not_raise_error_for_double_register_of_same_source_target_and_mode
+    package.register('target/path', 'source/a', 0600)
+    assert_nothing_raised { package.register('target/path', 'source/a', 0600) }
   end
   
   #
@@ -139,9 +151,9 @@ class PackageTest < Test::Unit::TestCase
   end
   
   def test_setup_tempfile_raises_error_if_target_name_is_already_registered
-    package.register('target/path', 'source/b')
+    package.register('target/path', 'source/path')
     err = assert_raises(RuntimeError) { package.setup_tempfile('target/path') }
-    assert_equal 'already registered: "target/path"', err.message
+    assert_equal %{already registered: target/path (#{File.expand_path('source/path')}, 600)}, err.message
   end
   
   #
@@ -176,7 +188,7 @@ class PackageTest < Test::Unit::TestCase
   def test_setup_recipe_raises_error_if_target_name_is_already_registered
     package.register('target/path', 'source/path')
     err = assert_raises(RuntimeError) { package.setup_recipe('target/path') }
-    assert_equal 'already registered: "target/path"', err.message
+    assert_equal %{already registered: target/path (#{File.expand_path('source/path')}, 600)}, err.message
   end
   
   #
@@ -220,7 +232,7 @@ class PackageTest < Test::Unit::TestCase
     path = prepare('example.erb') {|io| io << 'got: <%= key %>'}
     package.manifest['templates'] = {'name' => path}
     
-    assert_equal package, package.build_template('target/path', 'name', 'key' => 'value')
+    assert_equal package, package.build_template('target/path', 'name', 0600, 'key' => 'value')
     assert_equal 'got: value', package.content('target/path')
   end
   
@@ -282,41 +294,57 @@ class PackageTest < Test::Unit::TestCase
   end
   
   #
+  # mode test
+  #
+  
+  def test_mode_returns_the_mode_of_the_target
+    package.register 'target/path', 'source/path', 0640
+    assert_equal 0640, package.mode('target/path')
+  end
+  
+  def test_mode_returns_nil_for_unregistered_target
+    assert_equal nil, package.mode('target/path')
+  end
+  
+  #
   # export test
   #
   
   def test_export_copies_source_files_to_dir_as_specified_in_registry
     original_source = prepare('example') {|io| io << 'content'}
     
-    package.registry['target/path'] = original_source
+    package.registry['target/path'] = [original_source, 0640]
     package.export path('export/dir')
     
     assert_equal 'content', File.read(original_source)
     assert_equal 'content', File.read(path('export/dir/target/path'))
+    assert_equal '100640', sprintf("%o", File.stat(path('export/dir/target/path')).mode)
   end
   
   def test_export_moves_tempfiles_specified_in_registry
-    tempfile = package.setup_tempfile('target/path')
+    tempfile = package.setup_tempfile('target/path', 0640)
     tempfile << 'content'
     
     package.export path('export/dir')
     
     assert_equal false, File.exists?(tempfile.path)
     assert_equal 'content', File.read(path('export/dir/target/path'))
+    assert_equal '100640', sprintf("%o", File.stat(path('export/dir/target/path')).mode)
   end
   
   def test_export_rewrites_and_returns_registry_with_new_source_paths
-    tempfile = package.setup_tempfile('target/path')
-    assert_equal tempfile.path, package.registry['target/path']
+    tempfile = package.setup_tempfile('target/path', 0640)
+    assert_equal [tempfile.path, 0640], package.registry['target/path']
     
     registry = package.export path('export/dir')
-    assert_equal path('export/dir/target/path'), registry['target/path']
+    assert_equal [path('export/dir/target/path'), 0640], registry['target/path']
+    assert_equal '100640', sprintf("%o", File.stat(path('export/dir/target/path')).mode)
   end
   
   def test_export_replaces_existing_dir
     a = prepare('export/dir/a') {|io| io << 'old' }
     b = prepare('export/dir/b') {|io| io << 'old' }
-    package.registry['a'] = prepare('file') {|io| io << 'new' }
+    package.registry['a'] = [prepare('file') {|io| io << 'new' }, 0600]
     
     package.export path('export/dir')
     

@@ -36,7 +36,7 @@ then
 fi
 SCRIPT
 
-scp -q -r -F "$ssh_config_file" "$package_dir" "$host:$remote_dir"
+scp -q -r -p -F "$ssh_config_file" "$package_dir" "$host:$remote_dir"
 
 status=$?
 if [ $status -ne 0 ]

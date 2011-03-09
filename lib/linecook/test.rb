@@ -123,8 +123,8 @@ module Linecook
       @runlist ||= []
     end
     
-    def setup_recipe(target_name=package.next_target_name('recipe'), &block)
-      recipe = package.setup_recipe(target_name)
+    def setup_recipe(target_name=package.next_target_name('recipe'), mode=0700, &block)
+      recipe = package.setup_recipe(target_name, mode)
       helpers.each {|helper| recipe.extend helper }
       
       recipe.instance_eval(&block) if block_given?
