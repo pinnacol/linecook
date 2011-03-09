@@ -9,9 +9,9 @@ are instructions for setting up a generic Ubuntu VM.
 2. Download a Ubuntu ISO (http://www.ubuntu.com/server/get-ubuntu/download)
 3. Build the Box
 
-<b>NOTE these instructions are for building a dev box only.</b> In particular
-they give a group sudo permissions without a password, which may not be in you
-best production interests.
+<em>Note these instructions are for building a dev box only. In particular
+they allow the linecook user to su without a password, which may not be in you
+best production interests.</em>
 
 == Ubuntu
 
@@ -48,16 +48,19 @@ Transfer your ssh key to the vm. Help to generate ssh keys can be found on
 
   scp -P 2220 -o UserKnownHostsFile=/dev/null ~/.ssh/id_rsa.pub linecook@localhost:id_rsa.pub
   
-Login and setup sudo permissions for the linecook user:
+Login as linecook and setup su permissions for the linecook user:
 
-  vm: sudo visudo
-
-  # insert:
+  vm: sudo vi /etc/pam.d/su
+  
+  # uncomment:
   #
-  #   # Members of the linecook group may sudo without a password
-  #   %linecook ALL=NOPASSWD: ALL
+  #   # Uncomment this if you want wheel members to be able to
+  #   # su without a password.
+  #   auth       sufficient pam_wheel.so trust
   #
-  # then exit (write out changes as prompted)
+  
+  vm: sudo groupadd wheel
+  vm: sudo usermod -a -G wheel linecook
 
 Setup SSH:
 
@@ -80,16 +83,15 @@ Now take some standard snapshots:
 Setup a ssh config file:
 
   [config/ssh]
+  Host abox
   HostName localhost
   User linecook
+  Port 2220
   UserKnownHostsFile /dev/null
   StrictHostKeyChecking no
   IdentitiesOnly yes
   ControlMaster auto
   ControlPath /tmp/socket-%r@%h:%p
-  
-  Host abox
-  Port 2220
 
 Now you can control the box via these linecook commands. Note the share
 command only works if you have sshfs set up (see the {Shared
@@ -135,12 +137,24 @@ you made an 'bbox' virtual machine:
   VBoxManage modifyvm bbox --natpf1 'bbox-http,tcp,,8881,,80'
 
 Notice both the name and the ports are altered in the port forwarding
-commands. Add an entry for the host in the ssh config file:
+commands. Add an entry for the host in the ssh config file (you can DRY up the
+config file using the * host):
 
   [config/ssh]
-  ...
+  Host abox
+  Port 2220
+  
   Host bbox
   Port 2221
+  
+  Host *
+  HostName localhost
+  User linecook
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  IdentitiesOnly yes
+  ControlMaster auto
+  ControlPath /tmp/socket-%r@%h:%p
 
 The same linecook commands will now operate on a set of vms:
 
