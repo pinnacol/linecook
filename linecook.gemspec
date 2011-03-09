@@ -46,7 +46,6 @@ Gem::Specification.new do |s|
     lib/linecook/commands/helper.rb
     lib/linecook/commands/init.rb
     lib/linecook/commands/package.rb
-    lib/linecook/commands/preview.rb
     lib/linecook/commands/run.rb
     lib/linecook/commands/share.rb
     lib/linecook/commands/snapshot.rb

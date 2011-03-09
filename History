@@ -1,3 +1,12 @@
+== 0.16.0 2011/03/09
+
+* added mode support to packages
+* removed preview command
+* added outdent to recipes
+* made run allocate a pseudo-tty
+* updates to allow multitests
+* various patches
+
 == 0.15.1 2011/02/23
 
 * made linecook use Gemfile if available
