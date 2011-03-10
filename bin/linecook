@@ -60,5 +60,6 @@ begin
   cmd_class.new(parser.config).call ARGV
 rescue Linecook::Commands::CommandError
   puts $!.message unless $!.message.strip.empty?
+  puts $!.backtrace if $DEBUG
   exit $!.exitstatus
 end
