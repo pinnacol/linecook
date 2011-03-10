@@ -1,3 +1,8 @@
+== 0.17.0 2011/03/10
+
+* added hooks for TESTCASE and NAME to test helpers
+* changed helper sections to be identified by leading dash
+
 == 0.16.0 2011/03/09
 
 * added mode support to packages
