@@ -27,6 +27,12 @@ class HelperCommandTest < Test::Unit::TestCase
     assert_equal [[a, b], [c]], cmd.partition(sources)
   end
   
+  def test_partition_requires_section_files_to_not_have_empty_section_name
+    a = '-a.rb'
+    b = '-.rb'
+    assert_equal [[a], [b]], cmd.partition([a,b])
+  end
+  
   #
   # load_sections test
   #
@@ -122,23 +128,29 @@ class HelperCommandTest < Test::Unit::TestCase
   end
   
   #
-  # method_name test
+  # parse_method_name test
   #
   
-  def test_method_name_returns_normal_names
-    assert_equal 'method_name', cmd.method_name('method_name')
+  def test_parse_method_name_returns_normal_names
+    assert_equal 'method_name', cmd.parse_method_name('method_name')
   end
   
-  def test_method_name_replaces_check_names_with_question_mark
-    assert_equal 'method_name?', cmd.method_name('method_name-check')
+  def test_parse_method_name_replaces_check_names_with_question_mark
+    assert_equal 'method_name?', cmd.parse_method_name('method_name-check')
   end
   
-  def test_method_name_replaces_bang_names_with_exclamation_mark
-    assert_equal 'method_name!', cmd.method_name('method_name-bang')
+  def test_parse_method_name_replaces_bang_names_with_exclamation_mark
+    assert_equal 'method_name!', cmd.parse_method_name('method_name-bang')
   end
   
-  def test_method_name_replaces_eq_names_with_equals_sign
-    assert_equal 'method_name=', cmd.method_name('method_name-eq')
+  def test_parse_method_name_replaces_eq_names_with_equals_sign
+    assert_equal 'method_name=', cmd.parse_method_name('method_name-eq')
+  end
+  
+  def test_parse_method_name_returns_nil_for_non_word_names
+    assert_equal nil, cmd.parse_method_name('')
+    assert_equal nil, cmd.parse_method_name('-')
+    assert_equal nil, cmd.parse_method_name('+')
   end
   
   #
@@ -223,6 +235,17 @@ class HelperCommandTest < Test::Unit::TestCase
       
       footer
     }, cmd.build('A::B', [header, head, doc, foot, footer, definition])
+  end
+  
+  def test_build_raises_error_for_non_word_method_definitions
+    definition = prepare('-.rb') do |io| 
+      io.puts "Override minus, for why?"
+      io.puts "(arg)"
+      io.puts '--'
+    end
+    
+    err = assert_raises(::Linecook::Commands::CommandError) { cmd.build('A::B', [definition]) }
+    assert_equal "invalid helper definition: #{definition.inspect} (non-word method name)", err.message
   end
   
   #

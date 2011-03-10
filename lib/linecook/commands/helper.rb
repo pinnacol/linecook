@@ -75,7 +75,11 @@ module Linecook
       # helper to partition an array of source files into section and
       # defintion files
       def partition(sources) # :nodoc:
-        sources.partition {|path| File.basename(path)[0] == ?- }
+        sources.partition do |path|
+          basename = File.basename(path)
+          extname  = File.extname(path)
+          basename[0] == ?- && basename.chomp(extname) != '-'
+        end
       end
       
       # helper to load each section path into a sections hash; removes the
@@ -97,9 +101,14 @@ module Linecook
       def load_definition(path) # :nodoc:
         extname = File.extname(path)
         name    = File.basename(path).chomp(extname)
+        
+        unless method_name = parse_method_name(name)
+          raise CommandError.new("invalid helper definition: #{path.inspect} (non-word method name)")
+        end
+        
         desc, signature, body = parse_definition(File.read(path))
         
-        [desc, method_name(name), signature, method_body(body, extname)]
+        [desc, method_name, signature, method_body(body, extname)]
       end
       
       # helper to reformat special basenames (in particular -check and -bang)
@@ -119,12 +128,13 @@ module Linecook
       
       # helper to reformat special basenames (in particular -check and -bang)
       # to their corresponding method_name
-      def method_name(basename) # :nodoc:
+      def parse_method_name(basename) # :nodoc:
         case basename
-        when /-check$/ then basename.sub(/-check$/, '?')
-        when /-bang$/  then basename.sub(/-bang$/, '!')
-        when /-eq$/    then basename.sub(/-eq$/, '=')
-        else basename
+        when /-check\z/ then basename.sub(/-check$/, '?')
+        when /-bang\z/  then basename.sub(/-bang$/, '!')
+        when /-eq\z/    then basename.sub(/-eq$/, '=')
+        when /\A\w+\z/  then basename
+        else nil
         end
       end
       
@@ -205,6 +215,15 @@ module Linecook
       #     eval ERB.new("echo <%= args.join(' ') %>").src
       #   end
       #
+      # A second method is also generated to simply return the result without
+      # writing it to the target.  The latter method is prefixed by and
+      # underscore like:
+      #
+      #   # Return the output of echo, without writing to the target
+      #   def _echo(*args)
+      #     ...
+      #   end
+      #
       # Check and bang methods can be specified by adding -check and -bang to
       # the end of the file name.  These extensions are stripped off like:
       #
@@ -272,7 +291,7 @@ end
 
 <%= sections['foot'] %>
 DOC
-    # :startdoc:
+      # :startdoc:
     end
   end
 end
