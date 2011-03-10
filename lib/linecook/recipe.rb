@@ -1,4 +1,5 @@
 require 'linecook/attributes'
+require 'linecook/proxy'
 require 'linecook/utils'
 require 'erb'
 
@@ -66,6 +67,8 @@ module Linecook
       @package     = package
       @target_name = target_name
       @target      = package.setup_tempfile(target_name, mode)
+      @proxy       = Proxy.new(self)
+      @chain       = false
       @attributes  = {}
     end
     
@@ -352,6 +355,25 @@ module Linecook
       end
 
       self
+    end
+    
+    # Sets chain? to true and calls the method (thereby allowing the method to
+    # invoke chain-specific behavior).  Chain is invoked via the chain_proxy
+    # which is returned by helper methods.
+    def chain(method_name, *args, &block)
+      @chain = true
+      send(method_name, *args, &block)
+    end
+    
+    # Returns true if the current context was invoked through chain.
+    def chain?
+      @chain
+    end
+    
+    # Sets chain to false and returns the proxy.
+    def chain_proxy
+      @chain = false
+      @proxy
     end
   end
 end

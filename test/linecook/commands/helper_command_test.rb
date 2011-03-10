@@ -167,7 +167,7 @@ class HelperCommandTest < Test::Unit::TestCase
           # aaa
           def a(*args)
             body
-            self
+            chain_proxy
           end
           
           def _a(*args, &block) # :nodoc:
@@ -214,7 +214,7 @@ class HelperCommandTest < Test::Unit::TestCase
           
           def a()
             body
-            self
+            chain_proxy
           end
           
           def _a(*args, &block) # :nodoc:
@@ -263,7 +263,7 @@ class HelperCommandTest < Test::Unit::TestCase
     heredoc_def = prepare('heredoc.erb') do |io| 
       io.puts outdent(%q{
       ()
-      rstrip
+      rstrip if chain?
       --
        <<DOC
       <% yield %>
@@ -279,18 +279,24 @@ class HelperCommandTest < Test::Unit::TestCase
     use_helpers ::HelperCommandTestModules::ChainHelper
     
     assert_recipe %q{
-      echo a b c
+      echo a
       echo <<DOC
-      x
-      y
-      z
+        echo b
+        echo <<DOC
+          echo c
+        DOC
       DOC
     } do
-      echo 'a', 'b', 'c'
+      echo 'a'
       echo.heredoc do
-        target.puts "x"
-        target.puts "y"
-        target.puts "z"
+        indent do
+          echo 'b'
+          echo.heredoc do
+            indent do
+              echo 'c'
+            end
+          end
+        end
       end
     end
   end

@@ -281,7 +281,7 @@ DOC
 def <%= method_name %><%= signature %>
 <%= body %>
 
-  self
+  chain_proxy
 end
 
 def _<%= method_name %>(*args, &block) # :nodoc:
