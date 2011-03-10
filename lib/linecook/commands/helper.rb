@@ -75,16 +75,18 @@ module Linecook
       # helper to partition an array of source files into section and
       # defintion files
       def partition(sources) # :nodoc:
-        sources.partition {|path| path =~ /\-section\.rb$/ }
+        sources.partition {|path| File.basename(path)[0] == ?- }
       end
       
-      # helper to load each section path into a sections hash; strips the
-      # -section off the path name to determine the section key.
+      # helper to load each section path into a sections hash; removes the
+      # leading - from the path basename to determine the section key.
       def load_sections(paths) # :nodoc:
         sections = {}
         
         paths.each do |path|
-          key = File.basename(path).chomp!('-section.rb')
+          basename = File.basename(path)
+          extname  = File.extname(path)
+          key = basename[1, basename.length - extname.length - 1]
           sections[key] = File.read(path)
         end
         
@@ -214,10 +216,9 @@ module Linecook
       #   end
       #   [:footer]
       #
-      # Section files are defined by adding -section.rb at the end of the file
-      # name (like header-section.rb) and are not processed like other source
-      # files; the contents are directly transcribed.
-      #
+      # Section files are defined by prepending '-' to the file basename (like
+      # path/to/-header.rb) and are not processed like other source files;
+      # instead the contents are directly transcribed into the target file.
       def build(const_name, sources)
         section_paths, definition_paths = partition(sources)
         sections    = load_sections(section_paths)

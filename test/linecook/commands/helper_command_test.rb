@@ -18,9 +18,9 @@ class HelperCommandTest < Test::Unit::TestCase
   # partition test
   #
   
-  def test_partition_separates_section_files_and_definitions_based_on_section_ext
-    a = 'a-section.rb'
-    b = 'path/to/b-section.rb'
+  def test_partition_separates_section_files_and_definitions_based_on_leading_dash
+    a = '-a.rb'
+    b = 'path/to/-b.rb'
     c = 'not/a/section.rb'
     sources = [a, c, b]
     
@@ -32,8 +32,8 @@ class HelperCommandTest < Test::Unit::TestCase
   #
   
   def test_load_sections_loads_paths_into_a_hash_by_section_name
-    a = prepare('a-section.rb') {|io| io << 'A' }
-    b = prepare('b-section.rb') {|io| io << 'B' }
+    a = prepare('-a.rb') {|io| io << 'A' }
+    b = prepare('-b.rb') {|io| io << 'B' }
     paths = [a, b]
     
     assert_equal({
@@ -174,19 +174,19 @@ class HelperCommandTest < Test::Unit::TestCase
   end
   
   def test_build_remains_nicely_formatted_with_sections
-    header = prepare('header-section.rb') do |io| 
+    header = prepare('-header.rb') do |io| 
       io.puts "header"
     end
     
-    head = prepare('head-section.rb') do |io| 
+    head = prepare('-head.rb') do |io| 
       io.puts "head"
     end
     
-    foot = prepare('foot-section.rb') do |io| 
+    foot = prepare('-foot.rb') do |io| 
       io.puts "foot"
     end
     
-    footer = prepare('footer-section.rb') do |io| 
+    footer = prepare('-footer.rb') do |io| 
       io.puts "\nfooter"
     end
     

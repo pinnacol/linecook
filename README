@@ -28,7 +28,7 @@ Generate a cookbook.
 
 Make some helpers.
 
-  [helpers/example/head-section.rb]
+  [helpers/example/-head.rb]
   COLOR_CODES = Hash[*%W{
     black       0;30   red         0;31
     white       1;37   green       0;32
