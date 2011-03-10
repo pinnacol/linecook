@@ -1,3 +1,9 @@
+== 0.18.0 2011/03/10
+
+* enforce word method names for helpers
+* linecook prints backtrace on error with $DEBUG
+* added proxy chaining to Recipe
+
 == 0.17.0 2011/03/10
 
 * added hooks for TESTCASE and NAME to test helpers

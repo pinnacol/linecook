@@ -56,6 +56,7 @@ Gem::Specification.new do |s|
     lib/linecook/commands/vbox_command.rb
     lib/linecook/cookbook.rb
     lib/linecook/package.rb
+    lib/linecook/proxy.rb
     lib/linecook/recipe.rb
     lib/linecook/template.rb
     lib/linecook/test.rb
