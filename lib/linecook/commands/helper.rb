@@ -22,6 +22,69 @@ module Linecook
     #   % linecook helper const/name
     #   % linecook helper const/name helpers/const/name/*
     #
+    # == Source Files
+    #
+    # The contents of the source file are translated into code according to
+    # the source file extname.
+    #
+    #   extname      translation
+    #   .rb          file defines method body
+    #   .erb         file defines an ERB template (compiled to ruby code)
+    #
+    # Source files can specify documenation and a method signature using a
+    # standard header separated from the body by a double-dash.  For example
+    # this:
+    #
+    #   [echo.erb]
+    #   Echo arguments out to the target.
+    #   (*args)
+    #   --
+    #   echo <%= args.join(' ') %>
+    #
+    # Is translated into something like:
+    #
+    #   # Echo arguments out to the target.
+    #   def echo(*args)
+    #     eval ERB.new("echo <%= args.join(' ') %>").src
+    #   end
+    #
+    # A second method is also generated to return the result without writing
+    # it to the target.  The latter method is prefixed by and underscore
+    # like:
+    #
+    #   # Return the output of echo, without writing to the target
+    #   def _echo(*args)
+    #     ...
+    #   end
+    #
+    # Check and bang methods can be specified by adding -check and -bang to
+    # the end of the file name.  These extensions are stripped off like:
+    #
+    #   [file-check.erb]   # => def file? ...
+    #   [make-bang.rb]     # => def make! ...
+    #
+    # Otherwise the basename of the source file must be a word; non-word
+    # basenames raise an error.
+    #
+    # == Section Files
+    #
+    # Special section files can be used to define non-standard code in the
+    # following places:
+    #
+    #   [:header]
+    #   module Const
+    #     [:doc]
+    #     module Name
+    #       [:head]
+    #       ...
+    #       [:foot]
+    #     end
+    #   end
+    #   [:footer]
+    #
+    # Section files are defined by prepending '-' to the file basename (like
+    # path/to/-header.rb) and are not processed like other source files;
+    # instead the contents are directly transcribed into the target file.
     class Helper < Command
       config :project_dir, '.', :short => :d        # the project directory
       config :force, false, :short => :f, &c.flag   # force creation
@@ -101,14 +164,13 @@ module Linecook
       def load_definition(path) # :nodoc:
         extname = File.extname(path)
         name    = File.basename(path).chomp(extname)
-        
-        unless method_name = parse_method_name(name)
-          raise CommandError.new("invalid helper definition: #{path.inspect} (non-word method name)")
-        end
-        
         desc, signature, body = parse_definition(File.read(path))
         
-        [desc, method_name, signature, method_body(body, extname)]
+        [desc, parse_method_name(name), signature, method_body(body, extname)]
+      rescue CommandError
+        err = CommandError.new("#{$!.message} (#{path.inspect})")
+        err.set_backtrace($!.backtrace)
+        raise err
       end
       
       # helper to reformat special basenames (in particular -check and -bang)
@@ -134,7 +196,7 @@ module Linecook
         when /-bang\z/  then basename.sub(/-bang$/, '!')
         when /-eq\z/    then basename.sub(/-eq$/, '=')
         when /\A\w+\z/  then basename
-        else nil
+        else raise CommandError.new("invalid method name: #{basename.inspect}")
         end
       end
       
@@ -161,7 +223,7 @@ module Linecook
           body.rstrip
           
         else
-          raise "invalid definition format: #{extname.inspect}"
+          raise CommandError.new("invalid definition format: #{extname.inspect}")
         end
       end
       
@@ -188,67 +250,6 @@ module Linecook
       
       # Returns the code for a const_name module as defined by the source
       # files.
-      #
-      # == Source Files
-      #
-      # The contents of the source file are translated into code according to
-      # the source file extname.
-      #
-      #   extname      translation
-      #   .rb          file defines method body
-      #   .erb         file defines an ERB template (compiled to ruby code)
-      #
-      # Source files can specify documenation and a method signature using a
-      # standard header separated from the body by a double-dash.  For example
-      # this:
-      #
-      #   [echo.erb]
-      #   Echo arguments out to the target.
-      #   (*args)
-      #   --
-      #   echo <%= args.join(' ') %>
-      #
-      # Is translated into something like:
-      #
-      #   # Echo arguments out to the target.
-      #   def echo(*args)
-      #     eval ERB.new("echo <%= args.join(' ') %>").src
-      #   end
-      #
-      # A second method is also generated to simply return the result without
-      # writing it to the target.  The latter method is prefixed by and
-      # underscore like:
-      #
-      #   # Return the output of echo, without writing to the target
-      #   def _echo(*args)
-      #     ...
-      #   end
-      #
-      # Check and bang methods can be specified by adding -check and -bang to
-      # the end of the file name.  These extensions are stripped off like:
-      #
-      #   [file-check.erb]   # => def file? ...
-      #   [make-bang.rb]     # => def make! ...
-      #
-      # == Section Files
-      #
-      # Special section files can be used to define non-standard code in the
-      # following places:
-      #
-      #   [:header]
-      #   module Const
-      #     [:doc]
-      #     module Name
-      #       [:head]
-      #       ...
-      #       [:foot]
-      #     end
-      #   end
-      #   [:footer]
-      #
-      # Section files are defined by prepending '-' to the file basename (like
-      # path/to/-header.rb) and are not processed like other source files;
-      # instead the contents are directly transcribed into the target file.
       def build(const_name, sources)
         section_paths, definition_paths = partition(sources)
         sections    = load_sections(section_paths)

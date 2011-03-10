@@ -147,12 +147,6 @@ class HelperCommandTest < Test::Unit::TestCase
     assert_equal 'method_name=', cmd.parse_method_name('method_name-eq')
   end
   
-  def test_parse_method_name_returns_nil_for_non_word_names
-    assert_equal nil, cmd.parse_method_name('')
-    assert_equal nil, cmd.parse_method_name('-')
-    assert_equal nil, cmd.parse_method_name('+')
-  end
-  
   #
   # build test
   #
@@ -237,6 +231,13 @@ class HelperCommandTest < Test::Unit::TestCase
     }, cmd.build('A::B', [header, head, doc, foot, footer, definition])
   end
   
+  def test_build_raises_error_for_invalid_formats
+    definition = prepare('method_name.json') {|io| }
+    
+    err = assert_raises(::Linecook::Commands::CommandError) { cmd.build('A::B', [definition]) }
+    assert_equal "invalid definition format: \".json\" (#{definition.inspect})", err.message
+  end
+  
   def test_build_raises_error_for_non_word_method_definitions
     definition = prepare('-.rb') do |io| 
       io.puts "Override minus, for why?"
@@ -245,7 +246,7 @@ class HelperCommandTest < Test::Unit::TestCase
     end
     
     err = assert_raises(::Linecook::Commands::CommandError) { cmd.build('A::B', [definition]) }
-    assert_equal "invalid helper definition: #{definition.inspect} (non-word method name)", err.message
+    assert_equal "invalid method name: \"-\" (#{definition.inspect})", err.message
   end
   
   #
