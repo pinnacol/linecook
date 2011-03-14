@@ -208,11 +208,10 @@ module Linecook
         case extname
         when '.erb'
           source = "#  #{body.gsub(/\n/, "\n#  ")}"
-          code   = ERB.new(body, nil, '<>').src
-          
-          if code =~ /\A_erbout = '';\s*(.*?)\s*_erbout\z/m
-            code = $1
-          end
+          compiler = ERB::Compiler.new('<>')
+          compiler.put_cmd = "write"
+          compiler.insert_cmd = "write"
+          code = compiler.compile(body)
           
           "#{source}\n#{code}".gsub(/^(\s*)/) do |m| 
             indent = 2 + $1.length - ($1.length % 2)

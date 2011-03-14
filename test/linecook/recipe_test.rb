@@ -20,13 +20,15 @@ class RecipeTest < Test::Unit::TestCase
   #
 
   module Helper
-    # This is compiled ERB code, prefixed by 'self.', ie:
+    # This is an ERB template compiled to write to a Recipe.
     #
-    #   "self." + ERB.new("echo '<%= args.join(' ') %>'\n").src
+    #   compiler = ERB::Compiler.new('<>')
+    #   compiler.put_cmd = "write"
+    #   compiler.insert_cmd = "write"
+    #   compiler.compile("echo '<%= args.join(' ') %>'\n")
     #
     def echo(*args)
-      self._erbout = ''; _erbout.concat "echo '"; _erbout.concat(( args.join(' ') ).to_s); _erbout.concat "'\n"
-      _erbout
+      write "echo '"; write(( args.join(' ') ).to_s); write "'\n"
     end
   end
 

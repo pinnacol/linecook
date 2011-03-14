@@ -5,17 +5,18 @@ require 'erb'
 
 module Linecook
   # Recipe is the context in which recipes are evaluated (literally).  Recipe
-  # uses a little ERB trick to allow compiled ERB snippets to build text using
-  # method calls. For example:
+  # uses compiled ERB snippets to build text using method calls. For example:
   #
   #   module Helper
-  #     # This is compiled ERB code, prefixed by 'self.', ie:
+  #     # This is an ERB template compiled to write to a Recipe.
   #     #
-  #     #   "self." + ERB.new("echo '<%= args.join(' ') %>'\n").src
+  #     #   compiler = ERB::Compiler.new('<>')
+  #     #   compiler.put_cmd = "write"
+  #     #   compiler.insert_cmd = "write"
+  #     #   compiler.compile("echo '<%= args.join(' ') %>'\n")
   #     #
   #     def echo(*args)
-  #       self._erbout = ''; _erbout.concat "echo '"; _erbout.concat(( args.join(' ') ).to_s); _erbout.concat "'\n"
-  #       _erbout
+  #       write "echo '"; write(( args.join(' ') ).to_s); write "'\n"
   #     end
   #   end
   #
@@ -34,8 +35,6 @@ module Linecook
   #   # echo 'x y z'
   #   # }
   #
-  # See _erbout and _erbout= for the ERB trick that makes this all possible.
-  #
   # ==== Method Name Conventions
   #
   # Recipe uses underscores to hint at the use case for methods, and to free
@@ -50,7 +49,7 @@ module Linecook
   # API; for example _target_ is a permanent, public method in the API.
   # Wrapping it in underscores implies functionality, or who is likely to use
   # it (writers of helpers, writers of recipes, etc).
-  class Recipe
+   class Recipe
     
     # The recipe package
     attr_reader :_package_
@@ -71,33 +70,6 @@ module Linecook
       @_proxy_       = Proxy.new(self)
       @_chain_       = false
       @attributes    = {}
-    end
-    
-    # Returns self.  In the context of a compiled ERB helper, this method
-    # directs output to Recipe#concat and thereby into target.  This trick is
-    # what allows Recipe to capture and reformat output.
-    def _erbout
-      self
-    end
-    
-    # Does nothing except allow ERB helpers to be written in the form:
-    #
-    #   def helper_method
-    #     eval("self." + ERB.new('template').src)
-    #   end
-    # 
-    # For clarity this is the equivalent code:
-    #
-    #   def helper_method
-    #     self._erbout = ''; _erbout.concat "template"; _erbout
-    #   end
-    #
-    # Compiled ERB source always begins with "_erbout = ''" to set the
-    # intended ERB target.  By prepending "self." to the source code, the
-    # initial assignment gets thrown out by this method. Thereafter _erbout
-    # resolves to Recipe#_erbout, and thus Recipe gains control of the
-    # output.
-    def _erbout=(input)
     end
     
     # Closes target and returns self.
