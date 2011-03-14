@@ -157,13 +157,35 @@ class TestTest < Test::Unit::TestCase
   end
   
   def test_assert_recipe_evaluates_block_for_recipe_if_specified
-    recipe = assert_recipe('a') { write 'a'}
+    recipe = setup_recipe { write 'a'}
     assert_recipe('ab', recipe) { write 'b'}
   end
   
   def test_assert_recipe_uses_current_package_if_set
     setup_package('key' => 'value')
     assert_recipe('value') { write attrs['key'] }
+  end
+  
+  def test_assert_recipe_closes_recipe
+    recipe = assert_recipe("content") { write "content" }
+    assert_equal true, recipe.closed?
+  end
+  
+  #
+  # assert_recipe_matches test
+  #
+  
+  def test_assert_recipe_matches_passes_if_expected_and_actual_contents_match
+    assert_recipe_matches %q{
+      co:..:nt
+    } do
+      writeln "content"
+    end
+  end
+  
+  def test_assert_recipe_matches_closes_recipe
+    recipe = assert_recipe_matches("co:..:nt") { write "content" }
+    assert_equal true, recipe.closed?
   end
   
   #

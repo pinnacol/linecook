@@ -139,12 +139,16 @@ module Linecook
     
     def assert_recipe(expected, recipe=setup_recipe, &block)
       recipe.instance_eval(&block) if block_given?
+      recipe.close
+      
       assert_output_equal expected, recipe.result
       recipe
     end
     
     def assert_recipe_matches(expected, recipe=setup_recipe, &block)
       recipe.instance_eval(&block) if block_given?
+      recipe.close
+      
       assert_alike expected, recipe.result
       recipe
     end
