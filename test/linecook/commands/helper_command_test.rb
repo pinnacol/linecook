@@ -167,11 +167,11 @@ class HelperCommandTest < Test::Unit::TestCase
           # aaa
           def a(*args)
             body
-            chain_proxy
+            _chain_proxy_
           end
           
           def _a(*args, &block) # :nodoc:
-            capture { a(*args, &block) }
+            _capture_ { a(*args, &block) }
           end
         end
       end
@@ -214,11 +214,11 @@ class HelperCommandTest < Test::Unit::TestCase
           
           def a()
             body
-            chain_proxy
+            _chain_proxy_
           end
           
           def _a(*args, &block) # :nodoc:
-            capture { a(*args, &block) }
+            _capture_ { a(*args, &block) }
           end
           
           foot
@@ -263,7 +263,7 @@ class HelperCommandTest < Test::Unit::TestCase
     heredoc_def = prepare('heredoc.erb') do |io| 
       io.puts outdent(%q{
       ()
-      rstrip if chain?
+      rstrip if _is_chain_
       --
        <<DOC
       <% yield %>
@@ -289,10 +289,10 @@ class HelperCommandTest < Test::Unit::TestCase
     } do
       echo 'a'
       echo.heredoc do
-        indent do
+        _indent_ do
           echo 'b'
           echo.heredoc do
-            indent do
+            _indent_ do
               echo 'c'
             end
           end

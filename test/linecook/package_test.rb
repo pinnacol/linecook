@@ -170,19 +170,19 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_setup_recipe_returns_a_new_recipe_that_builds_into_self
-    recipe = package.setup_recipe
-    recipe.target << 'content'
+    recipe = package.setup_recipe('recipe')
+    recipe.write 'content'
     
-    recipe.close
-    assert_equal 'content', package.content(recipe.target_name)
+    recipe._close_
+    assert_equal 'content', package.content('recipe')
   end
   
   def test_recipes_set_up_by_self_close_on_package_close
     recipe = package.setup_recipe
-    assert_equal false, recipe.closed?
+    assert_equal false, recipe._is_closed_
     
     package.close
-    assert_equal true, recipe.closed?
+    assert_equal true, recipe._is_closed_
   end
   
   def test_setup_recipe_raises_error_if_target_name_is_already_registered
@@ -255,7 +255,7 @@ class PackageTest < Test::Unit::TestCase
   #
   
   def test_build_recipe_looks_up_evaluates_and_registers_the_specified_recipe
-    path = prepare('example.rb') {|io| io << 'target << "content"'}
+    path = prepare('example.rb') {|io| io << 'write "content"'}
     package.manifest['recipes'] = {'name' => path}
     
     assert_equal package, package.build_recipe('target/path', 'name')

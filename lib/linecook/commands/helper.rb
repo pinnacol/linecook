@@ -281,11 +281,11 @@ DOC
 def <%= method_name %><%= signature %>
 <%= body %>
 
-  chain_proxy
+  _chain_proxy_
 end
 
 def _<%= method_name %>(*args, &block) # :nodoc:
-  capture { <%= method_name %>(*args, &block) }
+  _capture_ { <%= method_name %>(*args, &block) }
 end
 <% end %>
 

@@ -5,9 +5,9 @@ module Linecook
       @recipe = recipe
     end
     
-    # Proxies to recipe.chain.
+    # Proxies to recipe._chain_.
     def method_missing(*args, &block)
-      @recipe.chain(*args, &block)
+      @recipe._chain_(*args, &block)
     end
     
     # Returns an empty string, such that the proxy makes no text when it is

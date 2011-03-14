@@ -1,2 +1,2 @@
-target.puts 'echo test'
-target.puts 'false'
+writeln 'echo test'
+writeln 'false'

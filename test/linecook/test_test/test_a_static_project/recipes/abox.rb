@@ -1,1 +1,1 @@
-target.puts 'echo run'
+writeln 'echo run'

@@ -25,15 +25,15 @@ class RunCommandTest < Test::Unit::TestCase
   def test_test_builds_transfers_and_runs_build_and_test_scripts
     prepare('recipes/abox.rb') do |io|
       io.puts "puts 'build'"
-      io.puts "target.puts 'echo run'"
-      io.puts "target.puts 'echo content > file.txt'"
+      io.puts "writeln 'echo run'"
+      io.puts "writeln 'echo content > file.txt'"
       
     end
     
     prepare('recipes/abox_test.rb') do |io|
       io.puts "puts 'build test'"
-      io.puts "target.puts 'echo run test'"
-      io.puts "target.puts '[ $(cat file.txt) = \"content\" ]'"
+      io.puts "writeln 'echo run test'"
+      io.puts "writeln '[ $(cat file.txt) = \"content\" ]'"
     end
     
     prepare('packages/abox.yml') {}
@@ -52,7 +52,7 @@ class RunCommandTest < Test::Unit::TestCase
     prepare('recipes/abox.rb') {}
     
     prepare('recipes/abox_test.rb') do |io|
-      io.puts "target.puts 'false'"
+      io.puts "writeln 'false'"
     end
     
     prepare('packages/abox.yml') {}
@@ -86,15 +86,15 @@ class RunCommandTest < Test::Unit::TestCase
     ['abox', 'bbox'].each do |box|
       prepare("recipes/#{box}.rb") do |io|
         io.puts "puts 'build #{box}'"
-        io.puts "target.puts 'echo run #{box}'"
-        io.puts "target.puts 'echo content > file.txt'"
+        io.puts "writeln 'echo run #{box}'"
+        io.puts "writeln 'echo content > file.txt'"
       
       end
     
       prepare("recipes/#{box}_test.rb") do |io|
         io.puts "puts 'build #{box}_test'"
-        io.puts "target.puts 'echo run #{box}_test'"
-        io.puts "target.puts '[ $(cat file.txt) = \"content\" ]'"
+        io.puts "writeln 'echo run #{box}_test'"
+        io.puts "writeln '[ $(cat file.txt) = \"content\" ]'"
       end
     
       prepare("packages/#{box}.yml") {}

@@ -20,7 +20,7 @@ class PackageCommandTest < Test::Unit::TestCase
   
   def test_process_builds_package_with_the_specified_name
     prepare('recipes/example.rb') do |io|
-      io << 'target << "content"' 
+      io << 'write "content"' 
     end
     
     prepare('packages/vbox.yml') do |io|
@@ -36,7 +36,7 @@ class PackageCommandTest < Test::Unit::TestCase
   
   def test_process_allows_package_file_if_specified
     prepare('recipes/example.rb') do |io|
-      io << 'target << "content"' 
+      io << 'write "content"' 
     end
     
     prepare('path/to/vbox.yml') do |io|
@@ -53,11 +53,11 @@ class PackageCommandTest < Test::Unit::TestCase
   
   def test_process_guesses_package_config_as_per_host_name
     prepare('recipes/vbox.rb') do |io|
-      io << 'target << "run content"'
+      io << 'write "run content"'
     end
     
     prepare('recipes/vbox_test.rb') do |io|
-      io << 'target << "test content"'
+      io << 'write "test content"'
     end
     
     prepare('packages/vbox.yml') {}

@@ -3,8 +3,8 @@ helpers '<%= project_name %>'
 attributes '<%= project_name %>'
 #############################################################################
 
-# Write to the target script using 'target'
-target.puts '# An example script.'
+# Write to the script using write/writeln
+writeln '# An example script.'
 
 # Attributes are available, as are helpers.
 file = "~/#{attrs['<%= project_name %>']['year']}/resolutions.txt"

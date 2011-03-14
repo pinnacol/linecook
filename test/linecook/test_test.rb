@@ -92,22 +92,22 @@ class TestTest < Test::Unit::TestCase
   
   def test_setup_recipe_initializes_a_new_recipe_with_the_target_name
     recipe = setup_recipe('a')
-    assert_equal 'a', recipe.target_name
+    assert_equal 'a', recipe._target_name_
   end
   
   def test_setup_recipe_sets_recipe
     setup_recipe
-    recipe.target << 'a'
-    assert_equal 'a', recipe.result
+    recipe.write 'a'
+    assert_equal 'a', recipe._result_
     
     setup_recipe
-    recipe.target << 'b'
-    assert_equal 'b', recipe.result
+    recipe.write 'b'
+    assert_equal 'b', recipe._result_
   end
   
   module HelperModule
     def echo(*args)
-      target.puts "echo '#{args.join(' ')}'"
+      writeln "echo '#{args.join(' ')}'"
     end
   end
   
@@ -116,7 +116,7 @@ class TestTest < Test::Unit::TestCase
     setup_recipe
     
     recipe.echo 'a', 'b', 'c'
-    assert_equal "echo 'a b c'\n", recipe.result
+    assert_equal "echo 'a b c'\n", recipe._result_
   end
   
   #
@@ -127,7 +127,7 @@ class TestTest < Test::Unit::TestCase
     assert_recipe %q{
       content
     } do
-      target.puts "content"
+      writeln "content"
     end
   end
   
@@ -136,34 +136,34 @@ class TestTest < Test::Unit::TestCase
       assert_recipe %q{
         expected
       } do
-        target.puts "actual"
+        writeln "actual"
       end
     end
   end
   
   def test_assert_recipe_makes_new_recipe_for_each_call
-    assert_recipe('a') { target << 'a'}
-    assert_recipe('b') { target << 'b'}
+    assert_recipe('a') { write 'a'}
+    assert_recipe('b') { write 'b'}
   end
   
   def test_assert_recipe_returns_recipe
-    recipe = assert_recipe('a') { target << 'a'}
-    assert_equal 'a', recipe.result
+    recipe = assert_recipe('a') { write 'a'}
+    assert_equal 'a', recipe._result_
   end
   
   def test_assert_recipe_may_specify_recipe_to_check
-    recipe = assert_recipe('a') { target << 'a'}
+    recipe = assert_recipe('a') { write 'a'}
     assert_recipe('a', recipe)
   end
   
   def test_assert_recipe_evaluates_block_for_recipe_if_specified
-    recipe = assert_recipe('a') { target << 'a'}
-    assert_recipe('ab', recipe) { target << 'b'}
+    recipe = assert_recipe('a') { write 'a'}
+    assert_recipe('ab', recipe) { write 'b'}
   end
   
   def test_assert_recipe_uses_current_package_if_set
     setup_package('key' => 'value')
-    assert_recipe('value') { target << attrs['key'] }
+    assert_recipe('value') { write attrs['key'] }
   end
   
   #
@@ -189,8 +189,8 @@ class TestTest < Test::Unit::TestCase
     use_host 'abox'
     
     setup_recipe do
-      target.puts "echo b0nk"
-      target.puts "exit 8"
+      writeln "echo b0nk"
+      writeln "exit 8"
     end
     
     stdout, msg = run_package

@@ -267,7 +267,7 @@ module Linecook
       path = recipe_path(recipe_name)
       recipe = setup_recipe(target_name, mode)
       recipe.instance_eval(File.read(path), path)
-      recipe.close
+      recipe._close_
       
       self
     end
