@@ -171,7 +171,7 @@ class HelperCommandTest < Test::Unit::TestCase
           end
           
           def _a(*args, &block) # :nodoc:
-            _capture_ { a(*args, &block) }
+            _capture_ { a(*args, &block) }.strip!
           end
         end
       end
@@ -218,7 +218,7 @@ class HelperCommandTest < Test::Unit::TestCase
           end
           
           def _a(*args, &block) # :nodoc:
-            _capture_ { a(*args, &block) }
+            _capture_ { a(*args, &block) }.strip!
           end
           
           foot

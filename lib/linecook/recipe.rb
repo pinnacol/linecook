@@ -189,7 +189,7 @@ module Linecook
     # to target_name for the duration of the block.
     def capture_path(target_name, mode=0600, &block)
       tempfile = _package_.setup_tempfile(target_name, mode)
-      tempfile << _capture_(false) do
+      tempfile << _capture_ do
         current = @_target_name_
         
         begin
@@ -219,9 +219,8 @@ module Linecook
       self
     end
     
-    # Captures and returns output for the duration of a block.  The output is
-    # stripped if strip is true.
-    def _capture_(strip=true)
+    # Captures and returns output for the duration of a block.
+    def _capture_
       current, redirect = @_target_, StringIO.new
       
       begin
@@ -231,9 +230,7 @@ module Linecook
         @_target_ = current
       end
       
-      str = redirect.string
-      str.strip! if strip
-      str
+      redirect.string
     end
     
     # Strips whitespace from the end of target. To do so the target is rewound

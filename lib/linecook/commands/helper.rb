@@ -285,7 +285,7 @@ def <%= method_name %><%= signature %>
 end
 
 def _<%= method_name %>(*args, &block) # :nodoc:
-  _capture_ { <%= method_name %>(*args, &block) }
+  _capture_ { <%= method_name %>(*args, &block) }.strip!
 end
 <% end %>
 
