@@ -56,18 +56,27 @@ module Linecook
     
     # Closes target and returns self.
     def close
-      @target.close unless @target.closed?
+      unless closed?
+        target.close
+      end
       self
+    end
+    
+    def closed?
+      target.closed?
     end
     
     # Returns the current contents of target.
     def result
-      if @target.closed?
-        @package.content(@target_name)
+      case
+      when closed?
+        @package.content(target_name)
+      when target.respond_to?(:string)
+        target.string
       else
-        @target.flush
-        @target.rewind
-        @target.read
+        target.flush
+        target.rewind
+        target.read
       end
     end
     
@@ -101,12 +110,12 @@ module Linecook
     # Returns an expression that evaluates to the package dir, assuming that
     # $0 evaluates to the full path to the current recipe.
     def package_dir
-      "${0%/#{@target_name}}"
+      "${0%/#{target_name}}"
     end
     
     # The path to the named target as it should be referenced in the final
     # script, specifically target_name joined to package_dir.
-    def target_path(target_name=@target_name)
+    def target_path(target_name=self.target_name)
       File.join(package_dir, target_name)
     end
     
@@ -136,34 +145,22 @@ module Linecook
     # Captures the output for a block, registers it, and returns the
     # target_path to the resulting file.  The current target_name is updated
     # to target_name for the duration of the block.
-    def capture_path(target_name, mode=0600, &block)
+    def capture_path(target_name, mode=0600)
       tempfile = @package.setup_tempfile(target_name, mode)
       tempfile << capture_block do
         current = @target_name
         
         begin
           @target_name = target_name
-          instance_eval(&block)
+          yield
         ensure
           @target_name = current
         end
         
-      end if block
+      end
       tempfile.close
       
       target_path target_name
-    end
-    
-    # Writes input to @target using 'write'.  Returns self.
-    def write(input)
-      @target.write input
-      self
-    end
-    
-    # Writes input to @target using 'puts'.  Returns self.
-    def writeln(input)
-      @target.puts input
-      self
     end
     
     # Captures and returns output for the duration of a block.
@@ -180,32 +177,35 @@ module Linecook
       redirect.string
     end
     
-    # Strips whitespace from the end of target. To do so the target is rewound
-    # in chunks of n chars and then re-written without whitespace.  Returns
-    # the stripped whitespace.
-    #
-    # Yields to a block if given, before performing the rstrip.
-    def rstrip(n=10)
-      yield if block_given?
-      
-      pos = @target.pos
-      n = pos if pos < n
-      start = pos - n
-      
-      @target.pos = start
-      tail = @target.read(n)
-      whitespace = tail.slice!(/\s+\z/)
-      
-      @target.pos = start
-      @target.truncate start
-      
-      if tail.length == 0 && start > 0
-        # not done with rstrip, recurse.
-        return "#{rstrip(n)}#{whitespace}"
-      end
+    # Writes input to target using 'write'.  Returns self.
+    def write(input)
+      target.write input
+      self
+    end
+    
+    # Writes input to target using 'puts'.  Returns self.
+    def writeln(input)
+      target.puts input
+      self
+    end
+    
+    def rewrite(pattern)
+      if match = pattern.match(result)
+        start = match.begin(0)
+        target.pos = start
+        target.truncate start
         
-      write(tail)
-      whitespace
+        rewrite = yield(match)
+        write rewrite if rewrite
+      end
+      
+      self
+    end
+    
+    # Strips whitespace from the end of target and returns the stripped
+    # whitespace.
+    def rstrip
+      rewrite(/\s+\z/) {|match| return match[0] }
     end
     
     # Indents the output of the block.  Indents may be nested. To prevent a
@@ -274,22 +274,23 @@ module Linecook
     # The default flag is like ':outdent_N:' where N is a big random number.
     def outdent(flag=nil)
       current_indent = @indents.last
-
+      
       if current_indent.nil?
         yield
       else
         flag ||= ":outdent_#{rand(10000000)}:"
         @outdents << flag
-
+        
         write "#{flag}#{current_indent.length}:#{rstrip}"
         @indents << ''
-
+        
         yield
-
+        
         @indents.pop
+        
         write "#{flag}#{rstrip}"
       end
-
+      
       self
     end
     

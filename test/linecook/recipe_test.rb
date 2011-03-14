@@ -265,17 +265,21 @@ echo 'x y z'
   #
   
   def test_capture_path_creates_file_from_recipe_block
-    recipe.capture_path('target') { write 'content'}
+    setup_recipe do
+      capture_path('target') { write 'content'}
+    end
     recipe.close
     
     assert_equal 'content', package.content('target')
   end
   
   def test_nested_capture_path_produces_new_recipe_context_each_time
-    recipe.capture_path('a') do 
-      write 'A'
-      capture_path('b') do 
-        write 'B'
+    setup_recipe do
+      capture_path('a') do 
+        write 'A'
+        capture_path('b') do 
+          write 'B'
+        end
       end
     end
     recipe.close
@@ -284,7 +288,7 @@ echo 'x y z'
     assert_equal 'B', package.content('b')
   end
   
-  def test_capture_path_updatestarget_namefor_block
+  def test_capture_path_updates_target_name_for_block
     setup_recipe 'recipe' do
       write 'A'
       capture_path('target') do
