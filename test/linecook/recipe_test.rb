@@ -50,46 +50,96 @@ echo 'x y z'
   end
   
   #
+  # _target_name_ test
+  #
+  
+  def test__target_name__is_the_name_of_target_in_package
+    assert_equal 'file', recipe._target_name_
+    assert_equal recipe._target_.path, package.source_path('file')
+  end
+  
+  #
   # target_name test
   #
   
-  def test_target_name_is_the_name_of_target_in_package
-    assert_equal 'file', recipe.target_name
-    assert_equal recipe.target.path, package.source_path('file')
+  def test_target_name_is_an_alias_for__target_name_
+    assert_equal recipe._target_name_, recipe.target_name
+  end
+  
+  #
+  # _target_ test
+  #
+  
+  def test__target__allows_direct_writing
+    recipe._target_ << 'str'
+    assert_equal 'str', recipe.result
   end
   
   #
   # target test
   #
   
-  def test_target_allows_direct_writing
-    recipe.target << 'str'
-    assert_equal 'str', recipe.result
+  def test_target_is_an_alias_for_target_
+    assert_equal recipe._target_.object_id, recipe.target.object_id
+  end
+  
+  #
+  # close test
+  #
+  
+  def test_close_closes__target_
+    assert_equal false, recipe._target_.closed?
+    recipe.close
+    assert_equal true, recipe._target_.closed?
+  end
+  
+  #
+  # closed? test
+  #
+  
+  def test_closed_check_returns_true_if__target__is_closed
+    assert_equal false, recipe.closed?
+    recipe._target_.close
+    assert_equal true, recipe.closed?
   end
   
   #
   # result test
   #
   
-  def test_result_returns_current_template_results
-    recipe.target << 'abc'
+  def test_result_returns_current_target_content
+    recipe.write 'abc'
+    assert_equal 'abc', recipe.result
+    
+    recipe.capture_block do
+      recipe.write 'xyz'
+      assert_equal 'xyz', recipe.result
+    end
+    
     assert_equal 'abc', recipe.result
   end
   
   def test_result_allows_further_modification
-    recipe.target << 'abc'
+    recipe.write 'abc'
     
     assert_equal 'abc', recipe.result
     assert_equal 'abc', recipe.result
     
-    recipe.target << 'xyz'
+    recipe.write 'xyz'
     
     assert_equal 'abcxyz', recipe.result
   end
   
-  def test_result_works_when_closed
-    recipe.target << 'abc'
+  def test_result_always_returns__target__content_when_closed
+    recipe.write 'abc'
     recipe.close
+    
+    assert_equal 'abc', recipe.result
+    
+    recipe.capture_block do
+      recipe.write 'xyz'
+      assert_equal 'abc', recipe.result
+    end
     
     assert_equal 'abc', recipe.result
   end
@@ -288,18 +338,129 @@ echo 'x y z'
     assert_equal 'B', package.content('b')
   end
   
-  def test_capture_path_updates_target_name_for_block
+  def test_capture_path_updates_target_name_for_block_but_not__target_name_
     setup_recipe 'recipe' do
-      write 'A'
+      writeln "#{target_name}:#{_target_name_}"
       capture_path('target') do
-        write 'B'
+        writeln "#{target_name}:#{_target_name_}"
       end
-      write 'A'
+      writeln "#{target_name}:#{_target_name_}"
     end
     recipe.close
     
-    assert_equal "AA", package.content('recipe')
-    assert_equal "B",  package.content('target')
+    assert_equal "recipe:recipe\nrecipe:recipe\n", package.content('recipe')
+    assert_equal "target:recipe\n", package.content('target')
+  end
+  
+  #
+  # write test
+  #
+  
+  def test_write_writes_to_current_target
+    str = nil
+    setup_recipe do
+      write 'a'
+      str = capture_block { write 'b'}
+      write 'c'
+    end
+    
+    assert_equal "ac", recipe.result
+    assert_equal "b", str
+  end
+  
+  #
+  # writeln test
+  #
+  
+  def test_writeln_puts_to_current_target
+    str = nil
+    setup_recipe do
+      writeln 'a'
+      str = capture_block { writeln 'b'}
+      writeln 'c'
+    end
+    
+    assert_equal "a\nc\n", recipe.result
+    assert_equal "b\n", str
+  end
+  
+  #
+  # rewrite test
+  #
+  
+  def test_rewrite_truncates_results_at_first_match_of_pattern
+    setup_recipe do
+      write 'abcabcabc'
+      rewrite(/ca/)
+    end
+    
+    assert_equal "ab", recipe.result
+  end
+  
+  def test_rewrite_yield_match_to_block_and_re_writes_block_result
+    setup_recipe do
+      write 'abcabcabc'
+      rewrite(/ca/) do |match|
+        match[0].upcase
+      end
+    end
+    
+    assert_equal "abCA", recipe.result
+  end
+  
+  #
+  # rewriteln test
+  #
+  
+  def test_rewriteln_truncates_results_at_the_last_non_empty_line
+    setup_recipe do
+      write "a\nb\nc\n\n\n"
+      rewriteln
+    end
+    
+    assert_equal "a\nb\n", recipe.result
+  end
+  
+  def test_rewriteln_yields_match_to_block_for_rewrite
+    setup_recipe do
+      write "a\nb\nc\n\n\n"
+      rewriteln do |line, ws|
+        "#{line.upcase}#{ws.length}"
+      end
+    end
+    
+    assert_equal "a\nb\nC3", recipe.result
+  end
+  
+  #
+  # capture_block test
+  #
+  
+  def test_capture_block_updates_target_for_block_but_not__target_
+    setup_recipe do
+      target <<  'a'
+      _target_ << 'A'
+      capture_block do
+        target << 'b'
+        _target_ << 'B'
+      end
+      target << 'c'
+      _target_ << 'C'
+    end
+    
+    assert_equal "aABcC", recipe.result
+  end
+  
+  def test_close_during_capture_block_closes__target__not_target
+    assert_equal false, recipe.closed?
+    
+    recipe.capture_block do 
+      assert_equal false, recipe.target.closed?
+      recipe.close
+      assert_equal false, recipe.target.closed?
+    end
+    
+    assert_equal true, recipe.closed?
   end
   
   #

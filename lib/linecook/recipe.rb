@@ -37,42 +37,59 @@ module Linecook
   #
   class Recipe
     
+    # The recipe package
+    attr_reader :_package_
+    
     # The recipe target
+    attr_reader :_target_
+    
+    # The target name of self in package
+    attr_reader :_target_name_
+    
+    # The recipe proxy
+    attr_reader :_proxy_
+    
+    # The current target for self set as needed during captures; equal to
+    # _target_ otherwise.
     attr_reader :target
     
-    # The name of target in package
+    # The current target_name for self set as needed during captures; equal to
+    # _target_name_ otherwise.
     attr_reader :target_name
     
     def initialize(package, target_name, mode)
-      @package     = package
-      @target_name = target_name
-      @target      = package.setup_tempfile(target_name, mode)
-      @proxy       = Proxy.new(self)
+      @_package_     = package
+      @_target_name_ = target_name
+      @_target_      = package.setup_tempfile(target_name, mode)
+      @_proxy_       = Proxy.new(self)
+      
+      @target_name   = @_target_name_
+      @target        = @_target_
+      
       @chain       = false
       @attributes  = {}
       @indents     = []
       @outdents    = []
     end
     
-    # Closes target and returns self.
+    # Closes _target_ and returns self.
     def close
       unless closed?
-        target.close
+        _target_.close
       end
       self
     end
     
+    # Returns true if _target_ is closed.
     def closed?
-      target.closed?
+      _target_.closed?
     end
     
-    # Returns the current contents of target.
+    # Returns the current contents of target, or the contents of _target_ if
+    # closed? is true.
     def result
-      case
-      when closed?
-        @package.content(target_name)
-      when target.respond_to?(:string)
-        target.string
+      if closed?
+        _package_.content(_target_name_)
       else
         target.flush
         target.rewind
@@ -84,7 +101,7 @@ module Linecook
     # block may be given to specify attrs as well; it will be evaluated in the
     # context of an Attributes instance.
     def attributes(attributes_name=nil, &block)
-      attributes = @package.load_attributes(attributes_name)
+      attributes = _package_.load_attributes(attributes_name)
       
       if block_given?
         attributes.instance_eval(&block)
@@ -99,12 +116,12 @@ module Linecook
     # The attrs hash should be treated as if it were read-only because changes
     # could alter the package env and thereby spill over into other recipes.
     def attrs
-      @attrs ||= Utils.deep_merge(@attributes, @package.env)
+      @attrs ||= Utils.deep_merge(@attributes, _package_.env)
     end
     
     # Looks up and extends self with the specified helper.
     def helpers(helper_name)
-      extend @package.load_helper(helper_name)
+      extend _package_.load_helper(helper_name)
     end
     
     # Returns an expression that evaluates to the package dir, assuming that
@@ -115,14 +132,14 @@ module Linecook
     
     # The path to the named target as it should be referenced in the final
     # script, specifically target_name joined to package_dir.
-    def target_path(target_name=self.target_name)
+    def target_path(target_name)
       File.join(package_dir, target_name)
     end
     
     # Registers the specified file into package and returns the target_path to
     # the file.
     def file_path(file_name, target_name=file_name, mode=0600)
-      @package.build_file(target_name, file_name, mode)
+      _package_.build_file(target_name, file_name, mode)
       target_path target_name
     end
     
@@ -131,22 +148,22 @@ module Linecook
     def template_path(template_name, target_name=template_name, mode=0600, locals={})
       locals[:attrs] ||= attrs
       
-      @package.build_template(target_name, template_name, mode, locals)
+      _package_.build_template(target_name, template_name, mode, locals)
       target_path target_name
     end
     
     # Looks up, builds, and registers the specified recipe and returns the
     # target_path to the resulting file.
     def recipe_path(recipe_name, target_name=recipe_name, mode=0700)
-      @package.build_recipe(target_name, recipe_name, mode)
+      _package_.build_recipe(target_name, recipe_name, mode)
       target_path target_name
     end
     
     # Captures the output for a block, registers it, and returns the
-    # target_path to the resulting file.  The current target_name is updated
-    # to target_name for the duration of the block.
+    # target_path to the resulting file.  The current target and target_name
+    # are updated for the duration of the block.
     def capture_path(target_name, mode=0600)
-      tempfile = @package.setup_tempfile(target_name, mode)
+      tempfile = _package_.setup_tempfile(target_name, mode)
       tempfile << capture_block do
         current = @target_name
         
@@ -163,7 +180,8 @@ module Linecook
       target_path target_name
     end
     
-    # Captures and returns output for the duration of a block.
+    # Captures and returns output for the duration of a block by redirecting
+    # target to a temporary buffer.
     def capture_block
       current, redirect = @target, StringIO.new
       
@@ -189,17 +207,36 @@ module Linecook
       self
     end
     
+    # Truncates the contents of target starting at the first match of pattern.
+    # If a block is given the match is provided to it and the block output is
+    # re-written to self.
+    # 
+    # Rewrite can be computationally expensive because it requires the current
+    # target be flushed, rewound, and read in it's entirety.  Practically it's
+    # almost never an issue, but if you need better performance try wrapping
+    # the rewritten bits in a capture block.
     def rewrite(pattern)
       if match = pattern.match(result)
         start = match.begin(0)
         target.pos = start
         target.truncate start
         
-        rewrite = yield(match)
-        write rewrite if rewrite
+        if block_given?
+          rewrite = yield(match)
+          write rewrite if rewrite
+        end
       end
       
       self
+    end
+    
+    # Truncates the contents of target to remove the last non-empty line.
+    # Yields the last line and and all trailing whitespace to the block, if
+    # given, and writes the block results back to target.
+    def rewriteln # :yields: line, whitespace
+      rewrite(/([^\n]+)(\s*)\z/) do |match|
+        block_given? ? yield(match[1], match[2]) : nil
+      end
     end
     
     # Strips whitespace from the end of target and returns the stripped
@@ -310,7 +347,7 @@ module Linecook
     # Sets chain to false and returns the proxy.
     def chain_proxy
       @chain = false
-      @proxy
+      _proxy_
     end
   end
 end
