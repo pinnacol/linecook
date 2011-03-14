@@ -1,0 +1,28 @@
+if_ cmd {}.
+else_ {}
+
+unless_ cmd {}
+
+while_ cmd {}
+
+until_ cmd {}
+
+for_ cmd, arg {}
+
+each_ cmd, arg {}
+
+case_ abc  do
+  # evaluate in the context of the proxy?
+  in_ abc { }
+  in_ xyz { }
+end
+
+method   # method
+_method  # to capture
+
+_target_ # ?
+
+write
+rewrite do
+  
+end
