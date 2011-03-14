@@ -173,16 +173,16 @@ class PackageTest < Test::Unit::TestCase
     recipe = package.setup_recipe('recipe')
     recipe.write 'content'
     
-    recipe._close_
+    recipe.close
     assert_equal 'content', package.content('recipe')
   end
   
-  def test_recipes_set_up_by_self_close_on_package_close
+  def test_recipes_set_up_by_selfcloseon_package_close
     recipe = package.setup_recipe
-    assert_equal false, recipe._is_closed_
+    assert_equal false, recipe.target.closed?
     
     package.close
-    assert_equal true, recipe._is_closed_
+    assert_equal true, recipe.target.closed?
   end
   
   def test_setup_recipe_raises_error_if_target_name_is_already_registered

@@ -92,17 +92,17 @@ class TestTest < Test::Unit::TestCase
   
   def test_setup_recipe_initializes_a_new_recipe_with_the_target_name
     recipe = setup_recipe('a')
-    assert_equal 'a', recipe._target_name_
+    assert_equal 'a', recipe.target_name
   end
   
   def test_setup_recipe_sets_recipe
     setup_recipe
     recipe.write 'a'
-    assert_equal 'a', recipe._result_
+    assert_equal 'a', recipe.result
     
     setup_recipe
     recipe.write 'b'
-    assert_equal 'b', recipe._result_
+    assert_equal 'b', recipe.result
   end
   
   module HelperModule
@@ -116,7 +116,7 @@ class TestTest < Test::Unit::TestCase
     setup_recipe
     
     recipe.echo 'a', 'b', 'c'
-    assert_equal "echo 'a b c'\n", recipe._result_
+    assert_equal "echo 'a b c'\n", recipe.result
   end
   
   #
@@ -148,7 +148,7 @@ class TestTest < Test::Unit::TestCase
   
   def test_assert_recipe_returns_recipe
     recipe = assert_recipe('a') { write 'a'}
-    assert_equal 'a', recipe._result_
+    assert_equal 'a', recipe.result
   end
   
   def test_assert_recipe_may_specify_recipe_to_check

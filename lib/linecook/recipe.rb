@@ -35,62 +35,39 @@ module Linecook
   #   # echo 'x y z'
   #   # }
   #
-  # ==== Method Name Conventions
-  #
-  # Recipe uses underscores to hint at the use case for methods, and to free
-  # up the non-underscore method names for use by the dsl and helpers.  In
-  # general:
-  #
-  #   method_name     dsl methods or helpers that write content to the target
-  #   _method_name    returns helper output without writing to target
-  #   _method_name_   internal methods used within helpers
-  #
-  # These conventions do not imply public/private status with respect to the
-  # API; for example _target_ is a permanent, public method in the API.
-  # Wrapping it in underscores implies functionality, or who is likely to use
-  # it (writers of helpers, writers of recipes, etc).
-   class Recipe
-    
-    # The recipe package
-    attr_reader :_package_
+  class Recipe
     
     # The recipe target
-    attr_reader :_target_
+    attr_reader :target
     
     # The name of target in package
-    attr_reader :_target_name_
-    
-    # The recipe proxy
-    attr_reader :_proxy_
+    attr_reader :target_name
     
     def initialize(package, target_name, mode)
-      @_package_     = package
-      @_target_name_ = target_name
-      @_target_      = package.setup_tempfile(target_name, mode)
-      @_proxy_       = Proxy.new(self)
-      @_chain_       = false
-      @attributes    = {}
+      @package     = package
+      @target_name = target_name
+      @target      = package.setup_tempfile(target_name, mode)
+      @proxy       = Proxy.new(self)
+      @chain       = false
+      @attributes  = {}
+      @indents     = []
+      @outdents    = []
     end
     
     # Closes target and returns self.
-    def _close_
-      _target_.close unless _target_.closed?
+    def close
+      @target.close unless @target.closed?
       self
     end
     
-    # Returns true if the target is closed.
-    def _is_closed_
-      _target_.closed?
-    end
-    
     # Returns the current contents of target.
-    def _result_
-      if _target_.closed?
-        _package_.content(_target_name_)
+    def result
+      if @target.closed?
+        @package.content(@target_name)
       else
-        _target_.flush
-        _target_.rewind
-        _target_.read
+        @target.flush
+        @target.rewind
+        @target.read
       end
     end
     
@@ -98,7 +75,7 @@ module Linecook
     # block may be given to specify attrs as well; it will be evaluated in the
     # context of an Attributes instance.
     def attributes(attributes_name=nil, &block)
-      attributes = _package_.load_attributes(attributes_name)
+      attributes = @package.load_attributes(attributes_name)
       
       if block_given?
         attributes.instance_eval(&block)
@@ -113,30 +90,30 @@ module Linecook
     # The attrs hash should be treated as if it were read-only because changes
     # could alter the package env and thereby spill over into other recipes.
     def attrs
-      @attrs ||= Utils.deep_merge(@attributes, _package_.env)
+      @attrs ||= Utils.deep_merge(@attributes, @package.env)
     end
     
     # Looks up and extends self with the specified helper.
     def helpers(helper_name)
-      extend _package_.load_helper(helper_name)
+      extend @package.load_helper(helper_name)
     end
     
     # Returns an expression that evaluates to the package dir, assuming that
     # $0 evaluates to the full path to the current recipe.
     def package_dir
-      "${0%/#{_target_name_}}"
+      "${0%/#{@target_name}}"
     end
     
     # The path to the named target as it should be referenced in the final
     # script, specifically target_name joined to package_dir.
-    def target_path(target_name=_target_name_)
+    def target_path(target_name=@target_name)
       File.join(package_dir, target_name)
     end
     
     # Registers the specified file into package and returns the target_path to
     # the file.
     def file_path(file_name, target_name=file_name, mode=0600)
-      _package_.build_file(target_name, file_name, mode)
+      @package.build_file(target_name, file_name, mode)
       target_path target_name
     end
     
@@ -145,14 +122,14 @@ module Linecook
     def template_path(template_name, target_name=template_name, mode=0600, locals={})
       locals[:attrs] ||= attrs
       
-      _package_.build_template(target_name, template_name, mode, locals)
+      @package.build_template(target_name, template_name, mode, locals)
       target_path target_name
     end
     
     # Looks up, builds, and registers the specified recipe and returns the
     # target_path to the resulting file.
     def recipe_path(recipe_name, target_name=recipe_name, mode=0700)
-      _package_.build_recipe(target_name, recipe_name, mode)
+      @package.build_recipe(target_name, recipe_name, mode)
       target_path target_name
     end
     
@@ -160,15 +137,15 @@ module Linecook
     # target_path to the resulting file.  The current target_name is updated
     # to target_name for the duration of the block.
     def capture_path(target_name, mode=0600, &block)
-      tempfile = _package_.setup_tempfile(target_name, mode)
-      tempfile << _capture_ do
-        current = @_target_name_
+      tempfile = @package.setup_tempfile(target_name, mode)
+      tempfile << capture_block do
+        current = @target_name
         
         begin
-          @_target_name_ = target_name
+          @target_name = target_name
           instance_eval(&block)
         ensure
-          @_target_name_ = current
+          @target_name = current
         end
         
       end if block
@@ -177,29 +154,27 @@ module Linecook
       target_path target_name
     end
     
-    # Writes input to the target using 'write'.  Returns self.
+    # Writes input to @target using 'write'.  Returns self.
     def write(input)
-      _target_.write input
+      @target.write input
       self
     end
     
-    alias concat write
-    
-    # Writes input to the target using 'puts'.  Returns self.
+    # Writes input to @target using 'puts'.  Returns self.
     def writeln(input)
-      _target_.puts input
+      @target.puts input
       self
     end
     
     # Captures and returns output for the duration of a block.
-    def _capture_
-      current, redirect = @_target_, StringIO.new
+    def capture_block
+      current, redirect = @target, StringIO.new
       
       begin
-        @_target_ = redirect
+        @target = redirect
         yield
       ensure
-        @_target_ = current
+        @target = current
       end
       
       redirect.string
@@ -213,16 +188,16 @@ module Linecook
     def rstrip(n=10)
       yield if block_given?
       
-      pos = _target_.pos
+      pos = @target.pos
       n = pos if pos < n
       start = pos - n
       
-      _target_.pos = start
-      tail = _target_.read(n)
+      @target.pos = start
+      tail = @target.read(n)
       whitespace = tail.slice!(/\s+\z/)
       
-      _target_.pos = start
-      _target_.truncate start
+      @target.pos = start
+      @target.truncate start
       
       if tail.length == 0 && start > 0
         # not done with rstrip, recurse.
@@ -233,23 +208,18 @@ module Linecook
       whitespace
     end
     
-    # An array used for tracking indents currently in use.
-    def _indents_
-      @_indents_ ||= []
-    end
-
     # Indents the output of the block.  Indents may be nested. To prevent a
-    # section from being indented, enclose it within _outdent_ which resets
+    # section from being indented, enclose it within outdent which resets
     # indentation to nothing for the duration of a block.
     #
     # Example:
     #
     #   writeln 'a'
-    #   _indent_ do
+    #   indent do
     #     writeln 'b'
-    #     _outdent_ do
+    #     outdent do
     #       writeln 'c'
-    #       _indent_ do
+    #       indent do
     #         writeln 'd'
     #       end
     #       writeln 'c'
@@ -258,7 +228,7 @@ module Linecook
     #   end
     #   writeln 'a'
     #
-    #   "\n" + _result_
+    #   "\n" + result
     #   # => %q{
     #   # a
     #   #   b
@@ -269,21 +239,21 @@ module Linecook
     #   # a
     #   # }
     #
-    def _indent_(indent='  ', &block)
-      _indents_ << _indents_.last.to_s + indent
-      str = _capture_(&block)
-      _indents_.pop
+    def indent(indent='  ', &block)
+      @indents << @indents.last.to_s + indent
+      str = capture_block(&block)
+      @indents.pop
 
       unless str.empty?
         str.gsub!(/^/, indent)
 
-        if _indents_.empty?
-          _outdents_.each do |flag|
+        if @indents.empty?
+          @outdents.each do |flag|
             str.gsub!(/#{flag}(\d+):(.*?)#{flag}/m) do
               $2.gsub!(/^.{#{$1.to_i}}/, '')
             end
           end
-          _outdents_.clear
+          @outdents.clear
         end
 
         writeln str
@@ -292,58 +262,54 @@ module Linecook
       self
     end
 
-    # An array used for tracking outdents currently in use.
-    def _outdents_
-      @_outdents_ ||= []
-    end
-
-    # Resets indentation to nothing for a section of text indented by _indent_.
+    # Resets indentation to nothing for a section of text indented by indent.
     #
     # === Notes
     #
-    # Outdent works by setting a text flag around the outdented section; the flag
-    # and indentation is later stripped out using regexps.  For that reason, be
-    # sure flag is not something that will appear anywhere else in the section.
+    # Outdent works by setting a text flag around the outdented section; the
+    # flag and indentation is later stripped out using regexps.  For that
+    # reason, be sure flag is not something that will appear anywhere else in
+    # the section.
     #
     # The default flag is like ':outdent_N:' where N is a big random number.
-    def _outdent_(flag=nil)
-      current_indent = _indents_.last
+    def outdent(flag=nil)
+      current_indent = @indents.last
 
       if current_indent.nil?
         yield
       else
         flag ||= ":outdent_#{rand(10000000)}:"
-        _outdents_ << flag
+        @outdents << flag
 
         write "#{flag}#{current_indent.length}:#{rstrip}"
-        _indents_ << ''
+        @indents << ''
 
         yield
 
-        _indents_.pop
+        @indents.pop
         write "#{flag}#{rstrip}"
       end
 
       self
     end
     
-    # Sets _is_chain_ to true and calls the method (thereby allowing the
-    # method to invoke chain-specific behavior).  Chain is invoked via the
-    # _chain_proxy_ which is returned by helper methods.
-    def _chain_(method_name, *args, &block)
-      @_chain_ = true
+    # Sets chain? to true and calls the method (thereby allowing the method to
+    # invoke chain-specific behavior).  Chain is invoked via the chain_proxy
+    # which is returned by helper methods.
+    def chain(method_name, *args, &block)
+      @chain = true
       send(method_name, *args, &block)
     end
     
     # Returns true if the current context was invoked through chain.
-    def _is_chain_
-      @_chain_
+    def chain?
+      @chain
     end
     
     # Sets chain to false and returns the proxy.
-    def _chain_proxy_
-      @_chain_ = false
-      @_proxy_
+    def chain_proxy
+      @chain = false
+      @proxy
     end
   end
 end

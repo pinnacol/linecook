@@ -46,52 +46,52 @@ class RecipeTest < Test::Unit::TestCase
 echo 'a b c'
 echo 'x y z'
 }
-    assert_equal expected, "\n" + recipe._result_
+    assert_equal expected, "\n" + recipe.result
   end
   
   #
-  # _target_name_ test
+  # target_name test
   #
   
-  def test__target_name__is_the_name_of_target_in_package
-    assert_equal 'file', recipe._target_name_
-    assert_equal recipe._target_.path, package.source_path('file')
+  def test_target_name_is_the_name_of_target_in_package
+    assert_equal 'file', recipe.target_name
+    assert_equal recipe.target.path, package.source_path('file')
   end
   
   #
-  # _target_ test
+  # target test
   #
   
-  def test__target__allows_direct_writing
-    recipe._target_ << 'str'
-    assert_equal 'str', recipe._result_
+  def test_target_allows_direct_writing
+    recipe.target << 'str'
+    assert_equal 'str', recipe.result
   end
   
   #
-  # _result_ test
+  # result test
   #
   
-  def test__result__returns_current_template_results
-    recipe._target_ << 'abc'
-    assert_equal 'abc', recipe._result_
+  def test_result_returns_current_template_results
+    recipe.target << 'abc'
+    assert_equal 'abc', recipe.result
   end
   
-  def test__result__allows_further_modification
-    recipe._target_ << 'abc'
+  def test_result_allows_further_modification
+    recipe.target << 'abc'
     
-    assert_equal 'abc', recipe._result_
-    assert_equal 'abc', recipe._result_
+    assert_equal 'abc', recipe.result
+    assert_equal 'abc', recipe.result
     
-    recipe._target_ << 'xyz'
+    recipe.target << 'xyz'
     
-    assert_equal 'abcxyz', recipe._result_
+    assert_equal 'abcxyz', recipe.result
   end
   
-  def test__result__works_when_closed
-    recipe._target_ << 'abc'
-    recipe._close_
+  def test_result_works_when_closed
+    recipe.target << 'abc'
+    recipe.close
     
-    assert_equal 'abc', recipe._result_
+    assert_equal 'abc', recipe.result
   end
 
   #
@@ -217,12 +217,12 @@ echo 'x y z'
   #
 
   def test_recipe_path_evals_the_recipe_file_in_the_context_of_a_new_recipe
-    path = prepare('example.rb') {|io| io << "_target_ << 'content'"}
+    path = prepare('example.rb') {|io| io << "target << 'content'"}
     package.manifest['recipes'] = {'source' => path}
     
     assert_equal '${0%/file}/target', recipe.recipe_path('source', 'target')
     
-    assert_equal "", package.content(recipe._target_name_)
+    assert_equal "", package.content(recipe.target_name)
     assert_equal "content", package.content('target')
   end
   
@@ -266,7 +266,7 @@ echo 'x y z'
   
   def test_capture_path_creates_file_from_recipe_block
     recipe.capture_path('target') { write 'content'}
-    recipe._close_
+    recipe.close
     
     assert_equal 'content', package.content('target')
   end
@@ -278,13 +278,13 @@ echo 'x y z'
         write 'B'
       end
     end
-    recipe._close_
+    recipe.close
     
     assert_equal 'A', package.content('a')
     assert_equal 'B', package.content('b')
   end
   
-  def test_capture_path_updates_target_name_for_block
+  def test_capture_path_updatestarget_namefor_block
     setup_recipe 'recipe' do
       write 'A'
       capture_path('target') do
@@ -292,7 +292,7 @@ echo 'x y z'
       end
       write 'A'
     end
-    recipe._close_
+    recipe.close
     
     assert_equal "AA", package.content('recipe')
     assert_equal "B",  package.content('target')
@@ -305,13 +305,13 @@ echo 'x y z'
   def test_rstrip_rstrips_target_and_returns_stripped_whitespace
     recipe.write " a b \n \t\r\n "
     assert_equal " \n \t\r\n ", recipe.rstrip
-    assert_equal " a b", recipe._result_
+    assert_equal " a b", recipe.result
   end
   
   def test_rstrip_removes_all_whitespace_up_to_start
     recipe.write "  \n "
     assert_equal "  \n ", recipe.rstrip
-    assert_equal "", recipe._result_
+    assert_equal "", recipe.result
   end
   
   def test_rstrip_removes_lots_of_whitespace
@@ -323,21 +323,21 @@ echo 'x y z'
     
     expected = (" " * 10) + ("\t" * 10) + ("\n" * 10) + (" " * 10)
     assert_equal expected, recipe.rstrip
-    assert_equal "a b", recipe._result_
+    assert_equal "a b", recipe.result
   end
   
   #
-  # _indent_ test
+  # indent test
   #
 
-  def test__indent__documentation
+  def test_indent_documentation
     setup_recipe do
       writeln 'a'
-      _indent_ do
+      indent do
         writeln 'b'
-        _outdent_ do
+        outdent do
           writeln 'c'
-          _indent_ do
+          indent do
             writeln 'd'
           end
           writeln 'c'
@@ -355,10 +355,10 @@ c
 c
   b
 a
-}, "\n" + recipe._result_
+}, "\n" + recipe.result
   end
 
-  def test__indent__indents_target_output_during_block
+  def test_indent_indents_target_output_during_block
     assert_recipe %q{
       a
         b
@@ -366,7 +366,7 @@ a
       a
     } do
       writeln 'a'
-      _indent_ do
+      indent do
         writeln 'b'
         writeln 'b'
       end
@@ -374,7 +374,7 @@ a
     end
   end
 
-  def test__indent__allows_specification_of_indent
+  def test_indent_allows_specification_of_indent
     assert_recipe %q{
       a
       .b
@@ -382,7 +382,7 @@ a
       a
     } do
       writeln 'a'
-      _indent_('.') do
+      indent('.') do
         writeln 'b'
         writeln 'b'
       end
@@ -400,9 +400,9 @@ a
       a
     } do
       writeln 'a'
-      _indent_ do
+      indent do
         writeln 'b'
-        _indent_ do
+        indent do
           writeln 'c'
           writeln 'c'
         end
@@ -413,16 +413,16 @@ a
   end
 
   #
-  # _outdent_ test
+  # outdent test
   #
 
-  def test__outdent__does_nothing_outside_of_indent
+  def test_outdent_does_nothing_outside_of_indent
     assert_recipe %q{
       a
        b
         c
     } do
-      _outdent_ do
+      outdent do
         writeln 'a'
         writeln ' b'
         writeln '  c'
@@ -430,7 +430,7 @@ a
     end
   end
 
-  def test__outdent__strips_the_current_indentation_off_of_a_section
+  def test_outdent_strips_the_current_indentation_off_of_a_section
     assert_recipe %q{
       a
       +b
@@ -446,15 +446,15 @@ a
       a
     } do
       writeln 'a'
-      _indent_('+') do
+      indent('+') do
         writeln 'b'
-        _outdent_ do
+        outdent do
           writeln 'c'
-          _indent_('-') do
+          indent('-') do
             writeln 'x'
-            _indent_('-') do
+            indent('-') do
               writeln 'y'
-              _outdent_ do
+              outdent do
                 writeln 'z'
                 writeln 'z'
               end
