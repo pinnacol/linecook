@@ -1,3 +1,8 @@
+== 0.19.1 2011/03/15
+
+* updated the functionality of Recipe#rewrite
+* removed Recipe#rewriteln
+
 == 0.19.0 2011/03/15
 
 * optimizations for helpers
