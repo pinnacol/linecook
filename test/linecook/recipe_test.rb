@@ -388,21 +388,32 @@ echo 'x y z'
   # rewrite test
   #
   
-  def test_rewrite_truncates_results_at_first_match_of_pattern
+  def test_rewrite_truncates_results_at_first_match_of_pattern_and_returns_match
     setup_recipe do
       write 'abcabcabc'
-      rewrite(/ca/)
+      match = rewrite(/ca/)
+      write '.'
+      write match[0].upcase
     end
     
-    assert_equal "ab", recipe.result
+    assert_equal "ab.CA", recipe.result
   end
   
-  def test_rewrite_yield_match_to_block
+  def test_rewrite_returns_nil_for_non_matching_pattern
+    setup_recipe do
+      write 'abc'
+      match = rewrite(/xyz/)
+      write '.'
+      write match.inspect
+    end
+    
+    assert_equal "abc.nil", recipe.result
+  end
+  
+  def test_rewrite_yield_match_to_block_and_returns_block_result
     setup_recipe do
       write 'abcabcabc'
-      rewrite(/ca/) do |match|
-        write match[0].upcase
-      end
+      write rewrite(/ca/) {|match| match[0].upcase }
     end
     
     assert_equal "abCA", recipe.result

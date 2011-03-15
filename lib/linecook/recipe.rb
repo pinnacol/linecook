@@ -207,8 +207,9 @@ module Linecook
       self
     end
     
-    # Truncates the contents of target starting at the first match of pattern.
-    # If a block is given the match is provided to it.
+    # Truncates the contents of target starting at the first match of pattern
+    # and returns the resulting match data. If a block is given then rewrite
+    # yields the match data to the block and returns the block result.
     # 
     # ==== Notes
     #
@@ -225,20 +226,16 @@ module Linecook
         start = match.begin(0)
         target.pos = start
         target.truncate start
-        
-        if block_given?
-          yield(match)
-        end
       end
       
-      self
+      block_given? ? yield(match) : match
     end
     
     # Strips whitespace from the end of target and returns the stripped
     # whitespace, or an empty string if no whitespace is available.
     def rstrip
-      rewrite(/\s+\z/) {|match| return match[0] }
-      return ''
+      match = rewrite(/\s+\z/)
+      match ? match[0] : ''
     end
     
     # Indents the output of the block.  Indents may be nested. To prevent a
