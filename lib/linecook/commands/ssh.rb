@@ -3,7 +3,7 @@ require 'linecook/commands/vbox_command'
 module Linecook
   module Commands
     
-    # ::desc ssh to a vm
+    # :startdoc::desc ssh to a vm
     #
     # Connects to a virtual machine using ssh, as configured in config/ssh.
     # 

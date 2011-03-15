@@ -3,7 +3,7 @@ require 'linecook/commands/vbox_command'
 module Linecook
   module Commands
     
-    # ::desc start a vm
+    # :startdoc::desc start a vm
     #
     # Starts one or more VirtualBox virtual machines, and resets to a snapshot
     # if provided. By default all virtual machines configured in config/ssh

@@ -3,7 +3,7 @@ require 'linecook/commands/vbox_command'
 module Linecook
   module Commands
     
-    # ::desc stop a vm
+    # :startdoc::desc stop a vm
     #
     # Stops one or more VirtualBox virtual machines using 'poweroff'.  By
     # default all virtual machines configured in config/ssh will be stopped.

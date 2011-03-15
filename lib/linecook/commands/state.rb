@@ -3,7 +3,7 @@ require 'linecook/commands/vbox_command'
 module Linecook
   module Commands
     
-    # ::desc print the vm state
+    # :startdoc::desc print the vm state
     #
     # Prints the state of one or more VirtualBox virtual machines. By default
     # all virtual machines configured in config/ssh will print their state.

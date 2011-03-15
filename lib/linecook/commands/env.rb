@@ -5,7 +5,7 @@ require 'yaml'
 module Linecook
   module Commands
     
-    # ::desc prints a package env
+    # :startdoc::desc prints a package env
     #
     # Prints the env for the current project directory.  Specifically the
     # cookbook file is loaded and used to determine all resources that are

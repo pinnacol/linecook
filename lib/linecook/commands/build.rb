@@ -4,7 +4,7 @@ require 'linecook/commands/package'
 module Linecook
   module Commands
     
-    # ::desc build a project
+    # :startdoc::desc build a project
     #
     # Builds some or all packages and helpers in a project, as needed.
     #

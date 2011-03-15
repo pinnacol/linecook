@@ -4,7 +4,7 @@ require 'tempfile'
 module Linecook
   module Commands
     
-    # ::desc share a vm folder using sshfs
+    # :startdoc::desc share a vm folder using sshfs
     #
     # Sets up shared folder using sshfs. By default all hosts configured in
     # config/ssh will share their remote_dir into the vm/host local

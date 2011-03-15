@@ -3,7 +3,7 @@ require 'linecook/commands/vbox_command'
 module Linecook
   module Commands
     
-    # ::desc take a vm snapshop
+    # :startdoc::desc take a vm snapshop
     #
     # Takes the specified snapshot of one or more VirtualBox virtual machines.
     # By default all virtual machines configured in config/ssh will have a

@@ -4,7 +4,7 @@ require 'linecook/commands/build'
 module Linecook
   module Commands
     
-    # ::desc 
+    # :startdoc::desc run packages
     class Run < Command
       RUN_SCRIPT = File.expand_path('../../../../bin/linecook_run', __FILE__)
       SCP_SCRIPT = File.expand_path('../../../../bin/linecook_scp', __FILE__)

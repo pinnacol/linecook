@@ -7,7 +7,7 @@ require 'yaml'
 module Linecook
   module Commands
     
-    # ::desc generates a package
+    # :startdoc::desc generates a package
     #
     # Generates the package specified at
     # 'project_dir/packages/package_name.yml'.  The package file should be a
