@@ -212,10 +212,10 @@ module Linecook
     # 
     # ==== Notes
     #
-    # Rewrite can be computationally expensive because it requires the current
-    # target be flushed, rewound, and read in it's entirety.  In practice the
-    # performance of rewrite is almost never an issue because recipes output
-    # is usually small in size.
+    # Rewrites can be computationally expensive because they require the
+    # current target to be flushed, rewound, and read in it's entirety.  In
+    # practice the performance of rewrite is almost never an issue because
+    # recipe output is usually small in size.
     #
     # If performance becomes an issue, then wrap the rewritten bits in a
     # capture block to reassign the current target to a StringIO (which is
@@ -232,15 +232,6 @@ module Linecook
       end
       
       self
-    end
-    
-    # Truncates the contents of target to remove the last non-empty line.
-    # Yields the last line and and all trailing whitespace to the block, if
-    # given, and writes the block results back to target.
-    def rewriteln # :yields: line, whitespace
-      rewrite(/([^\n]+)(\s*)\z/) do |match|
-        block_given? ? yield(match[1], match[2]) : nil
-      end
     end
     
     # Strips whitespace from the end of target and returns the stripped

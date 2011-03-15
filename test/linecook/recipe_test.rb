@@ -409,30 +409,6 @@ echo 'x y z'
   end
   
   #
-  # rewriteln test
-  #
-  
-  def test_rewriteln_truncates_results_at_the_last_non_empty_line
-    setup_recipe do
-      write "a\nb\nc\n\n\n"
-      rewriteln
-    end
-    
-    assert_equal "a\nb\n", recipe.result
-  end
-  
-  def test_rewriteln_yields_match_to_block_for_rewrite
-    setup_recipe do
-      write "a\nb\nc\n\n\n"
-      rewriteln do |line, ws|
-        write "#{line.upcase}#{ws.length}"
-      end
-    end
-    
-    assert_equal "a\nb\nC3", recipe.result
-  end
-  
-  #
   # capture_block test
   #
   
