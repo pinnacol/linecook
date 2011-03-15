@@ -74,7 +74,7 @@ end
 # Linecook Helpers
 #
 
-package = ENV['package']
+package = ENV['PACKAGE']
 force = (ENV['FORCE'] == 'true')
 
 desc "build helpers and packages"
