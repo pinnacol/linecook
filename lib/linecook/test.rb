@@ -81,6 +81,10 @@ module Linecook
       end
     end
     
+    def remote_dir
+      method_dir[(user_dir.length + 1)..-1]
+    end
+    
     def ssh_config_file
       method_ssh_config_file = path('config/ssh')
       File.file?(method_ssh_config_file) ? method_ssh_config_file : 'config/ssh'
@@ -183,7 +187,7 @@ module Linecook
       options = {
         'ssh_config_file' => ssh_config_file,
         'project_dir'     => method_dir,
-        'remote_dir'      => method_dir[(user_dir.length + 1)..-1],
+        'remote_dir'      => remote_dir,
         'quiet'           => true,
       }.merge(options)
       
