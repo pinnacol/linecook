@@ -171,7 +171,9 @@ class HelperCommandTest < Test::Unit::TestCase
           end
           
           def _a(*args, &block) # :nodoc:
-            capture_block { a(*args, &block) }.strip!
+            str = capture_block { a(*args, &block) }
+            str.strip!
+            str
           end
         end
       end
@@ -218,7 +220,9 @@ class HelperCommandTest < Test::Unit::TestCase
           end
           
           def _a(*args, &block) # :nodoc:
-            capture_block { a(*args, &block) }.strip!
+            str = capture_block { a(*args, &block) }
+            str.strip!
+            str
           end
           
           foot
@@ -302,25 +306,35 @@ class HelperCommandTest < Test::Unit::TestCase
   end
   
   def test_generated_helpers_allow_capture
-    echo_def = prepare('echo.erb') do |io| 
+    ws_def = prepare('ws.rb') do |io| 
       io.puts outdent(%q{
-      (*args)
+      (str)
       --
-      echo <%= args.join(' ') %>
+      writeln str
+      })
+    end
+    
+    no_ws_def = prepare('no_ws.rb') do |io| 
+      io.puts outdent(%q{
+      (str)
+      --
+      write str
       })
     end
     
     helper_file = prepare('helper.rb') do |io|
-      io << cmd.build("HelperCommandTestModules::CaptureHelper", [echo_def])
+      io << cmd.build("HelperCommandTestModules::CaptureHelper", [ws_def, no_ws_def])
     end
     
     load helper_file
     use_helpers ::HelperCommandTestModules::CaptureHelper
     
     assert_recipe %q{
-      ECHO A B C
+      ABC
+      XYZ
     } do
-      writeln _echo('a', 'b', 'c').upcase
+      writeln _ws('abc').upcase
+      writeln _no_ws('xyz').upcase
     end
   end
 end
