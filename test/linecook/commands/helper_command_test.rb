@@ -300,4 +300,27 @@ class HelperCommandTest < Test::Unit::TestCase
       end
     end
   end
+  
+  def test_generated_helpers_allow_capture
+    echo_def = prepare('echo.erb') do |io| 
+      io.puts outdent(%q{
+      (*args)
+      --
+      echo <%= args.join(' ') %>
+      })
+    end
+    
+    helper_file = prepare('helper.rb') do |io|
+      io << cmd.build("HelperCommandTestModules::CaptureHelper", [echo_def])
+    end
+    
+    load helper_file
+    use_helpers ::HelperCommandTestModules::CaptureHelper
+    
+    assert_recipe %q{
+      ECHO A B C
+    } do
+      writeln _echo('a', 'b', 'c').upcase
+    end
+  end
 end
