@@ -397,11 +397,11 @@ echo 'x y z'
     assert_equal "ab", recipe.result
   end
   
-  def test_rewrite_yield_match_to_block_and_re_writes_block_result
+  def test_rewrite_yield_match_to_block
     setup_recipe do
       write 'abcabcabc'
       rewrite(/ca/) do |match|
-        match[0].upcase
+        write match[0].upcase
       end
     end
     
@@ -425,7 +425,7 @@ echo 'x y z'
     setup_recipe do
       write "a\nb\nc\n\n\n"
       rewriteln do |line, ws|
-        "#{line.upcase}#{ws.length}"
+        write "#{line.upcase}#{ws.length}"
       end
     end
     

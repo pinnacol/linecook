@@ -208,13 +208,18 @@ module Linecook
     end
     
     # Truncates the contents of target starting at the first match of pattern.
-    # If a block is given the match is provided to it and the block output is
-    # re-written to self.
+    # If a block is given the match is provided to it.
     # 
+    # ==== Notes
+    #
     # Rewrite can be computationally expensive because it requires the current
-    # target be flushed, rewound, and read in it's entirety.  Practically it's
-    # almost never an issue, but if you need better performance try wrapping
-    # the rewritten bits in a capture block.
+    # target be flushed, rewound, and read in it's entirety.  In practice the
+    # performance of rewrite is almost never an issue because recipes output
+    # is usually small in size.
+    #
+    # If performance becomes an issue, then wrap the rewritten bits in a
+    # capture block to reassign the current target to a StringIO (which is
+    # much faster to rewrite), and to limit the scope of the rewritten text.
     def rewrite(pattern)
       if match = pattern.match(result)
         start = match.begin(0)
@@ -222,8 +227,7 @@ module Linecook
         target.truncate start
         
         if block_given?
-          rewrite = yield(match)
-          write rewrite if rewrite
+          yield(match)
         end
       end
       
