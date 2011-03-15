@@ -473,6 +473,12 @@ echo 'x y z'
     assert_equal " a b", recipe.result
   end
   
+  def test_rstrip_returns_empty_string_if_no_whitespace_is_available_to_be_stripped
+    recipe.write "a b"
+    assert_equal "", recipe.rstrip
+    assert_equal "a b", recipe.result
+  end
+  
   def test_rstrip_removes_all_whitespace_up_to_start
     recipe.write "  \n "
     assert_equal "  \n ", recipe.rstrip

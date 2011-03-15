@@ -240,9 +240,10 @@ module Linecook
     end
     
     # Strips whitespace from the end of target and returns the stripped
-    # whitespace.
+    # whitespace, or an empty string if no whitespace is available.
     def rstrip
       rewrite(/\s+\z/) {|match| return match[0] }
+      return ''
     end
     
     # Indents the output of the block.  Indents may be nested. To prevent a
