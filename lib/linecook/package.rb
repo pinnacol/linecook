@@ -61,6 +61,8 @@ module Linecook
       @counters = Hash.new(0)
     end
     
+    # Returns the linecook context in env, as keyed by CONTEXT_KEY. Defaults
+    # to an empty hash.
     def context
       env[CONTEXT_KEY] ||= {}
     end
