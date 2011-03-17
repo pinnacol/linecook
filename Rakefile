@@ -136,3 +136,19 @@ task :rcov do
   ENV['RCOV'] = 'true'
   Rake::Task["test"].invoke
 end
+
+desc 'Run the benchmarks assuming the vm is running'
+task :quickbench => :bundle do
+  benchmarks = Dir.glob('benchmark/**/*_bench.rb')
+  sh('ruby', '-w', '-e', 'ARGV.dup.each {|test| load test}', *benchmarks)
+end
+
+desc 'Run the benchmarks'
+task :benchmark do
+  begin
+    Rake::Task["start"].invoke
+    Rake::Task["quickbench"].invoke
+  ensure
+    Rake::Task["stop"].execute(nil)
+  end
+end
