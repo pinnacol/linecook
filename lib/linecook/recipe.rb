@@ -196,6 +196,12 @@ module Linecook
       target
     end
     
+    # Captures and returns output for the duration of a block by redirecting
+    # target to a temporary buffer.
+    def capture_str(&block)
+      capture_block(&block).string
+    end
+    
     # Writes input to target using 'write'.  Returns self.
     def write(input)
       target.write input

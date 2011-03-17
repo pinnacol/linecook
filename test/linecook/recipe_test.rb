@@ -451,6 +451,21 @@ echo 'x y z'
   end
   
   #
+  # capture_str test
+  #
+  
+  def test_capture_str_captures_block_and_returns_output
+    setup_recipe do
+      write 'a'
+      str = capture_str { write 'b' }
+      write str.upcase
+      write 'c'
+    end
+    
+    assert_equal "aBc", recipe.result
+  end
+  
+  #
   # rstrip test
   #
   
