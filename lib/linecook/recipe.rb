@@ -198,8 +198,8 @@ module Linecook
     
     # Captures and returns output for the duration of a block by redirecting
     # target to a temporary buffer.
-    def capture_str(&block)
-      capture_block(&block).string
+    def capture_str
+      capture_block { yield }.string
     end
     
     # Writes input to target using 'write'.  Returns self.
@@ -276,9 +276,9 @@ module Linecook
     #   # a
     #   # }
     #
-    def indent(indent='  ', &block)
+    def indent(indent='  ')
       @indents << @indents.last.to_s + indent
-      str = capture_block(&block).string
+      str = capture_str { yield }
       @indents.pop
 
       unless str.empty?
@@ -351,9 +351,9 @@ module Linecook
     end
     
     # Captures a block of output and concats to the named callback.
-    def callback(name, &block)
+    def callback(name)
       target = _package_.callbacks[name]
-      capture_block(target, &block)
+      capture_block(target) { yield }
     end
     
     # Writes the specified callback to the current target.
