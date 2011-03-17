@@ -357,15 +357,15 @@ echo 'x y z'
   #
   
   def test_write_writes_to_current_target
-    str = nil
+    target = StringIO.new
     setup_recipe do
       write 'a'
-      str = capture_block { write 'b'}
+      capture_block(target) { write 'b'}
       write 'c'
     end
     
     assert_equal "ac", recipe.result
-    assert_equal "b", str
+    assert_equal "b", target.string
   end
   
   #
@@ -373,15 +373,15 @@ echo 'x y z'
   #
   
   def test_writeln_puts_to_current_target
-    str = nil
+    target = StringIO.new
     setup_recipe do
       writeln 'a'
-      str = capture_block { writeln 'b'}
+      capture_block(target) { writeln 'b'}
       writeln 'c'
     end
     
     assert_equal "a\nc\n", recipe.result
-    assert_equal "b\n", str
+    assert_equal "b\n", target.string
   end
   
   #

@@ -165,7 +165,7 @@ module Linecook
     # are updated for the duration of the block.
     def capture_path(target_name, mode=0600)
       tempfile = _package_.setup_tempfile(target_name, mode)
-      tempfile << capture_block do
+      capture_block(tempfile) do
         current = @target_name
         
         begin
@@ -181,19 +181,19 @@ module Linecook
       target_path target_name
     end
     
-    # Captures and returns output for the duration of a block by redirecting
-    # target to a temporary buffer.
-    def capture_block
-      current, redirect = @target, StringIO.new
-      
+    # Captures output to the target for the duration of a block.  Returns the
+    # capture target.
+    def capture_block(target=StringIO.new)
+      current = @target
+
       begin
-        @target = redirect
+        @target = target
         yield
       ensure
         @target = current
       end
-      
-      redirect.string
+
+      target
     end
     
     # Writes input to target using 'write'.  Returns self.
@@ -272,7 +272,7 @@ module Linecook
     #
     def indent(indent='  ', &block)
       @indents << @indents.last.to_s + indent
-      str = capture_block(&block)
+      str = capture_block(&block).string
       @indents.pop
 
       unless str.empty?
@@ -345,17 +345,9 @@ module Linecook
     end
     
     # Captures a block of output and concats to the named callback.
-    def callback(name)
-      current, redirect = @target, _package_.callbacks[name]
-      
-      begin
-        @target = redirect
-        yield
-      ensure
-        @target = current
-      end
-      
-      redirect.string
+    def callback(name, &block)
+      target = _package_.callbacks[name]
+      capture_block(target, &block)
     end
     
     # Writes the specified callback to the current target.
