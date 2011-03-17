@@ -1,7 +1,7 @@
 module Linecook
   MAJOR = 0
-  MINOR = 19
-  TINY  = 1
+  MINOR = 20
+  TINY  = 0
   
   VERSION = "#{MAJOR}.#{MINOR}.#{TINY}"
   WEBSITE = "http://github.com/pinnacol/linecook"

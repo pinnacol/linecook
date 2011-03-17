@@ -1,3 +1,10 @@
+== 0.20.0 2011/03/17
+
+* added callback support
+* changed capture_block to accept capture target, and to return
+  the target (not the target output)
+* added capture_str to replace capture_block functionality
+
 == 0.19.1 2011/03/15
 
 * updated the functionality of Recipe#rewrite
