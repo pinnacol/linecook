@@ -55,10 +55,14 @@ module Linecook
     # A hash of counters used by variable.
     attr_reader :counters
     
+    # A hash of callbacks registered with self
+    attr_reader :callbacks
+    
     def initialize(env={})
       @env = env
       @tempfiles = []
-      @counters = Hash.new(0)
+      @counters  = Hash.new(0)
+      @callbacks = Hash.new {|hash, key| hash[key] = StringIO.new }
     end
     
     # Returns the linecook context in env, as keyed by CONTEXT_KEY. Defaults
@@ -320,11 +324,20 @@ module Linecook
       self
     end
     
-    # Closes and clears all tempfiles, the registry, and counters.
+    # Returns an array of callbacks with non-whitespace content.
+    def unused_callbacks
+      callbacks.keys.select do |key|
+        callback = callbacks[key]
+        !callback.string.strip.empty?
+      end.sort
+    end
+    
+    # Closes and clears all tempfiles, the registry, callbacks, and counters.
     def reset
       close
-      tempfiles.clear
       registry.clear
+      tempfiles.clear
+      callbacks.clear
       counters.clear
       self
     end
@@ -336,6 +349,11 @@ module Linecook
     # Returns registry, which is re-written to reflect the new source paths.
     def export(dir, options={})
       close
+      
+      callback_keys = unused_callbacks
+      unless callback_keys.empty?
+        raise "cannot export with unused callbacks: #{callback_keys.inspect}"
+      end
       
       options = {
         :allow_move => true

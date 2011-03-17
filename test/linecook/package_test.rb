@@ -307,8 +307,41 @@ class PackageTest < Test::Unit::TestCase
   end
   
   #
+  # reset test
+  #
+  
+  def test_reset_clears_callbacks
+    package.callbacks['a'].puts "content"
+    
+    package.reset
+    assert_equal true, package.callbacks.empty?
+  end
+  
+  #
+  # unused_callbacks test
+  #
+  
+  def test_unused_callbacks_returns_array_of_callback_keys_with_non_whitespace_content
+    assert_equal [], package.unused_callbacks
+    
+    package.callbacks['a'].puts "content"
+    package.callbacks['b'].puts "content"
+    package.callbacks['c'].puts "  \t \n\n"
+    
+    assert_equal ['a', 'b'], package.unused_callbacks
+  end
+  
+  #
   # export test
   #
+  
+  def test_export_raises_error_on_unused_callbacks
+    before = package.callbacks['before']
+    before.puts "content"
+    
+    err = assert_raises(RuntimeError) { package.export path('export/dir') }
+    assert_equal 'cannot export with unused callbacks: ["before"]', err.message
+  end
   
   def test_export_copies_source_files_to_dir_as_specified_in_registry
     original_source = prepare('example') {|io| io << 'content'}
