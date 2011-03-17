@@ -324,14 +324,6 @@ module Linecook
       self
     end
     
-    # Returns an array of callbacks with non-whitespace content.
-    def unused_callbacks
-      callbacks.keys.select do |key|
-        callback = callbacks[key]
-        !callback.string.strip.empty?
-      end.sort
-    end
-    
     # Closes and clears all tempfiles, the registry, callbacks, and counters.
     def reset
       close
@@ -349,11 +341,6 @@ module Linecook
     # Returns registry, which is re-written to reflect the new source paths.
     def export(dir, options={})
       close
-      
-      callback_keys = unused_callbacks
-      unless callback_keys.empty?
-        raise "cannot export with unused callbacks: #{callback_keys.inspect}"
-      end
       
       options = {
         :allow_move => true

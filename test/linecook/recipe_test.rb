@@ -627,4 +627,51 @@ a
       writeln 'a'
     end
   end
+  
+  #
+  # write_callback test
+  #
+  
+  def test_write_callback_writes_callback
+    package.callbacks['cb'].puts 'content'
+    
+    assert_recipe %{
+      content
+    } do
+      write_callback 'cb'
+    end
+  end
+  
+  def test_write_callback_may_be_used_multiple_times
+    package.callbacks['cb'].puts 'content'
+    
+    assert_recipe %{
+      content
+      content
+    } do
+      write_callback 'cb'
+      write_callback 'cb'
+    end
+  end
+  
+  #
+  # callback test
+  #
+  
+  def test_callback_captures_block_to_named_callback
+    assert_recipe %{
+      acebd
+    } do
+      write 'a'
+      callback 'cb' do
+        write 'b'
+      end
+      write 'c'
+      callback 'cb' do
+        writeln 'd'
+      end
+      write 'e'
+      write_callback 'cb'
+    end
+  end
 end

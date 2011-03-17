@@ -2,6 +2,7 @@ require 'linecook/attributes'
 require 'linecook/proxy'
 require 'linecook/utils'
 require 'erb'
+require 'stringio'
 
 module Linecook
   # Recipe is the context in which recipes are evaluated (literally).  Recipe
@@ -341,6 +342,25 @@ module Linecook
     def chain_proxy
       @chain = false
       _proxy_
+    end
+    
+    # Captures a block of output and concats to the named callback.
+    def callback(name)
+      current, redirect = @target, _package_.callbacks[name]
+      
+      begin
+        @target = redirect
+        yield
+      ensure
+        @target = current
+      end
+      
+      redirect.string
+    end
+    
+    # Writes the specified callback to the current target.
+    def write_callback(name)
+      write _package_.callbacks[name].string
     end
   end
 end
