@@ -4,102 +4,95 @@ A shell script generator.
 
 == Description
 
-Linecook generates shell scripts using an extensible set of tiny ERB helpers.
-The shell scripts and associated resources (files, subscripts, etc) make up
+Linecook generates shell scripts using an extensible set of ERB helpers. The
+shell scripts and associated resources (files, subscripts, etc) make up
 packages that can be used, for example, to provision servers.
 
 The workflow is like this:
 
 * define helpers
 * write recipes using the helpers
-* generate packages from the recipes
+* generate script packages from the recipes
 
 Linecook provides a command-line tool for generating helpers, packages, and
-for running a test vm. Helpers and recipes can be shared as gems; the basic
-shell helpers are available through
-{Linebook}[http://http://rubygems.org/gems/linebook/].
+for running a development vm using {VirtualBox}[http://www.virtualbox.org].
+Helpers and recipes can be shared as gems; the canonical shell helpers are
+available through {Linebook}[http://rubygems.org/gems/linebook/].
+
+See the documentation for an end-to-end {demo}[link:files/doc/Demo.html].
 
 == Usage
 
 Generate a cookbook.
 
-  % linecook init example
-  % cd example
+  % linecook init chalkboard
+  % cd chalkboard
 
-Make some helpers.
+Make a helper.
 
-  [helpers/example/-head.rb]
-  COLOR_CODES = Hash[*%W{
-    black       0;30   red         0;31
-    white       1;37   green       0;32
-    light_gray  0;37   blue        0;34
-  }]
-  
-  [helpers/example/color.erb]
-  Adds color to a string.
+  [helpers/chalkboard/echo_in_color.erb]
+  Echo a string in color.
   (color, str)
+    color_codes = Hash[*%W{
+      black       0;30   red         0;31
+      white       1;37   green       0;32
+      light_gray  0;37   blue        0;34
+    }]
   --
-  \033[<%= COLOR_CODES[color.to_s] %>m<%= str %>\033[0m
-  
-  [helpers/example/echo.erb]
-  Echo a string in color
-  (str, options={})
-  color = options[:color]
-  --
-  echo -e '<%= color ? _color(color, str) : str %>'
+  echo -e '\033[<%= color_codes[color.to_s] %>m<%= str %>\033[0m'
 
 Define default attributes.
 
-  [attributes/example.rb]
-  attrs['example']['n'] = 3
-  attrs['example']['color'] = 'blue'
+  [attributes/chalkboard.rb]
+  attrs['chalkboard']['n'] = 3
+  attrs['chalkboard']['color'] = 'white'
+  attrs['chalkboard']['message'] = 'I will not manually configure my server'
 
-Use them in a recipe.
+Use both in a recipe.
 
-  [recipes/example.rb]
-  helpers "example"
-  attributes "example"
+  [recipes/chalkboard.rb]
+  helpers "chalkboard"
+  attributes "chalkboard"
   
-  attrs['example']['n'].times do
-    echo "I will not manually configure my server", :color => attrs['example']['color']
+  attrs['chalkboard']['n'].times do
+    echo_in_color attrs['chalkboard']['color'], attrs['chalkboard']['message']
   end
 
-Define a package that uses the recipe.
+Define a package to use the recipe; set non-default attributes as needed.
 
-  [packages/example.yml]
-  linecook:
-    package:
-      recipes: [example]
-  example:
-    n: 100
+  [packages/chalkboard.yml]
+  chalkboard:
+    n: 5
+    color: blue
 
-Generate a package from the helpers, attributes, and recipe. The result will
-be a helper module in the 'lib' directory, generated from the definitions
-under the 'helpers' directory, and a package under the packages directory,
-generated from the example.yml file.
+Generate the package from the helpers, attributes, and recipe.
 
-  % rake build
+  % linecook build
 
-Start the VM and run the script in the package (see the docs for {setting up a
-VM}[link:files/doc/VM%20Setup.html]).
+Check the package directory to inspect the resulting script.
 
-  % linecook start
-  % linecook share vbox
-  % linecook ssh 
-  vm: bash /vbox/packages/example/example
-  vm: exit
+  % cat packages/chalkboard/run
+  echo -e '\033[0;34mI will not manually configure my server\033[0m'
+  echo -e '\033[0;34mI will not manually configure my server\033[0m'
+  echo -e '\033[0;34mI will not manually configure my server\033[0m'
+  echo -e '\033[0;34mI will not manually configure my server\033[0m'
+  echo -e '\033[0;34mI will not manually configure my server\033[0m'
 
-Stop the VM.
+Run the package.
 
-  % linecook stop
+  % linecook run
+
+The package can be run on any server accessible via ssh but runs locally (ie
+on localhost) by default. See the generated 'config/ssh' file as well as the
+documentation for {setting up a VM}[link:files/doc/VM%20Setup.html].
 
 == Installation
 
-Linecook is available as a gem on {Gemcutter}[http://gemcutter.org/gems/linecook]
+Linecook is available as a {gem}[http://rubygems.org/gems/linecook].
 
   % gem install linecook
 
 == Info 
 
-Developer:: {Simon Chiang}[http://bahuvrihi.wordpress.com]
+Developer:: {Simon Chiang}[http://github.com/thinkerbot]
 License:: {MIT-Style}[link:files/License_txt.html]
