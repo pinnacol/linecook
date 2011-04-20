@@ -93,18 +93,13 @@ Setup a ssh config file:
   ControlMaster auto
   ControlPath /tmp/socket-%r@%h:%p
 
-Now you can control the box via these linecook commands. Note the share
-command only works if you have sshfs set up (see the {Shared
-Folders}[link:files/doc/doc/Shared%20Folders.html] docs):
+Now you can control the box via these linecook commands.
 
   # start the vm to a known snapshot
   linecook start --snapshot current
   
   # build, transfer, run, and test packages
   linecook run
-  
-  # setup an sshfs share (optional)
-  linecook share
   
   # checkout the results
   linecook ssh
