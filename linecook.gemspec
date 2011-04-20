@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.name = 'linecook'
   s.version = Linecook::VERSION
   s.author  = 'Simon Chiang'
-  s.email   = 'simon.chiang@pinnacol.com'
+  s.email   = 'simon.a.chiang@gmail.com'
   s.summary = 'A shell script generator.'
   s.homepage = Linecook::WEBSITE
   s.rubyforge_project = ''
