@@ -28,7 +28,7 @@ module Linecook
         if package_file
           package.context[PACKAGE_KEY] ||= begin
             name = File.basename(package_file).chomp(File.extname(package_file)) 
-            {'recipes' => { 'run' => name, 'test' => "#{name}_test"}}
+            {'recipes' => { 'run' => name }}
           end
         end
         

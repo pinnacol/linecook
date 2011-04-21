@@ -244,12 +244,6 @@ class TestTest < Test::Unit::TestCase
         io.puts "echo 'run', '#{box}'"
       end
 
-      prepare("recipes/#{box}_test.rb") do |io|
-        io.puts "$:.unshift '#{path('lib')}'"
-        io.puts "helpers 'project_test_helper'"
-        io.puts "echo 'test', '#{box}'"
-      end
-
       prepare("packages/#{box}.yml") {}
     end
 
@@ -260,8 +254,6 @@ class TestTest < Test::Unit::TestCase
     assert_output_equal %q{
       run abox
       run bbox
-      test abox
-      test bbox
     }, stdout, msg
     assert_equal 0, $?.exitstatus, msg
   end
@@ -275,7 +267,6 @@ class TestTest < Test::Unit::TestCase
     stdout, msg = run_project
     assert_output_equal %q{
       run
-      test
     }, stdout, msg
     assert_equal 1, $?.exitstatus, msg
   end

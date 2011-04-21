@@ -38,7 +38,7 @@ module Linecook
       def source(runlist)
         case runlist
         when nil
-          " <<DOC\nrun\ntest\nDOC"
+          " <<DOC\nrun\nDOC"
         when '-'
           nil
         else

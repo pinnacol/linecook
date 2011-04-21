@@ -39,17 +39,11 @@ class PackageCommandTest < Test::Unit::TestCase
       io << 'write "run content"'
     end
     
-    prepare('recipes/vbox_test.rb') do |io|
-      io << 'write "test content"'
-    end
-    
     package_file = prepare('packages/vbox.yml') {}
     
     Dir.chdir(method_dir) do
       package_dir = cmd.process(package_file)
-      
       assert_equal "run content", File.read("#{package_dir}/run")
-      assert_equal "test content", File.read("#{package_dir}/test")
     end
   end
 end
