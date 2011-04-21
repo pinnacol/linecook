@@ -167,7 +167,7 @@ module Linecook
     end
     
     def run_package(options={}, host=self.host)
-      options['runlist'] ||= prepare('runlist') {|io| io.puts runlist.join("\n") }
+      options['remote_script'] ||= runlist.join(',')
       
       build_package host
       run_project options, host

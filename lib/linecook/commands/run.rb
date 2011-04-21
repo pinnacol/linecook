@@ -14,12 +14,23 @@ module Linecook
       config :ssh_config_file, 'config/ssh', :short => :F    # the ssh config file
       config :quiet, false, :short => :q, &c.flag            # silence output
       config :transfer, true, &c.switch                      # transfer package (or not)
-      config :file, false, &c.flag                           # treat package name as file path
-      config :runlist, nil                                   # specify a runlist ('-' for stdnin)
+      config :remote_scripts, ['run'], 
+        :short => :S, 
+        :long => :remote_script, &c.list                     # the remote script(s)
+      
+      def glob_package_dirs(package_names)
+        if package_names.empty?
+          pattern = File.expand_path('packages/*', project_dir)
+          Dir.glob(pattern).select {|path| File.directory?(path) }
+        else
+          package_names.collect do |package_name|
+            File.expand_path("packages/#{package_name}", project_dir)
+          end
+        end
+      end
       
       def process(*package_names)
-        package_names = glob_package_names(project_dir) if package_names.empty?
-        package_dirs  = collect_package_dirs(package_names)
+        package_dirs  = glob_package_dirs(package_names)
         
         unless remote_dir[0] == ?/
           self.remote_dir = "$(pwd)/#{remote_dir}"
@@ -31,18 +42,13 @@ module Linecook
           'F' => ssh_config_file
         }
         
-        sh! "sh #{SCP_SCRIPT} #{format(opts)} #{package_dirs.join(' ')}" if transfer
-        sh! "sh #{RUN_SCRIPT} #{format(opts)} #{package_dirs.join(' ')}#{source(runlist)}"
-      end
-      
-      def source(runlist)
-        case runlist
-        when nil
-          " <<DOC\nrun\nDOC"
-        when '-'
-          nil
-        else
-          " < '#{runlist}'"
+        if transfer
+          sh! "sh #{SCP_SCRIPT} #{format(opts)} #{package_dirs.join(' ')}"
+        end
+
+        remote_scripts.each do |remote_script|
+          script_opts = {'S' => remote_script}.merge(opts)
+          sh! "sh #{RUN_SCRIPT} #{format(script_opts)} #{package_dirs.join(' ')}"
         end
       end
       
@@ -54,29 +60,6 @@ module Linecook
         end
         
         options.sort.join(' ')
-      end
-      
-      def glob_package_names(project_dir)
-        packages_dir = File.expand_path('packages', project_dir)
-        package_dirs = Dir.glob("#{packages_dir}/*").select {|dir| File.directory?(dir) }
-        
-        unless file
-          package_dirs.collect! do |path|
-            File.basename(path)
-          end
-        end
-        
-        package_dirs
-      end
-      
-      def collect_package_dirs(package_names)
-        package_names.collect do |name|
-          "'#{file ? name : guess_package_dir(name)}'"
-        end
-      end
-      
-      def guess_package_dir(name)
-        File.expand_path("packages/#{name}", project_dir)
       end
     end
   end
