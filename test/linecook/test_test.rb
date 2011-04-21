@@ -222,7 +222,7 @@ class TestTest < Test::Unit::TestCase
     
     assert_alike %{
       % :...:
-      [8] test/linecook/test_test/test_a_package/recipe 
+      [8] $(pwd)/test/linecook/test_test/test_a_package/recipe 
     }, msg
     
     assert_equal 1, $?.exitstatus, msg

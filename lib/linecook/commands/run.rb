@@ -21,6 +21,11 @@ module Linecook
         package_names = glob_package_names(project_dir) if package_names.empty?
         package_dirs  = collect_package_dirs(package_names)
         
+        unless remote_dir[0] == ?/
+          self.remote_dir = "$(pwd)/#{remote_dir}"
+          self.remote_dir.chomp!('/')
+        end
+        
         opts = {
           'D' => remote_dir,
           'F' => ssh_config_file
