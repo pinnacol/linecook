@@ -1,5 +1,5 @@
-Previous[link:files/Tutorial/2%20-%20VM%20Control]
-Next[link:files/Tutorial/4%20-%20Generating%20Scripts]
+Previous[link:files/Tutorial/2%20-%20VM%20Control.html]
+Next[link:files/Tutorial/4%20-%20Generating%20Scripts.html]
 
 = Running Scripts
 
@@ -74,5 +74,5 @@ each host:
   scp -q -r -p -F config/ssh packages/host "host:/tmp/linecook"
   ssh -q -t -t -F config/ssh host -- "/tmp/linecook/SCRIPT ARGS..."
 
-Previous[link:files/Tutorial/2%20-%20VM%20Control]
-Next[link:files/Tutorial/4%20-%20Generating%20Scripts]
+Previous[link:files/Tutorial/2%20-%20VM%20Control.html]
+Next[link:files/Tutorial/4%20-%20Generating%20Scripts.html]

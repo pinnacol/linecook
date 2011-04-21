@@ -1,5 +1,5 @@
-Previous[link:files/Tutorial/0%20-%20Intro]
-Next[link:files/Tutorial/2%20-%20VM%20Control]
+Previous[link:files/Tutorial/0%20-%20Intro.html]
+Next[link:files/Tutorial/2%20-%20VM%20Control.html]
 
 = VM Setup
 
@@ -70,5 +70,5 @@ Now take a base snapshot:
   VBoxManage snapshot abox take BASE
   VBoxManage controlvm abox poweroff
 
-Previous[link:files/Tutorial/0%20-%20Intro]
-Next[link:files/Tutorial/2%20-%20VM%20Control]
+Previous[link:files/Tutorial/0%20-%20Intro.html]
+Next[link:files/Tutorial/2%20-%20VM%20Control.html]

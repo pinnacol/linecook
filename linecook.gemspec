@@ -30,10 +30,10 @@ Gem::Specification.new do |s|
     License.txt
     Tutorial/0\ -\ Intro
     Tutorial/1\ -\ VM\ Setup
-    Tutorial/2\ -\ Running\ Scripts
-    Tutorial/3\ -\ Generating\ Scripts
-    Tutorial/4\ -\ Testing
-    Tutorial/5\ -\ Quickstart
+    Tutorial/2\ -\ VM\ Control
+    Tutorial/3\ -\ Running\ Scripts
+    Tutorial/4\ -\ Generating\ Scripts
+    Tutorial/5\ -\ Testing
   }
   
   # list the files you want to include here.

@@ -57,7 +57,7 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_files.include( files )
 end
 
-desc "setup tutorial pagination links"
+desc "Setup pagination links for tutorial"
 task :paginate_tutorial do
   pages = Dir.glob File.expand_path('../Tutorial/*', __FILE__)
   pages.each_with_index do |page, index|
@@ -67,8 +67,8 @@ task :paginate_tutorial do
     previous_page = pages[index - 1]
     next_page = pages[index + 1] || pages[0]
     
-    links =  "Previous[link:files/Tutorial/#{File.basename(previous_page).gsub(/\s/, '%20')}]\n"
-    links += "Next[link:files/Tutorial/#{File.basename(next_page).gsub(/\s/, '%20')}]\n"
+    links =  "Previous[link:files/Tutorial/#{File.basename(previous_page).gsub(/\s/, '%20')}.html]\n"
+    links += "Next[link:files/Tutorial/#{File.basename(next_page).gsub(/\s/, '%20')}.html]\n"
     
     File.open(page, 'w') do |io|
       io.puts links
