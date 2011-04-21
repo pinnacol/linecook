@@ -1,0 +1,110 @@
+Previous[link:files/Tutorial/1%20-%20VM%20Setup]
+Next[link:files/Tutorial/3%20-%20Running%20Scripts]
+
+= VM Control
+
+Setup a ssh config file:
+
+  [config/ssh]
+  Host abox
+  HostName localhost
+  User linecook
+  Port 2220
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  IdentitiesOnly yes
+  ControlMaster auto
+  ControlPath /tmp/socket-%r@%h:%p
+
+Now you can control the box via these linecook commands.
+
+  # start the VM at a snapshot
+  linecook start --snapshot base
+  
+  # ssh to the VM
+  linecook ssh
+  
+  # take a snapshot
+  linecook snapshot modified
+  
+  # reset to a snapshot, removing all children
+  linecook reset base
+  
+  # stop the VM and go home
+  linecook stop
+
+To cleanup the port forwarding (run later, if ever):
+
+  VBoxManage modifyvm abox --natpf1 delete 'abox-ssh'
+
+== Multiple VMs
+
+To develop multiple (potentially interacting) virtual machines, build each as
+above but customize access to each machine on the host. For example if you
+made an 'bbox' virtual machine:
+
+  - name: bbox
+  - hostname: bbox-ubuntu
+  
+  VBoxManage modifyvm bbox --natpf1 'bbox-ssh,tcp,,2221,,22'
+
+Notice both the name and the ports are altered in the port forwarding command.
+Add an entry for the host in the ssh config file (you can DRY up the config
+file using the * host for default settings):
+
+  [config/ssh]
+  Host abox
+  Port 2220
+  
+  Host bbox
+  Port 2221
+  
+  Host *
+  HostName localhost
+  User linecook
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  IdentitiesOnly yes
+  ControlMaster auto
+  ControlPath /tmp/socket-%r@%h:%p
+
+The same linecook commands will now operate on a set of VMs:
+
+  # start all (or a subset) the VMs to a known snapshot
+  linecook start --snapshot base
+  linecook start --snapshot base abox
+  
+  # move the current snapshot forward for all (or a subset) the VMs
+  linecook snapshot modified
+  linecook snapshot modified abox
+  
+  # checkout the results, one at a time
+  linecook ssh abox
+  linecook ssh bbox
+  
+  # reset to a snapshot, removing all children for all (or a subset) the VMs
+  linecook reset base
+  linecook reset base abox
+  
+  # stop all (or a subset) the VMs
+  linecook stop
+  linecook stop abox
+
+As described later, the host config corresponds to the package run on it; ie
+the 'abox.yml' package goes to the 'abox' host. Implicitly the virtual machine
+will also be named 'abox' in VirtualBox. If you name it something else,
+declare the VM name using a linecook-specific comment next to the Host
+declaration like this:
+
+  [config/ssh]
+  ...
+  Host abox    # [the_vm_name]
+  ...
+
+The actual host config value is the intended input for all linecook commands;
+linecook resolves the vm name internally when interacting with VirtualBox.
+
+That's it.
+
+Previous[link:files/Tutorial/1%20-%20VM%20Setup]
+Next[link:files/Tutorial/3%20-%20Running%20Scripts]

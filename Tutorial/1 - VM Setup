@@ -1,20 +1,23 @@
-Previous[link:files/Tutorial/0%20-%20Intro.html]
-Next[link:files/Tutorial/2%20-%20Running%20Scripts.html]
+Previous[link:files/Tutorial/0%20-%20Intro]
+Next[link:files/Tutorial/2%20-%20VM%20Control]
 
 = VM Setup
 
-Linecook provides support to develop scripts on a virtual machine managed by
-VirtualBox. Nothing says you have to use VirtualBox during development, or
-that you have to use it in the way described below, but if you want to, these
-are instructions for setting up a generic Ubuntu VM.
+VirtualBox allows you to run virtual machines on your local box. During script
+development, a local VM can be very handy because it is much faster to access
+and reset than a VM hosted far off in the cloud. VirtualBox also allows VM
+snapshots, which can quickly restore a particular server state - this
+functionality is immensely useful for iterative development.
+
+These are the steps for setting up a Ubuntu VM on VirtualBox.
 
 1. Download and Install VirtualBox (http://www.virtualbox.org)
 2. Download a Ubuntu ISO (http://www.ubuntu.com/server/get-ubuntu/download)
 3. Build the Box
 
-<em>Note these instructions are for building a dev box only. In particular
-they allow the linecook user to su without a password, which may not be in you
-best production interests.</em>
+When done, see the documentation for {controlling a VM}[link:files/Tutorial/2%20-%20VM%20Control.html]
+
+<em>Note these instructions are for building a dev box only.</em>
 
 == Ubuntu
 
@@ -42,30 +45,15 @@ install iso, take a snapshot and setup port forwarding.
   VBoxManage controlvm abox poweroff
   # wait to fully power off
   VBoxManage modifyvm abox --natpf1 'abox-ssh,tcp,,2220,,22'
-  VBoxManage modifyvm abox --natpf1 'abox-http,tcp,,8880,,80'
   VBoxManage -q snapshot abox restore RAW
   VBoxManage startvm abox
 
-Transfer your ssh key to the vm. Help to generate ssh keys can be found on
+Transfer your ssh key to the VM. Help to generate ssh keys can be found on
 {GitHub}[http://help.github.com/key-setup-redirect]:
 
   scp -P 2220 -o UserKnownHostsFile=/dev/null ~/.ssh/id_rsa.pub linecook@localhost:id_rsa.pub
   
-Login as linecook and setup su permissions for the linecook user:
-
-  vm: sudo vi /etc/pam.d/su
-  
-  # uncomment:
-  #
-  #   # Uncomment this if you want wheel members to be able to
-  #   # su without a password.
-  #   auth       sufficient pam_wheel.so trust
-  #
-  
-  vm: sudo groupadd wheel
-  vm: sudo usermod -a -G wheel linecook
-
-Setup SSH:
+Login as linecook and setup SSH:
 
   vm: mkdir .ssh
   vm: mv id_rsa.pub .ssh/authorized_keys
@@ -77,114 +65,10 @@ Remove the login banner and exit:
   vm: sudo rm /etc/motd
   vm: exit
 
-Now take some standard snapshots:
+Now take a base snapshot:
 
   VBoxManage snapshot abox take BASE
-  VBoxManage snapshot abox take CURRENT
   VBoxManage controlvm abox poweroff
 
-Setup a ssh config file:
-
-  [config/ssh]
-  Host abox
-  HostName localhost
-  User linecook
-  Port 2220
-  UserKnownHostsFile /dev/null
-  StrictHostKeyChecking no
-  IdentitiesOnly yes
-  ControlMaster auto
-  ControlPath /tmp/socket-%r@%h:%p
-
-Now you can control the box via these linecook commands.
-
-  # start the vm to a known snapshot
-  linecook start --snapshot current
-  
-  # build, transfer, run, and test packages
-  linecook run
-  
-  # checkout the results
-  linecook ssh
-  
-  # move the current snapshot forward, and repeat
-  linecook snapshot current
-  
-  # return to go
-  linecook snapshot --reset current
-  linecook start --snapshot current
-  
-  # stop the vm and go home
-  linecook stop
-
-To cleanup the port forwarding (run later, if ever):
-
-  VBoxManage modifyvm abox --natpf1 delete 'abox-ssh'
-  VBoxManage modifyvm abox --natpf1 delete 'abox-http'
-
-=== Multiple VMs
-
-To develop multiple (potentially interacting) virtual machines, build each as
-above but customize your access to each machine on the host. For example if
-you made an 'bbox' virtual machine:
-
-  - name: bbox
-  - hostname: bbox-ubuntu
-  
-  VBoxManage modifyvm bbox --natpf1 'bbox-ssh,tcp,,2221,,22'
-  VBoxManage modifyvm bbox --natpf1 'bbox-http,tcp,,8881,,80'
-
-Notice both the name and the ports are altered in the port forwarding
-commands. Add an entry for the host in the ssh config file (you can DRY up the
-config file using the * host):
-
-  [config/ssh]
-  Host abox
-  Port 2220
-  
-  Host bbox
-  Port 2221
-  
-  Host *
-  HostName localhost
-  User linecook
-  UserKnownHostsFile /dev/null
-  StrictHostKeyChecking no
-  IdentitiesOnly yes
-  ControlMaster auto
-  ControlPath /tmp/socket-%r@%h:%p
-
-The same linecook commands will now operate on a set of vms:
-
-  # start all (or a subset) the vms to a known snapshot
-  linecook start --snapshot current
-  
-  # * build, transfer, run the 'abox.yml' package on the abox vm
-  # * build, transfer, run the 'bbox.yml' package on the bbox vm
-  # * run the tests for each
-  linecook test
-  
-  # move the current snapshot forward for all (or a subset) the vms
-  linecook snapshot current
-  
-  # checkout the results, one at a time
-  linecook ssh abox
-  linecook ssh bbox
-  
-  # etc...
-
-Note the name of a package corresponds to the host that it will be run on, ie
-'abox.yml' goes to the 'abox' host as specified in 'config/ssh'. Implicitly
-the virtual machine will also be named 'abox' in VirtualBox. If you name it
-something else, declare the vm name using a linecook-specific comment next to
-the Host declaration like this:
-
-  [config/ssh]
-  ...
-  Host abox    # [the_vm_name]
-  ...
-
-That's it.
-
-Previous[link:files/Tutorial/0%20-%20Intro.html]
-Next[link:files/Tutorial/2%20-%20Running%20Scripts.html]
+Previous[link:files/Tutorial/0%20-%20Intro]
+Next[link:files/Tutorial/2%20-%20VM%20Control]

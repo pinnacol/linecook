@@ -1,20 +1,28 @@
-Previous[link:files/Tutorial/5%20-%20Quickstart.html]
-Next[link:files/Tutorial/1%20-%20VM%20Setup.html]
+Previous[link:files/Tutorial/5%20-%20Testing]
+Next[link:files/Tutorial/1%20-%20VM%20Setup]
 
 = Intro
 
-The best way to understand Linecook is to start with a script.
+Linecook does two things - it provides a way to generate scripts and a way to
+run scripts on servers. A script is output of the former and input to the
+latter.
 
-Linecook provides two distinct functions; a way to generate scripts and a way
-to run scripts remotely. A script is output of the former and input to the
-latter.  If you don't already have a script, use this one:
+For the sake of learning use this script for now and substitute with a more meaningful script later:
 
   cat > script.sh <<DOC
-  echo "# hello from $(whoami) at $(hostname)"
+  echo "# $(whoami)@$(hostname): hello world!"
   DOC
   chmod +x script.sh
 
-You'll also need a server. If you already have a server, skip to {Running Scripts}[link:files/Tutorial/2%20-%20Running%20Scripts.html].
+You'll also need a server. Linecook provides a workflow to develop scripts on
+a virtual machine managed by {VirtualBox}[http://www.virtualbox.org].
+Specifically the linecook executable may start and stop virtual machines, take
+snapshots and restore them. Nothing says you have to use VirtualBox.
 
-Previous[link:files/Tutorial/5%20-%20Quickstart.html]
-Next[link:files/Tutorial/1%20-%20VM%20Setup.html]
+Running scripts simply requires ssh access; any server you can access via ssh
+may be a target for Linecook. If you already have a server, skip to {Running
+Scripts}[link:files/Tutorial/2%20-%20Running%20Scripts.html]. Otherwise setup
+a server using VirtualBox, as described next.
+
+Previous[link:files/Tutorial/5%20-%20Testing]
+Next[link:files/Tutorial/1%20-%20VM%20Setup]
