@@ -60,7 +60,7 @@ Login as linecook and setup SSH:
   vm: chmod 0700 .ssh
   vm: chmod 0600 .ssh/authorized_keys
 
-Remove the login banner and exit:
+Remove the login banner as a convenience and exit:
 
   vm: sudo rm /etc/motd
   vm: exit
@@ -69,6 +69,15 @@ Now take a base snapshot:
 
   VBoxManage snapshot abox take BASE
   VBoxManage controlvm abox poweroff
+
+To cleanup the port forwarding (run later, if ever):
+
+  VBoxManage modifyvm abox --natpf1 delete 'abox-ssh'
+
+The same procedure can be repeated to build other base boxes, including boxes
+with other operating systems. Again, nothing is special about Ubuntu, the
+name, port, or other settings. Modify the setup to your liking - all that
+Linecook requires is ssh access.
 
 Previous[link:files/Tutorial/0%20-%20Intro.html]
 Next[link:files/Tutorial/2%20-%20VM%20Control.html]
