@@ -19,7 +19,7 @@ for running a development vm using {VirtualBox}[http://www.virtualbox.org].
 Helpers and recipes can be shared as gems; the canonical shell helpers are
 available through {Linebook}[http://rubygems.org/gems/linebook/].
 
-See the documentation for an end-to-end {demo}[link:files/doc/Demo.html].
+See the documentation for a thorough {Tutorial}[link:files/Tutorial/0%20-%20Intro.html].
 
 == Usage
 
@@ -84,7 +84,7 @@ Run the package.
 
 The package can be run on any server accessible via ssh but runs locally (ie
 on localhost) by default. See the generated 'config/ssh' file as well as the
-documentation for {setting up a VM}[link:files/doc/VM%20Setup.html].
+documentation for {setting up a VM}[link:files/Tutorial/1%20-%20VM%20Setup.html].
 
 == Installation
 

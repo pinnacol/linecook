@@ -28,8 +28,12 @@ Gem::Specification.new do |s|
     History
     README
     License.txt
-    doc/Shared\ Folders
-    doc/VM\ Setup
+    Tutorial/0\ -\ Intro
+    Tutorial/1\ -\ VM\ Setup
+    Tutorial/2\ -\ Running\ Scripts
+    Tutorial/3\ -\ Generating\ Scripts
+    Tutorial/4\ -\ Testing
+    Tutorial/5\ -\ Quickstart
   }
   
   # list the files you want to include here.
@@ -47,7 +51,6 @@ Gem::Specification.new do |s|
     lib/linecook/commands/init.rb
     lib/linecook/commands/package.rb
     lib/linecook/commands/run.rb
-    lib/linecook/commands/share.rb
     lib/linecook/commands/snapshot.rb
     lib/linecook/commands/ssh.rb
     lib/linecook/commands/start.rb

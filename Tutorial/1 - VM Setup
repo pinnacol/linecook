@@ -1,3 +1,6 @@
+Previous[link:files/Tutorial/0%20-%20Intro.html]
+Next[link:files/Tutorial/2%20-%20Running%20Scripts.html]
+
 = VM Setup
 
 Linecook provides support to develop scripts on a virtual machine managed by
@@ -182,3 +185,6 @@ the Host declaration like this:
   ...
 
 That's it.
+
+Previous[link:files/Tutorial/0%20-%20Intro.html]
+Next[link:files/Tutorial/2%20-%20Running%20Scripts.html]

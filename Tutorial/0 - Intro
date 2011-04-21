@@ -1,0 +1,20 @@
+Previous[link:files/Tutorial/5%20-%20Quickstart.html]
+Next[link:files/Tutorial/1%20-%20VM%20Setup.html]
+
+= Intro
+
+The best way to understand Linecook is to start with a script.
+
+Linecook provides two distinct functions; a way to generate scripts and a way
+to run scripts remotely. A script is output of the former and input to the
+latter.  If you don't already have a script, use this one:
+
+  cat > script.sh <<DOC
+  echo "# hello from $(whoami) at $(hostname)"
+  DOC
+  chmod +x script.sh
+
+You'll also need a server. If you already have a server, skip to {Running Scripts}[link:files/Tutorial/2%20-%20Running%20Scripts.html].
+
+Previous[link:files/Tutorial/5%20-%20Quickstart.html]
+Next[link:files/Tutorial/1%20-%20VM%20Setup.html]
