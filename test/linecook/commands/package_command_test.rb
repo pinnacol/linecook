@@ -18,35 +18,18 @@ class PackageCommandTest < Test::Unit::TestCase
   # process test
   #
   
-  def test_process_builds_package_with_the_specified_name
+  def test_process_builds_package_file
     prepare('recipes/example.rb') do |io|
       io << 'write "content"' 
     end
     
-    prepare('packages/vbox.yml') do |io|
+    package_file = prepare('packages/vbox.yml') do |io|
       config = {"linecook" => {"package" => {"recipes" => "example"}}}
       YAML.dump(config, io)
     end
     
     Dir.chdir(method_dir) do
-      package_dir = cmd.process('vbox')
-      assert_equal "content", File.read("#{package_dir}/example")
-    end
-  end
-  
-  def test_process_allows_package_file_if_specified
-    prepare('recipes/example.rb') do |io|
-      io << 'write "content"' 
-    end
-    
-    prepare('path/to/vbox.yml') do |io|
-      config = {"linecook" => {"package" => {"recipes" => "example"}}}
-      YAML.dump(config, io)
-    end
-    
-    Dir.chdir(method_dir) do
-      cmd.file = true
-      package_dir = cmd.process('path/to/vbox.yml')
+      package_dir = cmd.process(package_file)
       assert_equal "content", File.read("#{package_dir}/example")
     end
   end
@@ -60,10 +43,10 @@ class PackageCommandTest < Test::Unit::TestCase
       io << 'write "test content"'
     end
     
-    prepare('packages/vbox.yml') {}
+    package_file = prepare('packages/vbox.yml') {}
     
     Dir.chdir(method_dir) do
-      package_dir = cmd.process('vbox')
+      package_dir = cmd.process(package_file)
       
       assert_equal "run content", File.read("#{package_dir}/run")
       assert_equal "test content", File.read("#{package_dir}/test")

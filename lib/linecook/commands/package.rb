@@ -21,10 +21,8 @@ module Linecook
       config :project_dir, '.', :short => :d              # the project directory
       config :force, false, :short => :f, &c.flag         # force creation
       config :quiet, false, &c.flag                       # silence output
-      config :file, false, &c.flag                        # treat package name as file path
       
-      def process(package_name, package_dir=nil)
-        package_file = file ? package_name : guess_package_file(package_name)
+      def process(package_file, package_dir=nil)
         package_dir ||= default_package_dir(package_file)
         package_dir = File.expand_path(package_dir)
         package = Linecook::Package.init(package_file, project_dir)
@@ -37,10 +35,6 @@ module Linecook
         end
         
         package_dir
-      end
-      
-      def guess_package_file(name)
-        File.expand_path("packages/#{name}.yml", project_dir)
       end
       
       def package_dependencies(package)

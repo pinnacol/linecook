@@ -12,7 +12,6 @@ module Linecook
       config :project_dir, '.', :short => :d              # the project directory
       config :force, false, :short => :f, &c.flag         # force creation
       config :quiet, false, &c.flag                       # silence output
-      config :file, false, &c.flag                        # treat package name as file path
       
       def glob_helpers(project_dir)
         helpers_dir = File.expand_path('helpers', project_dir)
@@ -32,17 +31,15 @@ module Linecook
         helpers.sort_by {|name, sources| name }
       end
       
-      def glob_package_names(project_dir)
-        packages_dir  = File.expand_path('packages', project_dir)
-        package_files = Dir.glob("#{packages_dir}/*.yml")
-        
-        unless file
-          package_files.collect! do |path|
-            File.basename(path).chomp('.yml')
+      def glob_package_files(package_names)
+        if package_names.empty?
+          pattern = File.expand_path('packages/*.yml', project_dir)
+          Dir.glob(pattern).select {|path| File.file?(path) }
+        else
+          package_names.collect do |package_name|
+            File.expand_path("packages/#{package_name}.yml", project_dir)
           end
         end
-        
-        package_files
       end
       
       def process(*package_names)
@@ -60,16 +57,11 @@ module Linecook
         package = Package.new(
           :project_dir => project_dir,
           :force => force,
-          :quiet => quiet,
-          :file => file
+          :quiet => quiet
         )
         
-        if package_names.empty?
-          package_names = glob_package_names(project_dir)
-        end
-        
-        package_names.collect! do |package_name|
-          package.process(package_name)
+        glob_package_files(package_names).collect do |package_file|
+          package.process(package_file)
         end
       end
     end

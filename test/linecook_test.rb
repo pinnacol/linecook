@@ -34,7 +34,7 @@ class LinecookTest < Test::Unit::TestCase
       output = `BUNDLE_GEMFILE='#{gemfile}' 2>&1 bundle exec linecook helper example`
       assert_equal 0, $?.exitstatus, output
       
-      output = `BUNDLE_GEMFILE='#{gemfile}' 2>&1 bundle exec linecook package abox`
+      output = `BUNDLE_GEMFILE='#{gemfile}' 2>&1 bundle exec linecook package packages/abox.yml`
       assert_equal 0, $?.exitstatus, output
       assert_equal true, File.exists?('packages/abox/run'), output
       
