@@ -2,7 +2,7 @@
 ############################################################################
 
 ssh_config_file=${SSH_CONFIG_FILE:-config/ssh}
-remote_dir=${REMOTE_DIR:-\$(pwd)/pkg}
+remote_dir=${REMOTE_DIR:-\$(pwd)/linecook}
 
 usage="usage: %s [-F SSH_CONFIG_FILE] [-D REMOTE_DIR] [-h] PACKAGE_DIRS...\n"
 option="       %s   %s\n"

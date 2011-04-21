@@ -10,7 +10,7 @@ module Linecook
       SCP_SCRIPT = File.expand_path('../../../../bin/linecook_scp', __FILE__)
       
       config :project_dir, '.', :short => :d                 # the project directory
-      config :remote_dir, 'pkg', :short => :D                # the remote package dir
+      config :remote_dir, 'linecook', :short => :D           # the remote package dir
       config :ssh_config_file, 'config/ssh', :short => :F    # the ssh config file
       config :quiet, false, :short => :q, &c.flag            # silence output
       config :transfer, true, &c.switch                      # transfer package (or not)
