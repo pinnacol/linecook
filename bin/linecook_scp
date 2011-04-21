@@ -4,7 +4,7 @@
 ssh_config_file=${SSH_CONFIG_FILE:-config/ssh}
 remote_dir=${REMOTE_DIR:-\$(pwd)/linecook}
 
-usage="usage: %s [-F SSH_CONFIG_FILE] [-D REMOTE_DIR] [-h] PACKAGE_DIRS...\n"
+usage="usage: %s [-D REMOTE_DIR] [-F SSH_CONFIG_FILE] [-h] PACKAGE_DIRS...\n"
 option="       %s   %s\n"
 while getopts "F:D:h" opt
 do
@@ -22,7 +22,7 @@ do
 done
 shift $(($OPTIND - 1))
 
-################################# transfer #################################
+################################### scp ####################################
 
 for package_dir in "$@"
 do
@@ -46,4 +46,5 @@ then
 fi
 done
 
-################################ (transfer) ################################
+################################## (scp) ###################################
+
