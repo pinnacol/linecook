@@ -3,26 +3,47 @@ Next[link:files/Tutorial/1%20-%20VM%20Setup.html]
 
 = Intro
 
-Linecook does two things - it provides a way to generate scripts and a way to
-run scripts on servers. A script is output of the former and input to the
-latter.
+Linecook does two things - it generates scripts and runs scripts on servers.
+Scripts are what Linecook makes, and in a sense so are the servers on which
+the scripts are run.
 
-For the sake of learning use this script for now and substitute with a more meaningful script later:
+Linecook consists of the following. Arrows indicate composition, labeled
+arrows indicate linecook commands, and the products of Linecook are in
+parenthesis.
+
+  = Components =
+  attributes
+  helpers
+  |-----> recipes -> packages -a-> (scripts) -b-> (servers) <-c- server setup
+  files
+  templates
+  
+  = Commands =
+  a) env, helper, package, build        # build scripts
+  b) run                                # run scripts
+  c) start, stop, ssh, snapshot, reset  # server setup/control
+
+Everything to the left of 'scripts' has to do with generating scripts;
+everything to the right with running scripts on servers. While generating
+scripts is the primary function of Linecook, it's helpful to start by running
+scripts so you can see how Linecook works in action.
+
+To run a script, you need a script. For the sake of learning use this script
+and substitute with a more meaningful script later:
 
   cat > script.sh <<DOC
   echo "# $(whoami)@$(hostname): hello world!"
   DOC
   chmod +x script.sh
 
-You'll also need a server. Linecook provides a workflow to develop scripts on
-a virtual machine managed by {VirtualBox}[http://www.virtualbox.org].
-Specifically the linecook executable may start and stop virtual machines, take
-snapshots and restore them. Nothing says you have to use VirtualBox.
+You also need a server. Linecook provides a workflow to develop scripts on
+virtual machines managed by {VirtualBox}[http://www.virtualbox.org]. Nothing
+says you have to use VirtualBox; any server you can access via ssh will do,
+but note that everything to the right of 'servers' will not apply.
 
-Running scripts simply requires ssh access; any server you can access via ssh
-may be a target for Linecook. If you already have a server, skip to {Running
+If you already have a server, skip to {Running
 Scripts}[link:files/Tutorial/3%20-%20Running%20Scripts.html]. Otherwise setup
-a server using VirtualBox, as described next.
+a Ubuntu server using VirtualBox, as described next.
 
 Previous[link:files/Tutorial/5%20-%20Testing.html]
 Next[link:files/Tutorial/1%20-%20VM%20Setup.html]
