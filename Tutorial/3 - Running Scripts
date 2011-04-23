@@ -3,76 +3,88 @@ Next[link:files/Tutorial/4%20-%20Generating%20Scripts.html]
 
 = Running Scripts
 
-Linecook runs scripts using the 'run' subcommand. Run copies the script to a
-server using scp and then executes the script using ssh.
+Linecook runs scripts using the 'run' command. Internally run copies scripts
+to a server using scp and then executes the script using ssh. More
+specifically run copies a *package* to the server and executes a script within
+the package using ssh. A package is simply a directory containing scripts and
+any files the scripts use.
 
-More specifically run copies a *package* to the server and executes a script
-within the package using ssh. A package is simply a directory which contains
-the script and any resources the script uses. Normally packages are located
-under the 'packages directory', so make one:
+To manually recreate what run does, make a directory with a script, copy it,
+and execute as below (assuming you set up the 'abox' server {as described
+earlier}[link:files/Tutorial/1%20-%20VM%20Setup.html]):
 
-  mkdir -p packages/demo
-  mv script.sh packages/demo
+  mkdir demo
+  cat > demo/script.sh <<"DOC"
+  echo "# $(whoami)@$(hostname): hello world!"
+  DOC
+  chmod +x demo/script.sh
+  scp -r -P 2220 demo linecook@localhost:/tmp/demo
+  ssh -p 2220 linecook@localhost -- "/tmp/demo/script.sh"
+  # linecook@abox-ubuntu: hello world!
 
-To see run in action, you need a server. If you have a server, great. If not,
-then set one up as described in {setting up a
-VM}[link:files/Tutorial/1%20-%20VM%20Setup.html].
-
-Now make a standard ssh config file to access your server using scp and ssh.
-The ssh configs depend entirely on your setup and may be customized to you
-liking. If you've done a key exchange such that this works without a password:
-
-  ssh doej@example.com
-
-Then this makes a representative ssh config file (see 'man ssh_config' for
-more details):
+To simplify this a little, move the redundant information used by scp and ssh
+can into a standard ssh config file. Linecook looks for an ssh config file in
+'config/ssh' by default:
 
   mkdir config
   cat > config/ssh <<DOC
-  Host demo
-  User doej
-  HostName example.com
+  Host abox
+  User linecook
+  HostName localhost
+  Port 2220
   DOC
 
-Linecook identifies the package to copy based on the Host config. So for
-example:
+Now run will copy the package under the 'packages' directory with the same
+name as the Host config, and execute the specified script:
 
-  linecook run script.sh
-  # hello from doej at example.com
+  mkdir packages
+  mv demo packages/abox
+  linecook run --script script.sh abox
+  # linecook@abox-ubuntu: hello world!
 
-Multiple hosts may be defined; run copies each package to the appropriate host
-and runs the same command on each (in alphabetic order by host). In addition
-the default run script is 'run'. So with this setup:
+To run multiple packages at once, simply add more hosts to the ssh config
+file. Run copies each package to the appropriate host and then runs the same
+script on each (in alphabetic order by host). So say you also set up a 'bbox'
+same as 'abox':
 
   cat >> config/ssh <<DOC
-  Host demo1
-  User john
-  HostName one.example.com
+  Host abox
+  Port 2220
   
-  Host demo2
-  User jane
-  HostName two.example.com
+  Host bbox
+  Port 2221
+  
+  Host *
+  User linecook
+  HostName localhost
   DOC
-  
-  mkdir packages/demo1
-  cp packages/demo/script.sh packages/demo1/run
-  mkdir packages/demo2
-  cp packages/demo/script.sh packages/demo2/run
+  cp packages/abox packages/bbox
 
 Then:
 
+  linecook run --script script.sh abox bbox
+  # linecook@abox-ubuntu: hello world!
+  # linecook@bbox-ubuntu: hello world!
+
+Note that by default run will execute the 'run' script on all hosts configured
+in 'config/ssh'. Leveraging these defaults simplifies the last command:
+
+  mv packages/abox/script.sh packages/abox/run
+  mv packages/bbox/script.sh packages/bbox/run
   linecook run
-  # hello from john at one.example.com
-  # hello from jane at two.example.com
+  # linecook@abox-ubuntu: hello world!
+  # linecook@bbox-ubuntu: hello world!
 
 If you've never used scp/ssh with a config file then this may seem unfamiliar
 but hopefully quite graceful. For scp/ssh masters, these are equivalent for
 each host:
 
   linecook run --remote-dir=/tmp/linecook SCRIPT ARGS...
-
+  
   scp -q -r -p -F config/ssh packages/host "host:/tmp/linecook"
   ssh -q -t -t -F config/ssh host -- "/tmp/linecook/SCRIPT ARGS..."
+
+Now that you can run scripts, onward to generating scripts!
 
 Previous[link:files/Tutorial/2%20-%20VM%20Control.html]
 Next[link:files/Tutorial/4%20-%20Generating%20Scripts.html]
