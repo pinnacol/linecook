@@ -5,34 +5,190 @@ scripts you can compress them, share them, run them, or do whatever you please
 - at that point they're ordinary files sitting in a directory. Linecook refers
 to the directories containing generated scripts as packages.
 
-The best way to understand how Linecook generates scripts is to start with a
-package and work backwards; at each step you can rebuild the package and see
-that the same scripts are produced with various degrees of abstraction.  Even better, setup a config/ssh file as described in {Running
-Scripts}[link:files/Tutorial/3%20-%20Running%20Scripts.html] and prove the 
+The best way to understand how Linecook generates scripts is to start by
+making a package with a known script, and then rewrite the script using
+Linecook. At each step of the rewrite you can rebuild the package and verify
+the script is reproduced.
 
-run
-it to prove that it still works.  The commands to do so are:
+The command to rebuild a package is:
 
   linecook build
-  linecook run
 
-The run command must be configured as just discussed in the  tutorial.
+This tutorial is designed such that if you make the files as specified, you
+can use it to rebuild the same package at the end of each section.
 
 == Packages
 
-Packages are by default located in the packages directory. The simplest
-package is a directory containing a single executable script.
+Packages are located in the packages directory by default. The simplest
+package is a directory containing a single executable script. Assuming a bare
+Ubuntu VM and a bash shell, start with this script to setup a minimal
+development environment:
 
+  [packages/demo/run]
+  sudo apt-get -y install git
+  git config --global user.name "John Doe"
+  git config --global user.email "john.doe@example.com"
+  sudo apt-get -y install ruby
 
+This package represents the end result of 'linecook build'. To actually build
+it, a package file need to be made. The package file describes what goes into
+the package and is written in YAML; by default the package file is named like
+the final package, but with a .yml extension.
 
+As an example, this package file generates the 'run' script from the 'demo' recipe and puts it into the package during build.
 
+  [packages/demo.yml]
+  linecook:
+    package:
+      recipes:
+        demo: run      # recipe_name: package/path
+
+However this package file is overly verbose; the recipe with the same name as
+the package is used to generate the run script by default, so this equivalent:
+
+  [packages/demo.yml]
+  {}
+
+At this point a build (ie 'linecook build') raises an error; To see the
+package file in action we need the demo recipe.
 
 == Recipes
 
+Recipes are ruby code that generates text during a build. Typically the text
+is shell script, and therefore the result of a recipe is a script file, but
+the text could be a config file, SQL, or whatever.
+
+Specifically recipes are code that gets executed in the context of a
+Linecook::Recipe instance. These instances have a 'target' IO object (usually
+a Tempfile) to which the generated text is written. The most basic recipe
+simply writes the script content to the target.
+
+  [recipes/demo.rb]
+  target <<-SCRIPT
+    sudo apt-get -y install ruby1.8
+    sudo apt-get -y install git
+    git config --global user.name "John Doe"
+    git config --global user.email "john.doe@example.com"
+  SCRIPT
+
+Now a build will write the script to the target, then move the corresponding
+Tempfile to become 'packages/demo/run'. As code, recipes work like this:
+
+  class Recipe
+    attr_accessor :target
+    def initialize
+      @target = ""
+    end
+  end
+  
+  recipe = Recipe.new
+  recipe.instance_eval File.read('recipes/demo.rb')
+  recipe.target[0, 31]  # => "sudo apt-get -y install ruby1.8"
+
+This exercise illustrates the great and powerful truth of recipes - they are
+simply a context to generate text and write it to a file. A direct consequence
+of this design is that commands (for example debugging command) can always be
+inserted into a script in a trivial manner.
+
+Obviously recipes can do more.
+
 == Attributes
+
+Attributes allow variables to be separated from the recipe code, such that
+they may be overridden on a per-package basis, in the package file. Recipes
+have a nested 'attrs' hash (which is literally a Hash) that merges together
+the defaults and overrides to provide attributes access.
+
+Using attributes:
+
+  [attributes/git.rb]
+  attrs['git']['package'] = 'git'
+  attrs['git']['config']['user.name'] = 'John Doe'
+  attrs['git']['config']['user.email'] = 'john.doe@example.com'
+  
+  [attributes/ruby.rb]
+  attrs['ruby']['package'] = 'ruby1.9.1'
+  
+  [packages/demo.yml]
+  ruby:
+    package: ruby1.8
+  
+  [recipes/demo.rb]
+  attributes 'ruby'
+  attributes 'git'
+  #########################################################################
+  target <<-SCRIPT
+    sudo apt-get -y install #{attrs['ruby']['package']}
+    sudo apt-get -y install #{attrs['git']['package']}
+    git config --global user.name "#{attrs['git']['config']['user.name']}"
+    git config --global user.email "#{attrs['git']['config']['user.email']}"
+  SCRIPT
+
+Attribute files must be included using the Recipe#attributes method; no
+attributes are included by default. This ensures that attributes will be
+deterministic in cases where two attribute files (unwisely) use the same
+namespace.
+
+The overrides specified in the package file are always available, however.
+They function as a kind of environment for recipes; since they are overrides,
+they take precedence over any values set by attribute files.
+
+Take note of two details. First, there is no special code needed to set nested
+attributes in an attributes file. Attributes files are executed in the context
+of a Linecook::Attributes instance which provides this auto-nesting behavior.
+Second, as a convention, attrs are accessed using string keys because it's
+cleaner to use string keys in the package file.
 
 == Helpers
 
+Helpers allow you to define methods that generate text. Helper methods are
+defined as ERB files under the 'helpers' directory and compile into an
+ordinary module under the 'lib' directory. For example (assuming the
+attribute and package files from above):
+
+  [helpers/demo/install.erb]
+  Installs a package using apt-get.
+  (package)
+  --
+  sudo apt-get -y install <%= package %>
+  
+  
+  [helpers/demo/set_git_config.erb]
+  Sets a global git config.
+  (key, value)
+  --
+  git config --global <%= key %> <%= value %>
+  
+  
+  [recipes/demo.rb]
+  attributes 'ruby'
+  attributes 'git'
+  helpers 'demo'
+  #########################################################################
+  install attrs['ruby']['package']
+  install attrs['git']['package']
+  attrs['git']['config'].each_pair do |key, value|
+    set_git_config key, value
+  end
+
+When you define a helper, you're literally defining a method in a module that
+you can use in your recipe to generate text. This example generates the 'Demo'
+module which adds 'install' and 'set_git_config' into the recipe context. In
+fact the 'helpers' method is equivalent to:
+
+  require 'demo'
+  extend Demo
+
+The exact details are elegant but unimportant to the workflow, which can be
+summed up like this: put an ERB template into a file, include the directory
+using Recipe#helpers, and now the template is available as a method with
+inputs. Whenever you call the method, you make text that gets written to
+target.
+
+To capture the output of a template without writing it to target, prefix the
+method with an underscore. The output can then be used as an input to another
+helper... see the {README}[link:files/README.html] for an example.
+  
 == Files
 
 == Templates

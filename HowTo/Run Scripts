@@ -6,15 +6,18 @@ specifically run copies a *package* to the server and executes a script within
 the package using ssh. A package is simply a directory containing scripts and
 any files the scripts use.
 
-To manually recreate what run does, make a directory with a script, copy it,
+To manually recreate what run does, make a directory with an script, copy it,
 and execute as below (assuming you set up the 'abox' server {as described
-earlier}[link:files/Tutorial/1%20-%20VM%20Setup.html]):
+earlier}[link:files/Tutorial/1%20-%20VM%20Setup.html]). Note that the script
+is made executable locally such that scp will make the script executable on
+the server.
 
   mkdir demo
   cat > demo/script.sh <<"DOC"
   echo "# $(whoami)@$(hostname): hello world!"
   DOC
   chmod +x demo/script.sh
+  
   scp -r -P 2220 demo linecook@localhost:/tmp/demo
   ssh -p 2220 linecook@localhost -- "/tmp/demo/script.sh"
   # linecook@abox-ubuntu: hello world!
