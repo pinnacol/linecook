@@ -30,9 +30,9 @@ host=$(basename -- "$package_dir")
 
 ssh -q -T -F "$ssh_config_file" "$host" -- <<SCRIPT
 rm -rf "$remote_dir"
-if [ "$(dirname $remote_dir)" != "" ]
+if [ "\$(dirname "$remote_dir")" != "" ]
 then
-  mkdir -p "$(dirname $remote_dir)"
+  mkdir -p "\$(dirname "$remote_dir")"
 fi
 SCRIPT
 
