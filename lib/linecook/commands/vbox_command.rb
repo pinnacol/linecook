@@ -33,6 +33,7 @@ module Linecook
         File.open(ssh_config_file) do |io|
           io.each_line do |line|
             next unless line =~ HOST_REGEXP
+            next if $2 && $2.strip.empty?
             hosts << [$1, $2 || $1]
           end
         end
