@@ -15,7 +15,8 @@ The command to rebuild a package is:
   linecook build
 
 This tutorial is designed such that if you make the files as specified, you
-can use it to rebuild the same package at the end of each section.
+can use it to rebuild the same package (functionally or literally) at the end
+of each section.
 
 == Packages
 
@@ -41,7 +42,7 @@ As an example, this package file generates the 'run' script from the 'demo' reci
   linecook:
     package:
       recipes:
-        demo: run      # recipe_name: package/path
+        run: demo     # package/path: recipe_name
 
 However this package file is overly verbose; the recipe with the same name as
 the package is used to generate the run script by default, so this equivalent:
@@ -64,11 +65,11 @@ a Tempfile) to which the generated text is written. The most basic recipe
 simply writes the script content to the target.
 
   [recipes/demo.rb]
-  target <<-SCRIPT
-    sudo apt-get -y install ruby1.8
-    sudo apt-get -y install git
-    git config --global user.name "John Doe"
-    git config --global user.email "john.doe@example.com"
+  target.puts <<-SCRIPT
+  sudo apt-get -y install ruby1.8
+  sudo apt-get -y install git
+  git config --global user.name "John Doe"
+  git config --global user.email "john.doe@example.com"
   SCRIPT
 
 Now a build will write the script to the target, then move the corresponding
@@ -117,11 +118,11 @@ Using attributes:
   attributes 'ruby'
   attributes 'git'
   #########################################################################
-  target <<-SCRIPT
-    sudo apt-get -y install #{attrs['ruby']['package']}
-    sudo apt-get -y install #{attrs['git']['package']}
-    git config --global user.name "#{attrs['git']['config']['user.name']}"
-    git config --global user.email "#{attrs['git']['config']['user.email']}"
+  target.puts <<-SCRIPT
+  sudo apt-get -y install #{attrs['ruby']['package']}
+  sudo apt-get -y install #{attrs['git']['package']}
+  git config --global user.name "#{attrs['git']['config']['user.name']}"
+  git config --global user.email "#{attrs['git']['config']['user.email']}"
   SCRIPT
 
 Attribute files must be included using the Recipe#attributes method; no
@@ -188,7 +189,108 @@ target.
 To capture the output of a template without writing it to target, prefix the
 method with an underscore. The output can then be used as an input to another
 helper... see the {README}[link:files/README.html] for an example.
-  
+
 == Files
 
+Files are files of any sort that you might want to include in a package. They
+could be an archive of some sort, a binary, or a stock script you don't need a
+recipe to reproduce.
+
+Files can be declared in a package file like this (in fact this is an alternate way of 'writing' the script into the package):
+
+  [packages/demo.yml]
+  linecook:
+    package:
+      files:
+        run: example.sh
+  
+  [files/example.sh]
+  sudo apt-get -y install ruby1.8
+  sudo apt-get -y install git
+  git config --global user.name "John Doe"
+  git config --global user.email "john.doe@example.com"
+
+More commonly, files are included via a recipe.  Something along these lines:
+
+  [files/gitconfig]
+  [user]
+  	name = John Doe
+  	email = john.doe@example.com
+  
+  [recipes/demo.rb]
+  target.puts <<-SCRIPT
+  sudo apt-get -y install ruby1.8
+  sudo apt-get -y install git
+  cp "#{ file_path "gitconfig" }" ~/.gitconfig
+  SCRIPT
+
+The only 'trick' here is that the return value of file_path is a path that
+will be correct at runtime, when the script is on the remote server
+(specifically it will be like "${0%/run}/gitconfig", which works because $0
+will be the full path to the recipe).
+
 == Templates
+
+Templates work the same as files except, as you may imagine, they are ERB
+templates that evaluate with whatever locals you provide them. The attrs hash
+is local by default.
+
+  [attributes/git.rb]
+  attrs['git']['package'] = 'git'
+  attrs['git']['config']['user.name'] = 'John Doe'
+  attrs['git']['config']['user.email'] = 'john.doe@example.com'
+  
+  [templates/gitconfig.erb]
+  [user]
+  	name = <%= attrs['git']['config']['user.name'] %>
+  	email = <%= attrs['git']['config']['user.email'] %>
+  
+  [recipes/demo.rb]
+  attributes 'git'
+  #########################################################################
+  target.puts <<-SCRIPT
+  sudo apt-get -y install ruby1.8
+  sudo apt-get -y install git
+  cp "#{ template_path "gitconfig" }" ~/.gitconfig
+  SCRIPT
+
+Like files, templates may be directly declared in a package file. In that case
+attrs will only contain whatever attributes are set by the package file.
+
+  [packages/demo.yml]
+  linecook:
+    package:
+      templates:
+        run: example
+  git:
+    config:
+      user.name: John Doe
+      user.email: john.doe@example.com
+  
+  [templates/example.erb]
+  sudo apt-get -y install ruby1.8
+  sudo apt-get -y install git
+  git config --global user.name <%= attrs['git']['config']['user.name'] %>
+  git config --global user.email <%= attrs['git']['config']['user.email'] %>
+
+== {Linebook}[http://rubygems.org/gems/linebook/]
+
+The techniques presented here are sufficient to work with many scripts in many
+situations but they are quite bare. Eventually, or perhaps immediately, you
+will want a suite of standard helpers. The canonical helper library is
+Linebook (Linecook's version of a Cookbook).
+
+See the {Linebook documentation}[http://rubygems.org/gems/linebook/] to learn
+helpers for flow control, file system tests, commands, chaining, redirection,
+heredocs, and other convenience methods.
+
+  [recipes/demo.rb]
+  helpers 'linebook/shell'
+  
+  unless_ _file?('/tmp/message') do
+    cat.to('/tmp/message').heredoc do
+      writeln 'hello world!
+    end
+  end
+
+Enjoy!
