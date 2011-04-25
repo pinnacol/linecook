@@ -9,7 +9,8 @@ module Linecook
     # default all virtual machines configured in config/ssh will be stopped.
     #
     class Stop < VboxCommand
-      def process(*vm_names)
+      def process(*hosts)
+        vm_names = resolve_vm_names(hosts)
         each_vm_name(vm_names) do |vm_name|
           if running?(vm_name)
             stop(vm_name)

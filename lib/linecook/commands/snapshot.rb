@@ -28,7 +28,8 @@ module Linecook
     class Snapshot < VboxCommand
       config :reset, false, :long => :reset, &c.flag  # reset a snapshot
       
-      def process(snapshot, *vm_names)
+      def process(snapshot, *hosts)
+        vm_names = resolve_vm_names(hosts)
         each_vm_name(vm_names) do |vm_name|
           if reset
             reset_snapshot(vm_name, snapshot)

@@ -8,6 +8,8 @@ module Linecook
     # Connects to a virtual machine using ssh, as configured in config/ssh.
     # 
     class Ssh < VboxCommand
+      undef_config :names
+      
       def default_host
         load_hosts(ssh_config_file).collect {|host, vm_name| host }.first
       end

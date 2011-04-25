@@ -13,7 +13,8 @@ module Linecook
       config :snapshot, '', :short => :s   # start snapshot
       config :socket, false, &c.flag
       
-      def process(*vm_names)
+      def process(*hosts)
+        vm_names = resolve_vm_names(hosts)
         each_vm_name(vm_names) do |vm_name|
           if running?(vm_name)
             stop(vm_name)

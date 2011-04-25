@@ -15,11 +15,11 @@ module Linecook
         running?(vm_name) ? "running" : "stopped"
       end
       
-      def process(*vm_names)
+      def process(*hosts)
+        vm_names = resolve_vm_names(hosts)
         if hosts
-          hosts = Hash[*load_hosts(ssh_config_file).flatten]
           each_host(vm_names) do |host|
-            puts "#{host}: #{state(hosts[host])}"
+            puts "#{host}: #{state(host_map[host])}"
           end
         else
           each_vm_name(vm_names) do |vm_name|

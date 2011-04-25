@@ -5,8 +5,9 @@ module Linecook
     class VboxCommand < Command
       registry.delete_if {|key, value| value == self }
       
-      config :ssh_config_file, 'config/ssh'    # the ssh config file
-      config :quiet, false, &c.flag            # silence output
+      config :ssh_config_file, 'config/ssh', :writer => false # the ssh config file
+      config :quiet, false, &c.flag                           # silence output
+      config :names, false, &c.flag                           # use vm names
       
       # Matches a host declaration in a ssh config file. After the match:
       #
@@ -41,9 +42,27 @@ module Linecook
         hosts
       end
       
+      def ssh_config_file=(ssh_config_file)
+        @ssh_config_file = ssh_config_file
+        @host_list = nil
+        @host_map  = nil
+      end
+      
+      def host_list
+        @host_list ||= load_hosts(ssh_config_file)
+      end
+      
+      def host_map
+        @host_map ||= Hash[*host_list.flatten]
+      end
+      
+      def resolve_vm_names(hosts)
+        names ? hosts : hosts.collect {|host| host_map[host] }
+      end
+      
       def each_host(hosts=[])
         if hosts.empty?
-          hosts = load_hosts(ssh_config_file).collect {|host, vm_name| host }
+          hosts = host_list.collect {|host, vm_name| host }
           hosts.delete('*')
         end
         
@@ -54,7 +73,7 @@ module Linecook
       
       def each_vm_name(vm_names=[])
         if vm_names.empty?
-          vm_names = load_hosts(ssh_config_file).collect {|host, vm_name| vm_name }
+          vm_names = host_list.collect {|host, vm_name| vm_name }
           vm_names.delete('*')
         end
         
