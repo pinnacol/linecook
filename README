@@ -8,27 +8,32 @@ Linecook generates shell scripts using an extensible set of ERB helpers. The
 shell scripts and associated resources (files, subscripts, etc) make up
 packages that can be used, for example, to provision servers.
 
-The workflow is like this:
+Linecook provides a command line tool to manage development servers, generate
+scripts, and run scripts on servers. Helpers and recipes can be shared as
+gems; the canonical shell helpers are available through
+{Linebook}[http://rubygems.org/gems/linebook/].
 
-* define helpers
-* write recipes using the helpers
-* generate script packages from the recipes
+See the documentation for help:
 
-Linecook provides a command-line tool for generating helpers, packages, and
-for running a development vm using {VirtualBox}[http://www.virtualbox.org].
-Helpers and recipes can be shared as gems; the canonical shell helpers are
-available through {Linebook}[http://rubygems.org/gems/linebook/].
-
-See the documentation for a thorough {Tutorial}[link:files/Tutorial/0%20-%20Intro.html].
+* {Setting up a VM}[link:files/HowTo/Setup%20A%20VM.html]
+* {Generating Scripts}[link:files/HowTo/Generate%20Scripts.html]
+* {Running Scripts on Servers}[link:files/HowTo/Run%20Scripts.html]
 
 == Usage
 
-Generate a cookbook.
+Generate a project.
 
   % linecook init chalkboard
   % cd chalkboard
 
-Make a helper.
+Define default attributes.
+
+  [attributes/chalkboard.rb]
+  attrs['chalkboard']['n'] = 3
+  attrs['chalkboard']['color'] = 'white'
+  attrs['chalkboard']['message'] = 'I will not manually configure my server'
+
+Define a helper.
 
   [helpers/chalkboard/echo_in_color.erb]
   Echo a string in color.
@@ -41,18 +46,11 @@ Make a helper.
   --
   echo -e '\033[<%= color_codes[color.to_s] %>m<%= str %>\033[0m'
 
-Define default attributes.
-
-  [attributes/chalkboard.rb]
-  attrs['chalkboard']['n'] = 3
-  attrs['chalkboard']['color'] = 'white'
-  attrs['chalkboard']['message'] = 'I will not manually configure my server'
-
 Use both in a recipe.
 
   [recipes/chalkboard.rb]
-  helpers "chalkboard"
   attributes "chalkboard"
+  helpers "chalkboard"
   
   attrs['chalkboard']['n'].times do
     echo_in_color attrs['chalkboard']['color'], attrs['chalkboard']['message']
@@ -65,7 +63,7 @@ Define a package to use the recipe; set non-default attributes as needed.
     n: 5
     color: blue
 
-Generate the package from the helpers, attributes, and recipe.
+Generate the package from the attributes, helpers, and recipe.
 
   % linecook build
 
@@ -84,7 +82,7 @@ Run the package.
 
 The package can be run on any server accessible via ssh but runs locally (ie
 on localhost) by default. See the generated 'config/ssh' file as well as the
-documentation for {setting up a VM}[link:files/Tutorial/1%20-%20VM%20Setup.html].
+documentation for {Running Scripts on Servers}[link:files/HowTo/Run%20Scripts.html].
 
 == Installation
 

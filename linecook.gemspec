@@ -8,6 +8,11 @@ Gem::Specification.new do |s|
   s.author  = 'Simon Chiang'
   s.email   = 'simon.a.chiang@gmail.com'
   s.summary = 'A shell script generator.'
+  s.description = %w{
+  Linecook generates shell scripts using an extensible set of ERB helpers. The
+  shell scripts and associated resources (files, subscripts, etc) make up
+  packages that can be used, for example, to provision servers.
+  }.join(' ')
   s.homepage = Linecook::WEBSITE
   s.rubyforge_project = ''
   s.platform = Gem::Platform::RUBY
