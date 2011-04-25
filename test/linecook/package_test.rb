@@ -236,8 +236,8 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'got: value', package.content('target/path')
   end
   
-  def test_build_template_uses_env_as_locals_by_default
-    path = prepare('example.erb') {|io| io << 'got: <%= key %>'}
+  def test_build_template_uses_env_as_local_attrs_by_default
+    path = prepare('example.erb') {|io| io << 'got: <%= attrs["key"] %>'}
     package.manifest['templates'] = {'name' => path}
     
     package.env['key'] = 'value'

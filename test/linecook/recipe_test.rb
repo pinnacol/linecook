@@ -290,12 +290,12 @@ echo 'x y z'
     assert_equal 'got value', package.content('target')
   end
   
-  def test_template_path_adds_attrs_to_locals
-    path = prepare('example.erb') {|io| io << "got <%= attrs['key'] %><%= key %>" }
+  def test_template_path_uses_attrs_as_default_locals
+    path = prepare('example.erb') {|io| io << "got <%= attrs['key'] %>" }
     package.manifest['templates'] = {'source' => path}
     
-    recipe.attrs['key'] = 'val'
-    recipe.template_path('source', 'target', 0600, :key => 'ue')
+    recipe.attrs['key'] = 'value'
+    recipe.template_path('source', 'target', 0600)
     
     assert_equal 'got value', package.content('target')
   end

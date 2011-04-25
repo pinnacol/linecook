@@ -257,7 +257,7 @@ module Linecook
     # builds, and registers it to target_name.  The locals will be set for
     # access in the template context.  Raises an error if the target is
     # already registered. Returns self.
-    def build_template(target_name, template_name=target_name, mode=0600, locals=env)
+    def build_template(target_name, template_name=target_name, mode=0600, locals={'attrs' => env})
       content = load_template(template_name).build(locals)
       
       target = setup_tempfile(target_name, mode)
