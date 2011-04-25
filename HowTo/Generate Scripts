@@ -196,21 +196,7 @@ Files are files of any sort that you might want to include in a package. They
 could be an archive of some sort, a binary, or a stock script you don't need a
 recipe to reproduce.
 
-Files can be declared in a package file like this (in fact this is an alternate way of 'writing' the script into the package):
-
-  [packages/demo.yml]
-  linecook:
-    package:
-      files:
-        run: example.sh
-  
-  [files/example.sh]
-  sudo apt-get -y install ruby1.8
-  sudo apt-get -y install git
-  git config --global user.name "John Doe"
-  git config --global user.email "john.doe@example.com"
-
-More commonly, files are included via a recipe.  Something along these lines:
+Files are typically included via a recipe like this:
 
   [files/gitconfig]
   [user]
@@ -253,25 +239,6 @@ is local by default.
   sudo apt-get -y install git
   cp "#{ template_path "gitconfig" }" ~/.gitconfig
   SCRIPT
-
-Like files, templates may be directly declared in a package file. In that case
-attrs will only contain whatever attributes are set by the package file.
-
-  [packages/demo.yml]
-  linecook:
-    package:
-      templates:
-        run: example
-  git:
-    config:
-      user.name: John Doe
-      user.email: john.doe@example.com
-  
-  [templates/example.erb]
-  sudo apt-get -y install ruby1.8
-  sudo apt-get -y install git
-  git config --global user.name <%= attrs['git']['config']['user.name'] %>
-  git config --global user.email <%= attrs['git']['config']['user.email'] %>
 
 == {Linebook}[http://rubygems.org/gems/linebook/]
 
