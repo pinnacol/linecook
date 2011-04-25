@@ -98,7 +98,7 @@ task :snapshot => :bundle do
 end
 
 desc "reset each vm to BASE"
-task :reset => :bundle do
+task :reset_base => :bundle do
   sh 'bundle exec linecook snapshot --reset BASE'
   sh 'bundle exec linecook snapshot CURRENT'
   sh 'bundle exec linecook start --socket --snapshot CURRENT'
