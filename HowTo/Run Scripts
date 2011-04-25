@@ -1,7 +1,4 @@
-Previous[link:files/Tutorial/2%20-%20VM%20Control.html]
-Next[link:files/Tutorial/4%20-%20Generating%20Scripts.html]
-
-= Running Scripts
+= Run Scripts
 
 Linecook runs scripts using the 'run' command. Internally run copies scripts
 to a server using scp and then executes the script using ssh. More
@@ -85,6 +82,3 @@ each host:
   ssh -q -t -t -F config/ssh host -- "/tmp/linecook/SCRIPT ARGS..."
 
 Now that you can run scripts, onward to generating scripts!
-
-Previous[link:files/Tutorial/2%20-%20VM%20Control.html]
-Next[link:files/Tutorial/4%20-%20Generating%20Scripts.html]

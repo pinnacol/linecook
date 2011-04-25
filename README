@@ -13,11 +13,11 @@ scripts, and run scripts on servers. Helpers and recipes can be shared as
 gems; the canonical shell helpers are available through
 {Linebook}[http://rubygems.org/gems/linebook/].
 
-See the documentation for help:
+See the documentation for help to:
 
-* {Setting up a VM}[link:files/HowTo/Setup%20A%20VM.html]
-* {Generating Scripts}[link:files/HowTo/Generate%20Scripts.html]
-* {Running Scripts on Servers}[link:files/HowTo/Run%20Scripts.html]
+* {Setup}[link:files/HowTo/Setup%20Virtual%20Machines.html] and {Control}[link:files/HowTo/Control%20Virtual%20Machines.html] Virtual Machines
+* {Generate Scripts}[link:files/HowTo/Generate%20Scripts.html]
+* {Run Scripts}[link:files/HowTo/Run%20Scripts.html]
 
 == Usage
 
@@ -67,7 +67,7 @@ Generate the package from the attributes, helpers, and recipe.
 
   % linecook build
 
-Check the package directory to inspect the resulting script.
+Check the packages directory to see the resulting script.
 
   % cat packages/chalkboard/run
   echo -e '\033[0;34mI will not manually configure my server\033[0m'
@@ -76,13 +76,34 @@ Check the package directory to inspect the resulting script.
   echo -e '\033[0;34mI will not manually configure my server\033[0m'
   echo -e '\033[0;34mI will not manually configure my server\033[0m'
 
-Run the package.
+Now run the package.
 
   % linecook run
 
-The package can be run on any server accessible via ssh but runs locally (ie
-on localhost) by default. See the generated 'config/ssh' file as well as the
-documentation for {Running Scripts on Servers}[link:files/HowTo/Run%20Scripts.html].
+The package can be run on any server accessible via ssh. See the generated
+'config/ssh' file as well as the documentation for {Running Scripts on
+Servers}[link:files/HowTo/Run%20Scripts.html].
+
+== Composition
+
+Linecook consists of the following.
+
+  = Components =
+  attributes
+  helpers
+  |-----> recipes -> packages -a-> (scripts) -b-> (servers) <-c- server setup
+  files
+  templates
+  
+  = Commands =
+  ex: 'linecook build' on the command line
+  
+  a) env, helper, package, build        # build scripts
+  b) run                                # run scripts
+  c) start, stop, ssh, snapshot, reset  # server setup/control
+
+Everything to the left of 'scripts' has to do with generating scripts;
+everything to the right with running scripts on servers.
 
 == Installation
 

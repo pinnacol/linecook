@@ -1,7 +1,4 @@
-Previous[link:files/Tutorial/1%20-%20VM%20Setup.html]
-Next[link:files/Tutorial/3%20-%20Running%20Scripts.html]
-
-= VM Control
+= Control Virtual Machines
 
 Linecook provides these commands to control VirtualBox VMs:
 
@@ -20,10 +17,9 @@ the whole thing from scratch.
 
 Linecook uses a standard ssh config file to run scripts; the same config file
 is also used to configure the VM control commands. More details are presented
-in the section on {running
-scripts}[link:files/Tutorial/3%20-%20Running%20Scripts.html], but suffice to
-say an ssh config file like this will access the 'abox' VM built during {VM
-Setup}[link:files/Tutorial/1%20-%20VM%20Setup.html]:
+in the help to {run scripts}[link:files/HowTo/Run%20Scripts.html], but suffice
+these configs will access the 'abox' VM built by the {VM Setup
+procedure}[link:files/HowTo/Setup%20Virtual%20Machines.html]:
 
   [config/ssh]
   Host abox
@@ -108,6 +104,3 @@ name next to the Host config using a linecook-specific comment like this:
 
 The Host config, 'abox' in this case, is the input for all linecook commands;
 linecook resolves the VM name internally when interacting with VirtualBox.
-
-Previous[link:files/Tutorial/1%20-%20VM%20Setup.html]
-Next[link:files/Tutorial/3%20-%20Running%20Scripts.html]

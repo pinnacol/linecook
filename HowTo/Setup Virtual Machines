@@ -1,12 +1,10 @@
-Previous[link:files/Tutorial/0%20-%20Intro.html]
-Next[link:files/Tutorial/2%20-%20VM%20Control.html]
+= Setup Virtual Machines
 
-= VM Setup
-
-VirtualBox runs virtual machines on your local box. Local VMs help minimize
-development cycles because they are quick to access and reset. In addition,
-VirtualBox allows snapshots which can save and restore a particular server
-state - this functionality enables iterative development.
+{VirtualBox}[http://www.virtualbox.org] runs virtual machines on your local
+box. Local VMs help minimize development cycles because they are quick to
+access and reset. In addition, VirtualBox allows snapshots which can save and
+restore a particular server state - this functionality enables iterative
+development.
 
 To set up a Ubuntu VM using VirtualBox:
 
@@ -14,8 +12,8 @@ To set up a Ubuntu VM using VirtualBox:
 2. Download a Ubuntu ISO (http://www.ubuntu.com/server/get-ubuntu/download)
 3. Build the Box
 
-When done, see the documentation for {controlling a
-VM}[link:files/Tutorial/2%20-%20VM%20Control.html]
+When done, see the documentation for {controlling
+VMs}[link:files/HowTo/Control%20Virtual%20Machines.html]
 
 == Building a Ubuntu Box
 
@@ -76,6 +74,3 @@ To cleanup port forwarding (run later, if ever):
 The same procedure can be repeated to build other VMs. Nothing is special
 about this setup. The os, name, port, and other settings may be changed to
 your liking - all that Linecook requires is ssh access.
-
-Previous[link:files/Tutorial/0%20-%20Intro.html]
-Next[link:files/Tutorial/2%20-%20VM%20Control.html]

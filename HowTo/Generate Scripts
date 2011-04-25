@@ -1,0 +1,38 @@
+= Generate Scripts
+
+Linecook generates scripts and puts them into a directory. Once you have the
+scripts you can compress them, share them, run them, or do whatever you please
+- at that point they're ordinary files sitting in a directory. Linecook refers
+to the directories containing generated scripts as packages.
+
+The best way to understand how Linecook generates scripts is to start with a
+package and work backwards; at each step you can rebuild the package and see
+that the same scripts are produced with various degrees of abstraction.  Even better, setup a config/ssh file as described in {Running
+Scripts}[link:files/Tutorial/3%20-%20Running%20Scripts.html] and prove the 
+
+run
+it to prove that it still works.  The commands to do so are:
+
+  linecook build
+  linecook run
+
+The run command must be configured as just discussed in the  tutorial.
+
+== Packages
+
+Packages are by default located in the packages directory. The simplest
+package is a directory containing a single executable script.
+
+
+
+
+
+== Recipes
+
+== Attributes
+
+== Helpers
+
+== Files
+
+== Templates
