@@ -256,7 +256,7 @@ heredocs, and other convenience methods.
   
   unless_ _file?('/tmp/message') do
     cat.to('/tmp/message').heredoc do
-      writeln 'hello world!
+      writeln 'hello world!'
     end
   end
 

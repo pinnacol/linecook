@@ -1,3 +1,8 @@
+== 1.0.0 2011/04/26
+
+First major release. Significant work on documentation and various bug fixes.
+Simplified run command to only run one script at a time.
+
 == 0.20.0 2011/03/17
 
 * added callback support

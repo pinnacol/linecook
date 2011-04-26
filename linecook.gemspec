@@ -14,7 +14,6 @@ Gem::Specification.new do |s|
   packages that can be used, for example, to provision servers.
   }.join(' ')
   s.homepage = Linecook::WEBSITE
-  s.rubyforge_project = ''
   s.platform = Gem::Platform::RUBY
   s.has_rdoc = true
   s.rdoc_options.concat %W{--main README -S -N --title Linecook}
@@ -26,7 +25,7 @@ Gem::Specification.new do |s|
   # add dependencies
   s.add_dependency('rake', '~> 0.8.7')
   s.add_dependency('configurable', '~> 0.7.0')
-  s.add_dependency('bundler', '~> 1.0.7')
+  s.add_dependency('bundler', '~> 1.0')
   
   # list extra rdoc files here.
   s.extra_rdoc_files = %W{

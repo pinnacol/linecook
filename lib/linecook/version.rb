@@ -1,6 +1,6 @@
 module Linecook
-  MAJOR = 0
-  MINOR = 20
+  MAJOR = 1
+  MINOR = 0
   TINY  = 0
   
   VERSION = "#{MAJOR}.#{MINOR}.#{TINY}"
