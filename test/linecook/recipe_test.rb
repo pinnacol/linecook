@@ -310,6 +310,16 @@ echo 'x y z'
     assert_equal 'got value', package.content('target')
   end
   
+  def test_template_path_chomps_erb_in_default_target
+    path = prepare('example.txt.erb') {|io| io << "got <%= attrs['key'] %>" }
+    package.manifest['templates'] = {'example.txt.erb' => path}
+    
+    recipe.attrs['key'] = 'value'
+    recipe.template_path('example.txt.erb')
+    
+    assert_equal 'got value', package.content('example.txt')
+  end
+  
   #
   # capture_path test
   #

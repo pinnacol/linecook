@@ -146,7 +146,7 @@ module Linecook
     
     # Looks up, builds, and registers the specified template and returns the
     # target_path to the resulting file.
-    def template_path(template_name, target_name=template_name, mode=0600, locals={'attrs' => attrs})
+    def template_path(template_name, target_name=template_name.chomp('.erb'), mode=0600, locals={'attrs' => attrs})
       _package_.build_template(target_name, template_name, mode, locals)
       target_path target_name
     end
