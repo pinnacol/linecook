@@ -12,6 +12,10 @@ the script is reproduced.
 
 The command to rebuild a package is:
 
+  linecook build -Ilib
+
+Or if you have a proper Gemfile in your project dir:
+
   linecook build
 
 This tutorial is designed such that if you make the files as specified, you
@@ -158,7 +162,7 @@ attribute and package files from above):
   Sets a global git config.
   (key, value)
   --
-  git config --global <%= key %> <%= value %>
+  git config --global <%= key %> "<%= value %>"
   
   
   [recipes/demo.rb]
@@ -168,8 +172,8 @@ attribute and package files from above):
   #########################################################################
   install attrs['ruby']['package']
   install attrs['git']['package']
-  attrs['git']['config'].each_pair do |key, value|
-    set_git_config key, value
+  ['user.name', 'user.email'].each do |key|
+    set_git_config key, attrs['git']['config'][key]
   end
 
 When you define a helper, you're literally defining a method in a module that
