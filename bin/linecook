@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-if File.exists?('Gemfile')
+if File.exists?('Gemfile') && ENV['LINECOOK_USE_BUNDLER'] != 'false'
   require 'rubygems'
   require 'bundler'
   Bundler.setup
