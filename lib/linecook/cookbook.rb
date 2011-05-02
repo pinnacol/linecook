@@ -43,7 +43,7 @@ module Linecook
       'attributes' => ['attributes', '.rb'],
       'files'      => ['files'],
       'recipes'    => ['recipes', '.rb'],
-      'templates'  => ['templates', '.erb']
+      'templates'  => ['templates']
     }
     
     attr_reader :project_dir

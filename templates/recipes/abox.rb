@@ -13,4 +13,4 @@ echo attrs['<%= project_name %>']['message']
 # Use file_path and template_path to add files to the package; the return
 # value can be treated as a path to the file.  For example:
 writeln "cat #{file_path('example.txt', 'example_file')}"
-writeln "cat #{template_path('example.txt', 'example_template')}" 
+writeln "cat #{template_path('example.erb', 'example_template')}" 
