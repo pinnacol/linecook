@@ -249,7 +249,7 @@ is local by default.
 The techniques presented here are sufficient to work with many scripts in many
 situations but they are quite bare. Eventually, or perhaps immediately, you
 will want a suite of standard helpers. The canonical helper library is
-Linebook.
+{Linebook}[http://rubygems.org/gems/linebook/].
 
 See the {Linebook
 documentation}[http://rubydoc.info/gems/linebook/file/README] to learn helpers
