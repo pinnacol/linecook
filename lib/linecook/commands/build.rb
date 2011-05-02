@@ -10,6 +10,7 @@ module Linecook
     #
     class Build < Command
       config :project_dir, '.', :short => :d              # the project directory
+      config :load_path, [], :short => :I, &c.list        # set load paths
       config :force, false, :short => :f, &c.flag         # force creation
       config :quiet, false, &c.flag                       # silence output
       
@@ -43,6 +44,10 @@ module Linecook
       end
       
       def process(*package_names)
+        load_path.each do |path|
+          $:.unshift(path)
+        end
+        
         helper = Helper.new(
           :project_dir => project_dir, 
           :force => force,
