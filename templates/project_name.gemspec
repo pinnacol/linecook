@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.rdoc_options.concat %W{--main README -S -N --title <%= project_name.capitalize %>}
   
   # add dependencies
-  s.add_dependency('linecook', '~> <%= Linecook::VERSION %>')
+  s.add_dependency('linecook', '~> <%= Linecook::MAJOR %>.<%= Linecook::MINOR %>')
   
   # list extra rdoc files here.
   s.extra_rdoc_files = %W{
