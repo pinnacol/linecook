@@ -237,7 +237,7 @@ is local by default.
   target.puts <<-SCRIPT
   sudo apt-get -y install ruby1.8
   sudo apt-get -y install git
-  cp "#{ template_path "gitconfig" }" ~/.gitconfig
+  cp "#{ template_path "gitconfig.erb" }" ~/.gitconfig
   SCRIPT
 
 == {Linebook}[http://rubygems.org/gems/linebook/]
@@ -245,10 +245,11 @@ is local by default.
 The techniques presented here are sufficient to work with many scripts in many
 situations but they are quite bare. Eventually, or perhaps immediately, you
 will want a suite of standard helpers. The canonical helper library is
-Linebook (Linecook's version of a Cookbook).
+Linebook.
 
-See the {Linebook documentation}[http://rubygems.org/gems/linebook/] to learn
-helpers for flow control, file system tests, commands, chaining, redirection,
+See the {Linebook
+documentation}[http://rubydoc.info/gems/linebook/file/README] to learn helpers
+for flow control, file system tests, commands, chaining, redirection,
 heredocs, and other convenience methods.
 
   [recipes/demo.rb]
