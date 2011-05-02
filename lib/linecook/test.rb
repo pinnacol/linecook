@@ -207,14 +207,15 @@ module Linecook
     def linecook_cmd(cmd, options={}, *args)
       opts = []
       options.each_pair do |key, value|
-        key = key.gsub('_', '-')
+        key = key.to_s.gsub('_', '-')
+        key = key.length == 1 ? "-#{key}" : "--#{key}"
         
         case value
         when true
-          opts << "--#{key}"
+          opts << key
         when nil, false
         else 
-          opts << "--#{key} '#{value}'"
+          opts << "#{key} '#{value}'"
         end
       end
       
