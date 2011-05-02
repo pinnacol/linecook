@@ -1,4 +1,2 @@
-# Attributes set here override those in the attributes directory.
-<%= project_name %>:
-  resolutions:
-  - I will automate configuration of my servers.
+# Attributes set in a package file override those in an attributes file.
+{}

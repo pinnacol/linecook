@@ -75,7 +75,7 @@ end
 #
 
 package = ENV['PACKAGE']
-force = (ENV['FORCE'] == 'true')
+force   = (ENV['FORCE'] == 'true')
 
 desc "build helpers and packages"
 task :build => :bundle do

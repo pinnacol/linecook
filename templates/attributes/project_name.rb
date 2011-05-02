@@ -1,4 +1,3 @@
-# Define default recipe attributes here.
-# (note string keys are usually better than symbols)
-attrs['<%= project_name %>']['year'] = Time.now.year
-attrs['<%= project_name %>']['resolutions'] = []
+# Define default attributes here.  The attrs object is a self-nesting Hash
+# (note string keys are usually better than symbols).
+attrs['<%= project_name %>']['message'] = 'Hello World'

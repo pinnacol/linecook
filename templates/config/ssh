@@ -1,9 +1,8 @@
-# Declare hosts for packages - the vm name can be specified in a special
-# comment following the Host declaration (defaults to the host).
-Host abox   # [abox]
+# Declare a Host for each package.
+Host abox
 Port 2220
 
-# Define global configs here.  By default tests run vs this default host.
+# Define defaults here.
 Host *
 HostName localhost
 User linecook

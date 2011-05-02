@@ -1,2 +1,3 @@
+# Linecook uses this Gemfile to setup dependencies, if present.
 source "http://rubygems.org"
 gemspec
