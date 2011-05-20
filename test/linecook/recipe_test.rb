@@ -94,6 +94,19 @@ echo 'x y z'
   end
   
   #
+  # close! test
+  #
+  
+  def test_close_bang_unregisters__target__from_the_package
+    setup_recipe do
+      write "abc"
+      close!
+    end
+    
+    assert_equal false, package.registry.include?(recipe._target_name_)
+  end
+  
+  #
   # closed? test
   #
   

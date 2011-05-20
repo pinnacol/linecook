@@ -81,6 +81,13 @@ module Linecook
       self
     end
     
+    # Closes _target_ and returns self, and unregisters _target_ from the
+    # package.  Useful for recipes that only generate other files.
+    def close!
+      _package_.registry.delete _target_name_
+      close
+    end
+    
     # Returns true if _target_ is closed.
     def closed?
       _target_.closed?
