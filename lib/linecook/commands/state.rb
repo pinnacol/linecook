@@ -12,7 +12,7 @@ module Linecook
       config :hosts, false, :short => :n, &c.flag   # print state by host
       
       def state(vm_name)
-        running?(vm_name) ? "running" : "stopped"
+        `VBoxManage showvminfo #{vm_name}` =~ /^State:\s+(.*)$/ ? $1 : 'unknown'
       end
       
       def process(*hosts)
