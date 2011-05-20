@@ -19,7 +19,7 @@ module Linecook
         vm_names = resolve_vm_names(hosts)
         if hosts
           each_host(vm_names) do |host|
-            puts "#{host}: #{state(host_map[host])}"
+            puts "#{host}: #{state(host_map[host] || host)}"
           end
         else
           each_vm_name(vm_names) do |vm_name|

@@ -57,7 +57,7 @@ module Linecook
       end
       
       def resolve_vm_names(hosts)
-        names ? hosts : hosts.collect {|host| host_map[host] }
+        names ? hosts : hosts.collect {|host| host_map[host] || host }
       end
       
       def each_host(hosts=[])
