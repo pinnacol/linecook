@@ -267,7 +267,7 @@ class HelperCommandTest < Test::Unit::TestCase
     heredoc_def = prepare('heredoc.erb') do |io| 
       io.puts outdent(%q{
       ()
-      rstrip if chain?
+        rstrip if chain?
       --
        <<DOC
       <% yield %>

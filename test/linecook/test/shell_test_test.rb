@@ -4,6 +4,8 @@ require 'linecook/test/shell_test'
 class ShellTestTest < Test::Unit::TestCase
   include Linecook::Test::ShellTest
   
+  TestUnitErrorClass = Object.const_defined?(:MiniTest) ? MiniTest::Assertion : Test::Unit::AssertionFailedError
+  
   #
   # set_env test
   #
@@ -169,8 +171,8 @@ echo
   end
 
   def test_assert_script_fails_on_mismatch
-    assert_raises(Test::Unit::AssertionFailedError) { assert_script %Q{ruby -e ""\nflunk} }
-    assert_raises(Test::Unit::AssertionFailedError) { assert_script %Q{echo pass\nflunk} }
+    assert_raises(TestUnitErrorClass) { assert_script %Q{ruby -e ""\nflunk} }
+    assert_raises(TestUnitErrorClass) { assert_script %Q{echo pass\nflunk} }
   end
   
   #
@@ -198,7 +200,7 @@ echo
   end
   
   def test_assert_script_match_fails_on_mismatch
-    assert_raises(Test::Unit::AssertionFailedError) do
+    assert_raises(TestUnitErrorClass) do
       assert_script_match %Q{
         % echo 'hello world'
         goodnight m:.o+.:n

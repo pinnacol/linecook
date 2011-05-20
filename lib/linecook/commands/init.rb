@@ -46,7 +46,7 @@ module Linecook
         context = OpenStruct.new(
           :project_name => project_name,
           :const_name => Utils.camelize(project_name)
-        ).send(:binding)
+        ).instance_eval('binding')
         
         #
         # Copy template files into place

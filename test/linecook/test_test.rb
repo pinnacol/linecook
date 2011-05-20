@@ -4,6 +4,8 @@ require 'linecook/test'
 class TestTest < Test::Unit::TestCase
   include Linecook::Test
   
+  TestUnitErrorClass = Object.const_defined?(:MiniTest) ? MiniTest::Assertion : Test::Unit::AssertionFailedError
+  
   #
   # setup_cookbook test
   #
@@ -132,7 +134,7 @@ class TestTest < Test::Unit::TestCase
   end
   
   def test_assert_recipe_passes_if_expected_and_actual_content_differ
-    assert_raises(Test::Unit::AssertionFailedError) do
+    assert_raises(TestUnitErrorClass) do
       assert_recipe %q{
         expected
       } do

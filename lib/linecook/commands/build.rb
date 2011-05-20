@@ -19,17 +19,17 @@ module Linecook
         sources = {}
         helpers = []
         
-        Dir.glob("#{helpers_dir}/*/**/*").each do |source|
-          next if File.directory?(source)
-          (sources[File.dirname(source)] ||= []) << source
+        Dir.glob("#{helpers_dir}/*/**/*").each do |source_file|
+          next if File.directory?(source_file)
+          (sources[File.dirname(source_file)] ||= []) << source_file
         end
         
-        sources.each_pair do |dir, sources|
+        sources.each_pair do |dir, source_files|
           name = dir[(helpers_dir.length + 1)..-1]
-          helpers << [name, sources]
+          helpers << [name, source_files]
         end
         
-        helpers.sort_by {|name, sources| name }
+        helpers.sort_by {|name, source_files| name }
       end
       
       def glob_package_files(package_names)

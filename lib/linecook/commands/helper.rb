@@ -211,7 +211,7 @@ module Linecook
           compiler = ERB::Compiler.new('<>')
           compiler.put_cmd = "write"
           compiler.insert_cmd = "write"
-          code = compiler.compile(body)
+          code = [compiler.compile(body)].flatten.first
           
           "#{source}\n#{code}".gsub(/^(\s*)/) do |m| 
             indent = 2 + $1.length - ($1.length % 2)
@@ -274,11 +274,11 @@ DOC
       DEFINITION_TEMPLATE_LINE = __LINE__ + 2
       DEFINITION_TEMPLATE = ERB.new(<<-DOC, nil, '<>').src
 <%= sections['head'] %>
-<% definitions.each do |desc, method_name, signature, body| %>
+<% definitions.each do |desc, method_name, signature, method_body| %>
 <% desc.split("\n").each do |line| %>
 # <%= line %><% end %>
 def <%= method_name %><%= signature %>
-<%= body %>
+<%= method_body %>
 
   chain_proxy
 end

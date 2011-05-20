@@ -11,7 +11,7 @@ module Linecook
     end
     
     def build(locals={})
-      erb.result OpenStruct.new(locals).send(:binding)
+      erb.result OpenStruct.new(locals).instance_eval('binding')
     end
   end
 end

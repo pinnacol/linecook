@@ -32,7 +32,7 @@ git config --global user.email "john.doe@example.com"
 SCRIPT
 })
 
-    stdout, cmd = linecook 'build', 'I' => ['lib']
+    stdout, cmd = linecook 'build', 'I' => 'lib'
     assert_equal 0, $?.exitstatus, "% #{cmd}\n#{stdout}"
 
     assert_output_equal %q{
@@ -57,7 +57,7 @@ git config --global user.email "john.doe@example.com"
 SCRIPT
 })
 
-    stdout, cmd = linecook 'build', 'I' => ['lib']
+    stdout, cmd = linecook 'build', 'I' => 'lib'
     assert_equal 0, $?.exitstatus, "% #{cmd}\n#{stdout}"
 
     assert_output_equal %q{
@@ -96,7 +96,7 @@ git config --global user.email "#{attrs['git']['config']['user.email']}"
 SCRIPT
 })
 
-    stdout, cmd = linecook 'build', 'I' => ['lib']
+    stdout, cmd = linecook 'build', 'I' => 'lib'
     assert_equal 0, $?.exitstatus, "% #{cmd}\n#{stdout}"
 
     assert_output_equal %q{
@@ -149,7 +149,7 @@ install attrs['git']['package']
 end
 })
 
-    stdout, cmd = linecook 'build', 'I' => ['lib']
+    stdout, cmd = linecook 'build', 'I' => 'lib'
     assert_equal 0, $?.exitstatus, "% #{cmd}\n#{stdout}"
 
     assert_output_equal %q{
@@ -179,7 +179,7 @@ cp "#{ file_path "gitconfig" }" ~/.gitconfig
 SCRIPT
 })
 
-    stdout, cmd = linecook 'build', 'I' => ['lib']
+    stdout, cmd = linecook 'build', 'I' => 'lib'
     assert_equal 0, $?.exitstatus, "% #{cmd}\n#{stdout}"
 
     assert_alike %q{
@@ -222,7 +222,7 @@ cp "#{ template_path "gitconfig.erb" }" ~/.gitconfig
 SCRIPT
 })
 
-    stdout, cmd = linecook 'build', 'I' => ['lib']
+    stdout, cmd = linecook 'build', 'I' => 'lib'
     assert_equal 0, $?.exitstatus, "% #{cmd}\n#{stdout}"
 
     assert_alike %q{
