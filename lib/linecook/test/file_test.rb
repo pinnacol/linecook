@@ -1,3 +1,5 @@
+require 'linecook/test/shim'
+
 module Linecook
   module Test
     module FileTest

@@ -1,5 +1,6 @@
 require 'linecook/test/regexp_escape'
 require 'linecook/test/command_parser'
+require 'linecook/test/shim'
 
 module Linecook
   module Test
