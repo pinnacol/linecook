@@ -197,14 +197,29 @@ module Linecook
       resource_path('recipes', recipe_name)
     end
     
-    # Loads the attributes file with the specified name and evaluates in the
-    # context of Attributes.  Returns the new Attributes object.
+    # Loads the named attributes file into and returns an instance of
+    # Attributes. The loading mechanism depends on the attributes file
+    # extname.
+    #
+    #   .rb: evaluate in the context of attributes
+    #   .yml,.yaml,.json: load as YAML and merge into attributes
+    #
+    # All other file types raise an error.  Simply returns a new Attributes
+    # instance if no name is given.
     def load_attributes(attributes_name=nil)
       attributes = Attributes.new
       
       if attributes_name
         path = attributes_path(attributes_name)
-        attributes.instance_eval(File.read(path), path)
+        
+        case File.extname(path)
+        when '.rb'
+          attributes.instance_eval(File.read(path), path)
+        when '.yml', '.yaml', '.json'
+          attributes.attrs.merge!(YAML.load_file(path))
+        else
+          raise "invalid attributes format: #{path.inspect}"
+        end
       end
       
       attributes

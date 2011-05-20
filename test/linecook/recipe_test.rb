@@ -168,6 +168,16 @@ echo 'x y z'
     assert_equal 'value', recipe.attrs[:key]
   end
   
+  def test_attributes_loads_yml_files_as_yaml
+    path = prepare('example.yml') {|io| io << ":key: value" }
+    package.manifest['attributes'] = {'name' => path}
+    
+    assert_equal nil, recipe.attrs[:key]
+    
+    recipe.attributes('name')
+    assert_equal 'value', recipe.attrs[:key]
+  end
+  
   #
   # attrs test
   #
