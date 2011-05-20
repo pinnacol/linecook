@@ -5,7 +5,7 @@ module Linecook
     module_function
     
     def load_config(path)
-      (path ? YAML.load_file(path) : nil) || {}
+      (path && File.exists?(path) ? YAML.load_file(path) : nil) || {}
     end
     
     def arrayify(obj)

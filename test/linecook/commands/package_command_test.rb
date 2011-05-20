@@ -34,6 +34,17 @@ class PackageCommandTest < Test::Unit::TestCase
     end
   end
   
+  def test_process_assumes_empty_package_file_if_package_file_does_not_exist
+    prepare('recipes/example.rb') do |io|
+      io << 'write "content"' 
+    end
+    
+    Dir.chdir(method_dir) do
+      package_dir = cmd.process('example')
+      assert_equal "content", File.read("#{package_dir}/run")
+    end
+  end
+  
   def test_process_guesses_package_config_as_per_host_name
     prepare('recipes/vbox.rb') do |io|
       io << 'write "run content"'
