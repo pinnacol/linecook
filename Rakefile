@@ -103,6 +103,10 @@ end
 # Test tasks
 #
 
+def current_ruby
+  `ruby -v`.split[0,2].join('-')
+end
+
 desc 'Default: Run tests.'
 task :default => :test
 
@@ -111,7 +115,7 @@ task :quicktest => :bundle do
   tests = Dir.glob('test/**/*_test.rb')
   tests.delete_if {|test| test =~ /_test\/test_/ }
   
-  puts "Using #{RUBY_VERSION} (#{RUBY_PLATFORM})"
+  puts "Using #{current_ruby}"
   if ENV['RCOV'] == 'true'
     FileUtils.rm_rf File.expand_path('../coverage', __FILE__)
     sh('rcov', '-w', '--text-report', '--exclude', '^/', *tests)
