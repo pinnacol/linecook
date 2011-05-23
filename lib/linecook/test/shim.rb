@@ -1,9 +1,11 @@
 require 'test/unit'
 
 if Object.const_defined?(:MiniTest)
-  # MiniTest renames method_name as name.  For backwards compatibility it must
-  # be added back.
-  class MiniTest::Unit::TestCase
+  ################################
+  # MiniTest shims (ruby 1.9)
+  ################################
+  
+  class Test::Unit::TestCase
     class << self
       # Causes a test suite to be skipped.  If a message is given, it will
       # print and notify the user the test suite has been skipped.
@@ -12,44 +14,58 @@ if Object.const_defined?(:MiniTest)
         puts "Skipping #{self}#{msg.empty? ? '' : ': ' + msg}"
       end
     end
-    
+  end
+  
+  # MiniTest renames method_name as name.  For backwards compatibility it must
+  # be added back.
+  class MiniTest::Unit::TestCase
     def method_name
       __name__
     end
   end
+  
 else
+  ################################
+  # Test::Unit shims (< ruby 1.9)
+  ################################
+  # :stopdoc:
+  # Implementing skip_test in the original Test::Unit is considerably more
+  # tricky than in the Mini::Test Test::Unit.
   class Test::Unit::TestCase
     class << self
-      ################################
-      # Test::Unit shims (< ruby 1.9)
-      ################################
+      alias tap_original_test_case_inherited inherited
+    
+      def inherited(child)
+        super
+        tap_original_test_case_inherited(child)
+        child.instance_variable_set(:@skip_messages, [])
+        child.instance_variable_set(:@run_test_suite, true)
+      end
     
       # Causes a test suite to be skipped.  If a message is given, it will
       # print and notify the user the test suite has been skipped.
       def skip_test(msg=nil)
-        @skip_test_suite = true
-        skip_messages << msg
+        @run_test_suite = false
+        @skip_messages << msg
       end
+    
+      alias :original_suite :suite
 
       # Modifies the default suite method to skip the suit unless
       # run_test_suite is true.  If the test is skipped, the skip_messages 
       # will be printed along with the default 'Skipping <Test>' message.
       def suite # :nodoc:
-        if (@skip_test_suite ||= false)
-          skip_message = skip_messages.compact.join(', ')
-          puts "Skipping #{name}#{skip_message.empty? ? '' : ': ' + skip_message}"
-          # return an empty test suite of the appropriate name
-          ::Test::Unit::TestSuite.new(name)
+        if @run_test_suite
+          original_suite
         else
-          super
+          skip_message = @skip_messages.compact.join(', ')
+          puts "Skipping #{name}#{skip_message.empty? ? '' : ': ' + skip_message}"
+
+          # return an empty test suite of the appropriate name
+          Test::Unit::TestSuite.new(name)
         end
-      end
-
-      protected
-
-      def skip_messages # :nodoc:
-        @skip_messages ||= []
       end
     end
   end
+  # :startdoc:
 end
