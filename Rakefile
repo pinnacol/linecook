@@ -1,6 +1,6 @@
 require 'rake'
 require 'rake/rdoctask'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 
 #
 # Gem specification
@@ -10,7 +10,7 @@ def gemspec
   @gemspec ||= eval(File.read('linecook.gemspec'), TOPLEVEL_BINDING)
 end
 
-Rake::GemPackageTask.new(gemspec) do |pkg|
+Gem::PackageTask.new(gemspec) do |pkg|
   pkg.need_tar = true
 end
 

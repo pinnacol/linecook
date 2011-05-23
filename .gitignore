@@ -1,9 +1,8 @@
 .DS_Store
 .bundle
-*.gem
 /rdoc
 /coverage
 Gemfile.lock
 .rvmrc
-vm
 *.rbc
+pkg
