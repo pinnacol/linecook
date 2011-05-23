@@ -30,6 +30,7 @@ task :print_manifest do
   # of a label)
   Dir.glob('**/*').each do |file|
     next if file =~ /^(rdoc|pkg|coverage|scripts|design|demo|helpers|config|test|vendor|vm)/ || File.directory?(file)
+    next if File.extname(file) == '.rbc'
     
     path = File.expand_path(file)
     files[path] = ['', file] unless files.has_key?(path)
