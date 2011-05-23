@@ -69,6 +69,7 @@ Gem::Specification.new do |s|
     lib/linecook/test/file_test.rb
     lib/linecook/test/regexp_escape.rb
     lib/linecook/test/shell_test.rb
+    lib/linecook/test/shim.rb
     lib/linecook/utils.rb
     lib/linecook/version.rb
     templates/Gemfile
