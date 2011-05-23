@@ -111,6 +111,7 @@ task :quicktest => :bundle do
   tests = Dir.glob('test/**/*_test.rb')
   tests.delete_if {|test| test =~ /_test\/test_/ }
   
+  puts "Using #{RUBY_VERSION} (#{RUBY_PLATFORM})"
   if ENV['RCOV'] == 'true'
     FileUtils.rm_rf File.expand_path('../coverage', __FILE__)
     sh('rcov', '-w', '--text-report', '--exclude', '^/', *tests)
