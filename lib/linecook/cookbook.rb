@@ -39,12 +39,12 @@ module Linecook
     GEMS_KEY      = 'gems'
     REWRITE_KEY   = 'rewrite'
     
-    PATTERNS  = {
-      'attributes' => ['attributes', '.rb'],
-      'files'      => ['files'],
-      'recipes'    => ['recipes', '.rb'],
-      'templates'  => ['templates']
-    }
+    PATTERNS  = [
+      ['attributes', '**/*{.rb,.yaml,.yml,.json}', true],
+      ['files',      '**/*'],
+      ['recipes',    '**/*.rb', true],
+      ['templates',  '**/*']
+    ]
     
     attr_reader :project_dir
     attr_reader :config
@@ -104,16 +104,15 @@ module Linecook
       manifest = Hash.new {|hash, key| hash[key] = {} }
       
       paths.each do |path|
-        PATTERNS.each_pair do |type, (dirname, extname)|
-          resource_dir = File.expand_path(File.join(path, dirname), project_dir)
-          
-          pattern = File.join(resource_dir, "**/*#{extname}")
+        PATTERNS.each do |(type, glob, chomp_extname)|
+          resource_dir = File.expand_path(File.join(path, type), project_dir)
+          pattern = File.join(resource_dir, glob)
           
           Dir.glob(pattern).each do |full_path|
             next unless File.file?(full_path)
             
             name = relative_path(resource_dir, full_path)
-            name.chomp!(extname) if extname
+            name.chomp!(File.extname(full_path)) if chomp_extname
             
             manifest[type][name] = full_path
           end
