@@ -1,9 +1,8 @@
 require File.expand_path('../../test_helper', __FILE__)
 require 'linecook/cookbook'
-require 'linecook/test/file_test'
 
 class CookbookTest < Test::Unit::TestCase
-  include Linecook::Test::FileTest
+  include ShellTest::FileMethods
   Cookbook = Linecook::Cookbook
   
   FIXTURES_DIR = File.expand_path('../../fixtures', __FILE__)

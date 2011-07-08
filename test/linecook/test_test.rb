@@ -223,7 +223,7 @@ class TestTest < Test::Unit::TestCase
     }, stdout, msg
     
     assert_alike %{
-      % :...:
+      $ :...:
       [8] $(pwd)/test/linecook/test_test/test_a_package/recipe
     }, msg
     

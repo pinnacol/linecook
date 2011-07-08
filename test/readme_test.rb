@@ -69,7 +69,7 @@ example:
     sh "BUNDLE_GEMFILE='#{gemfile}' rake build > /dev/null 2>&1"
     
     assert_script %Q{
-      % bash '#{path('packages/example/example')}'
+      $ bash '#{path('packages/example/example')}'
       \033[0;34mI will not manually configure my server\033[0m
       \033[0;34mI will not manually configure my server\033[0m
       \033[0;34mI will not manually configure my server\033[0m

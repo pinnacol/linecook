@@ -18,9 +18,9 @@ module Linecook
     # used as sources.  For example these are equivalent and produce the
     # Const::Name module in 'lib/const/name.rb':
     #
-    #   % linecook helper Const::Name
-    #   % linecook helper const/name
-    #   % linecook helper const/name helpers/const/name/*
+    #   $ linecook helper Const::Name
+    #   $ linecook helper const/name
+    #   $ linecook helper const/name helpers/const/name/*
     #
     # == Source Files
     #

@@ -2,8 +2,7 @@ require 'rubygems'
 require 'bundler'
 Bundler.setup
 
-require 'test/unit'
-require 'linecook/test'
+require 'linecook/test/unit'
 
 if testcase = ENV['TESTCASE']
   ARGV << "--testcase=#{testcase}"

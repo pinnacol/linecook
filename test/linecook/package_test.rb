@@ -1,9 +1,8 @@
 require File.expand_path('../../test_helper', __FILE__)
 require 'linecook/package'
-require 'linecook/test/file_test'
 
 class PackageTest < Test::Unit::TestCase
-  include Linecook::Test::FileTest
+  include ShellTest::FileMethods
   
   Package = Linecook::Package
   

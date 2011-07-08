@@ -33,7 +33,7 @@ SCRIPT
 })
 
     stdout, cmd = linecook 'build', 'I' => 'lib'
-    assert_equal 0, $?.exitstatus, "% #{cmd}\n#{stdout}"
+    assert_equal 0, $?.exitstatus, "$ #{cmd}\n#{stdout}"
 
     assert_output_equal %q{
 sudo apt-get -y install ruby1.8
@@ -58,7 +58,7 @@ SCRIPT
 })
 
     stdout, cmd = linecook 'build', 'I' => 'lib'
-    assert_equal 0, $?.exitstatus, "% #{cmd}\n#{stdout}"
+    assert_equal 0, $?.exitstatus, "$ #{cmd}\n#{stdout}"
 
     assert_output_equal %q{
 sudo apt-get -y install ruby1.8
@@ -97,7 +97,7 @@ SCRIPT
 })
 
     stdout, cmd = linecook 'build', 'I' => 'lib'
-    assert_equal 0, $?.exitstatus, "% #{cmd}\n#{stdout}"
+    assert_equal 0, $?.exitstatus, "$ #{cmd}\n#{stdout}"
 
     assert_output_equal %q{
 sudo apt-get -y install ruby1.8
@@ -150,7 +150,7 @@ end
 })
 
     stdout, cmd = linecook 'build', 'I' => 'lib'
-    assert_equal 0, $?.exitstatus, "% #{cmd}\n#{stdout}"
+    assert_equal 0, $?.exitstatus, "$ #{cmd}\n#{stdout}"
 
     assert_output_equal %q{
 sudo apt-get -y install ruby1.8
@@ -180,7 +180,7 @@ SCRIPT
 })
 
     stdout, cmd = linecook 'build', 'I' => 'lib'
-    assert_equal 0, $?.exitstatus, "% #{cmd}\n#{stdout}"
+    assert_equal 0, $?.exitstatus, "$ #{cmd}\n#{stdout}"
 
     assert_alike %q{
 sudo apt-get -y install ruby1.8
@@ -223,7 +223,7 @@ SCRIPT
 })
 
     stdout, cmd = linecook 'build', 'I' => 'lib'
-    assert_equal 0, $?.exitstatus, "% #{cmd}\n#{stdout}"
+    assert_equal 0, $?.exitstatus, "$ #{cmd}\n#{stdout}"
 
     assert_alike %q{
 sudo apt-get -y install ruby1.8

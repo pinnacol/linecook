@@ -18,6 +18,12 @@ class RunCommandTest < Test::Unit::TestCase
     method_dir[(user_dir.length + 1)..-1]
   end
   
+  def parse_script(script, options={})
+    super(script, options).collect! do |cmd, output, status|
+      ["2>&1 #{cmd}", output, status]
+    end
+  end
+  
   #
   # cmd test
   #
@@ -31,9 +37,9 @@ class RunCommandTest < Test::Unit::TestCase
     prepare('packages/abox.yml') {}
     
     assert_script %Q{
-      % ruby #{LINECOOK} build --quiet --project-dir '#{method_dir}'
+      $ ruby #{LINECOOK} build --quiet --project-dir '#{method_dir}'
       build
-      % ruby #{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'
+      $ ruby #{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'
       run
     }
   end
@@ -46,8 +52,8 @@ class RunCommandTest < Test::Unit::TestCase
     prepare('packages/abox.yml') {}
     
     assert_script %Q{
-      % ruby #{LINECOOK} build --quiet --project-dir '#{method_dir}' # ...
-      % ruby #{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'  # [1] ...
+      $ ruby #{LINECOOK} build --quiet --project-dir '#{method_dir}' # ...
+      $ ruby #{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'  # [1] ...
     }
   end
   
@@ -65,8 +71,8 @@ class RunCommandTest < Test::Unit::TestCase
     end
     
     assert_script %Q{
-      % ruby #{LINECOOK} build --quiet --project-dir '#{method_dir}' # ...
-      % ruby #{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'  # [1] ...
+      $ ruby #{LINECOOK} build --quiet --project-dir '#{method_dir}' # ...
+      $ ruby #{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'  # [1] ...
     }
   end
   
@@ -81,10 +87,10 @@ class RunCommandTest < Test::Unit::TestCase
     end
     
     assert_script %Q{
-      % ruby #{LINECOOK} build --quiet --project-dir '#{method_dir}'
+      $ ruby #{LINECOOK} build --quiet --project-dir '#{method_dir}'
       build abox
       build bbox
-      % ruby #{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'
+      $ ruby #{LINECOOK} run --quiet --remote-dir 'vm/#{relative_dir}' --project-dir '#{method_dir}'
       run abox
       run bbox
     }

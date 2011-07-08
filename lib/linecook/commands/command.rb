@@ -36,7 +36,7 @@ module Linecook
       end
       
       def sh(cmd)
-        puts "% #{cmd}" unless quiet
+        puts "$ #{cmd}" unless quiet
         system(cmd)
       end
       

@@ -1,6 +1,5 @@
+require 'shell_test'
 require 'linecook/package'
-require 'linecook/test/file_test'
-require 'linecook/test/shell_test'
 
 module Linecook
   module Test
@@ -35,8 +34,6 @@ module Linecook
     end
     
     extend ModuleMethods
-    
-    include FileTest
     include ShellTest
     
     LINECOOK_DIR = File.expand_path('../../..', __FILE__)
@@ -172,7 +169,7 @@ module Linecook
       command = "#{linecook_cmd(cmd, options, *args)} 2> '#{stderr}' > '#{stdout}'"
       system(command)
       
-      [File.read(stdout), "% #{command}\n#{File.read(stderr)}"]
+      [File.read(stdout), "$ #{command}\n#{File.read(stderr)}"]
     end
     
     def linecook_cmd(cmd, options={}, *args)
