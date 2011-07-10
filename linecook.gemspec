@@ -24,6 +24,10 @@ Gem::Specification.new do |s|
     License.txt
   }
 
+  # add dependencies
+  s.add_development_dependency('bundler', '~> 1.0')
+  s.add_development_dependency('rcov', '~> 0.9')
+
   s.files         = %w{}
   s.test_files    = %w{}
   s.executables   = %w{}
