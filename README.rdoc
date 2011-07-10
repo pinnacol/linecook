@@ -1,0 +1,20 @@
+= Linecook
+
+A shell script generator.
+
+== Description
+
+Linecook generates shell scripts using an extensible set of ERB helpers. The
+shell scripts and associated resources (files, subscripts, etc) make up
+packages that can be used, for example, to provision servers.
+
+== Installation
+
+Linecook is available as a {gem}[http://rubygems.org/gems/linecook].
+
+  $ gem install linecook
+
+== Info 
+
+Developer:: {Simon Chiang}[http://github.com/thinkerbot]
+License:: {MIT-Style}[link:files/License_txt.html]
