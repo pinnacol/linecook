@@ -16,9 +16,8 @@ Gem::Specification.new do |s|
   }.join(' ')
 
   s.rubyforge_project = 'linecook'
-
   s.has_rdoc = true
-  s.rdoc_options.concat %w{--main README -S -N --title Linecook}
+  s.rdoc_options.concat %w{--main README.rdoc -S -N --title Linecook}
   s.extra_rdoc_files = %w{
     History.rdoc
     README.rdoc

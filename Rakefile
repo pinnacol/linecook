@@ -35,3 +35,20 @@ task :manifest do
     puts '%-5s %s' % entry
   end
 end
+
+#
+# Documentation tasks
+#
+
+desc 'Generate documentation.'
+task :rdoc do
+  spec  = gemspec
+  files =  spec.files.select {|file| File.extname(file) == '.rb' }
+  files += spec.extra_rdoc_files
+  options = spec.rdoc_options.join(' ')
+  
+  Dir.chdir File.expand_path('..', __FILE__) do
+    FileUtils.rm_r 'rdoc'
+    sh "rdoc -o rdoc #{options} '#{files.join("' '")}'"
+  end
+end
