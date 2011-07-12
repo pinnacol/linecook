@@ -13,4 +13,15 @@ class LinecookTest < Test::Unit::TestCase
       linecook version #{Linecook::VERSION} -- #{Linecook::WEBSITE}
     }
   end
+
+  def test_linecook_prints_help
+    assert_script_match %q{
+      $ linecook -h
+      usage: linecook [options]:...:
+      :...:
+      options:
+          -h, --help    :...: print this help
+          -v, --version :...: print version
+    }
+  end
 end

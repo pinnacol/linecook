@@ -4,11 +4,18 @@ require 'linecook/version'
 require 'optparse'
 
 OptionParser.new do |opts|
- opts.banner = "usage: linecook [options]"
+  opts.banner = "usage: linecook [options]"
+  opts.separator ""
+  opts.separator "options:"
 
- opts.on("-v", "--version", "print version") do |v|
-   puts "linecook version #{Linecook::VERSION} -- #{Linecook::WEBSITE}"
-   exit
- end
+  opts.on("-h", "--help", "print this help") do
+    puts opts
+    exit
+  end
+
+  opts.on("-v", "--version", "print version") do |v|
+    puts "linecook version #{Linecook::VERSION} -- #{Linecook::WEBSITE}"
+    exit
+  end
 end.parse!
  
