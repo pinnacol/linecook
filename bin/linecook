@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+require 'linecook/version'
+require 'optparse'
+
+OptionParser.new do |opts|
+ opts.banner = "usage: linecook [options]"
+
+ opts.on("-v", "--version", "print version") do |v|
+   puts "linecook version #{Linecook::VERSION} -- #{Linecook::WEBSITE}"
+   exit
+ end
+end.parse!
+ 

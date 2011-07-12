@@ -2,7 +2,7 @@ require 'rubygems'
 require 'bundler'
 Bundler.setup
 
-require 'test/unit'
+require 'shell_test/unit'
 
 if name = ENV['NAME']
   ARGV << "--name=#{name}"
