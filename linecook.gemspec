@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
   }
 
   # add dependencies
+  s.add_dependency('configurable', '~> 1.0')
   s.add_development_dependency('bundler', '~> 1.0')
   s.add_development_dependency('rcov', '~> 0.9')
   s.add_development_dependency('shell_test', '~> 0.1.0')

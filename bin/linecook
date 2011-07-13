@@ -1,21 +1,55 @@
 #!/usr/bin/env ruby
 
 require 'linecook/version'
-require 'optparse'
+require 'linecook/executable'
 
-OptionParser.new do |opts|
-  opts.banner = "usage: linecook [options]"
-  opts.separator ""
-  opts.separator "options:"
+if ARGV.empty?
+  ARGV.unshift('--help')
+end
 
-  opts.on("-h", "--help", "print this help") do
-    puts opts
+executable = Linecook::Executable
+executable.parse!(ARGV) do |options|
+  options.on("-h", "--help", "print this help") do
+    puts executable.usage
+    puts
+    puts "commands: "
+    executable.command_list.each do |name, command|
+      puts "  %-16s   %s" % [name, command.desc]
+    end
+    puts
+    puts "options:"
+    puts options
+
     exit
   end
 
-  opts.on("-v", "--version", "print version") do |v|
-    puts "linecook version #{Linecook::VERSION} -- #{Linecook::WEBSITE}"
+  options.on("-v", "--version", "print version") do |v|
+    puts "#{executable.name} version #{Linecook::VERSION} -- #{Linecook::WEBSITE}"
     exit
   end
-end.parse!
- 
+end
+
+begin
+  executable.call(ARGV) do |command, options|
+    options.on '-h', '--help', 'print this help' do
+      puts executable.usage(command)
+      puts
+
+      desc = command.desc
+      unless desc.nil? || desc.empty?
+        puts
+        puts command.desc.wrap
+        puts
+      end
+
+      puts "options:"
+      puts options
+
+      exit
+    end
+  end
+rescue Linecook::Command::CommandError
+  puts $!.message
+  puts $!.backtrace if $DEBUG
+  exit 1
+end
