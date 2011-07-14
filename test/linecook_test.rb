@@ -17,22 +17,21 @@ class LinecookTest < Test::Unit::TestCase
   def test_linecook_prints_help
     assert_script_match %q{
       $ linecook -h
-      usage: linecook [options] COMMAND [ARGS]:...:
-      :...:
-      options:
-          -h, --help    :...: print this help
-          -v, --version :...: print version
+      usage: linecook [options] COMMAND [ARGS]
+    }
+  end
+
+  def test_linecook_prints_help_when_no_args_are_given
+    assert_script_match %q{
+      $ linecook
+      usage: linecook [options] COMMAND [ARGS]
     }
   end
 
   def test_linecook_prints_command_help
     assert_script_match %q{
       $ linecook compile -h
-      usage: linecook [options]:...:
-      :...:
-      options:
-          -h, --help    :...: print this help
-          -v, --version :...: print version
+      usage: linecook compile :...:
     }
   end
 end

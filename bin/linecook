@@ -1,16 +1,20 @@
 #!/usr/bin/env ruby
 
 require 'linecook/version'
-require 'linecook/executable'
+require 'linecook/command_set'
+require 'linecook/commands/compile'
 
 if ARGV.empty?
   ARGV.unshift('--help')
 end
 
-executable = Linecook::Executable
+executable = Linecook::CommandSet.new(
+  'compile' => Linecook::Commands::Compile
+)
+
 executable.parse!(ARGV) do |options|
   options.on("-h", "--help", "print this help") do
-    puts executable.usage
+    puts "usage: linecook [options] COMMAND [ARGS]"
     puts
     puts "commands: "
     executable.command_list.each do |name, command|
@@ -18,13 +22,13 @@ executable.parse!(ARGV) do |options|
     end
     puts
     puts "options:"
-    puts options
+    puts options.to_s.gsub(/^  /, '').gsub(/\s{14}/, '') # hack to fix spacing
 
     exit
   end
 
   options.on("-v", "--version", "print version") do |v|
-    puts "#{executable.name} version #{Linecook::VERSION} -- #{Linecook::WEBSITE}"
+    puts "linecook version #{Linecook::VERSION} -- #{Linecook::WEBSITE}"
     exit
   end
 end
@@ -32,7 +36,7 @@ end
 begin
   executable.call(ARGV) do |command, options|
     options.on '-h', '--help', 'print this help' do
-      puts executable.usage(command)
+      puts "usage: linecook #{command.name} #{command.args}"
       puts
 
       desc = command.desc
@@ -43,7 +47,7 @@ begin
       end
 
       puts "options:"
-      puts options
+      puts options.to_s.gsub(/^  /, '').gsub(/\s{14}/, '') # hack to fix spacing
 
       exit
     end
