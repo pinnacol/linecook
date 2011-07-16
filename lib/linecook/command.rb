@@ -3,23 +3,18 @@ require 'configurable'
 module Linecook
   class Command
     class << self
-      def name
-        @name ||= to_s.split('::').last.downcase
-      end
-
-      def parse(argv=ARGV, &block)
-        parse!(argv.dup, &block)
-      end
-
-      def parse!(argv=ARGV, &block)
-        parser = configs.to_parser(:add_defaults => false, &block)
+      def parse!(argv=ARGV)
+        parser = configs.to_parser(:add_defaults => false)
+        yield(parser) if block_given?
         parser.parse!(argv)
-        
-        [parser.config, argv]
+
+        new(parser.config)
       end
 
-      def call(argv=[])
-        new(config).call(argv)
+      def signature
+        arguments = args.arguments.collect {|arg| arg.upcase }
+        arguments.pop if arguments.last.to_s[0] == ?&
+        "[options] #{arguments.join(' ')}"
       end
 
       # Returns a help string that formats the desc documentation.
@@ -48,15 +43,15 @@ module Linecook
       initialize_config(config)
     end
 
-    def call(argv=[])
-      process(*argv)
+    def call(argv=[], &block)
+      process(*argv, &block)
     end
 
     def process(*args)
       raise NotImplementedError
     end
-    
-    class CommandError < RuntimeError
-    end
+  end
+
+  class CommandError < RuntimeError
   end
 end

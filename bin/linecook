@@ -8,51 +8,52 @@ if ARGV.empty?
   ARGV.unshift('--help')
 end
 
-executable = Linecook::CommandSet.new(
-  'compile' => Linecook::Commands::Compile
-)
-
-executable.parse!(ARGV) do |options|
-  options.on("-h", "--help", "print this help") do
-    puts "usage: linecook [options] COMMAND [ARGS]"
-    puts
-    puts "commands: "
-    executable.command_list.each do |name, command|
-      puts "  %-16s   %s" % [name, command.desc]
+module Linecook
+  # ::desc linecook command
+  #
+  # Launch stuff
+  class Executable < Linecook::CommandSet
+    class << self
+      def commands
+        {'compile' => Linecook::Commands::Compile,
+          'nest' => self}
+      end
     end
-    puts
-    puts "options:"
-    puts options.to_s.gsub(/^  /, '').gsub(/\s{14}/, '') # hack to fix spacing
-
-    exit
-  end
-
-  options.on("-v", "--version", "print version") do |v|
-    puts "linecook version #{Linecook::VERSION} -- #{Linecook::WEBSITE}"
-    exit
   end
 end
 
 begin
-  executable.call(ARGV) do |command, options|
+  command_set = Linecook::Executable
+  command_set.parse!(ARGV) do |options|
     options.on '-h', '--help', 'print this help' do
-      puts "usage: linecook #{command.name} #{command.args}"
+      puts "usage: linecook #{command_set.signature}"
       puts
-
-      desc = command.desc
-      unless desc.nil? || desc.empty?
-        puts
-        puts command.desc.wrap
-        puts
+      puts "commands:"
+      command_set.command_list.each do |name, command|
+        puts "  %-16s   %s" % [name, command.desc]
       end
+      puts
+      puts "options:"
+      puts options.to_s.gsub(/^  /, '').gsub(/\s{14}/, '') # hack to fix spacing
 
+      exit
+    end
+
+    options.on("-v", "--version", "print version") do |v|
+      puts "linecook version #{Linecook::VERSION} -- #{Linecook::WEBSITE}"
+      exit
+    end
+  end.call(ARGV) do |callpath, command, options|
+    options.on '-h', '--help', 'print this help' do
+      puts "usage: linecook #{callpath.join(' ')} #{command.signature}"
+      puts
       puts "options:"
       puts options.to_s.gsub(/^  /, '').gsub(/\s{14}/, '') # hack to fix spacing
 
       exit
     end
   end
-rescue Linecook::Command::CommandError
+rescue Linecook::CommandError
   puts $!.message
   puts $!.backtrace if $DEBUG
   exit 1

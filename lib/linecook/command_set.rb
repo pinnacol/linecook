@@ -1,47 +1,49 @@
 require 'linecook/command'
 
 module Linecook
-  class CommandSet
-    include Configurable
+  class CommandSet < Command
+    class << self
+      def commands
+        # assume/require word names
+        @commands ||= {}
+      end
 
-    attr_reader :commands
+      def parse!(argv=ARGV)
+        super do |options|
+          options.option_break = /\A(?:--\z|[^-])/
+          yield(options) if block_given?
+        end
+      end
 
-    def initialize(commands={})
-      @commands = commands
-      initialize_config
-    end
-
-    def command_list
-      commands.keys.sort.collect do |name|
-        [name, commands[name]]
+      def command_list
+        commands.keys.sort.collect do |name|
+          [name, commands[name]]
+        end
       end
     end
 
-    def call(argv)
-      command_name = argv.shift
-      command = commands[command_name]
+    def process(command_name, *args)
+      command_class = self.class.commands[command_name]
 
-      unless command
-        raise Command::CommandError, "unknown command: #{command_name.inspect}"
+      unless command_class
+        raise CommandError, "unknown command: #{command_name.inspect}"
       end
 
-      config, args = command.parse!(argv) do |parser|
-        yield(command, parser)
+      block = lambda do |(path, cmd, opts)|
+        if block_given?
+          path, cmd, opts = [], command_class, path if opts.nil?
+          path.unshift(command_name)
+
+          yield(path, cmd, opts)
+        end
+      end
+      command = command_class.parse!(args, &block) 
+
+      unless command.kind_of?(CommandSet)
+        block = nil 
       end
 
-      command.call(config, args)
-    end
-
-    def parse(argv=ARGV, &block)
-      parse!(argv.dup, &block)
-    end
-
-    def parse!(argv=ARGV, &block)
-      if command = argv.find {|arg| arg[0] != ?- }
-        argv.insert(argv.index(command), '--')
-      end
-
-      config.parse!(&block)
+      command.call(args, &block)
     end
   end
 end
