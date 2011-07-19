@@ -12,8 +12,12 @@ module Linecook
       end
 
       def signature
-        arguments = args.arguments.collect {|arg| arg.upcase }
+        arguments = args.arguments.collect do |arg|
+          arg = arg.upcase
+          arg[0] == ?* ? "[#{arg[1..-1]}]" : arg
+        end
         arguments.pop if arguments.last.to_s[0] == ?&
+        
         "[options] #{arguments.join(' ')}"
       end
 
