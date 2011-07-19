@@ -35,14 +35,8 @@ module Linecook
       if argv.empty?
         raise CommandError, "no command specified"
       end
-      
-      super
-    end
 
-    def process(command, *args)
-      # Reassign variable name so that the inputs will look right on the
-      # command line -- is there another way of doing this?
-      command_name  = command
+      command_name  = argv.shift
       command_class = self.class.commands[command_name]
 
       unless command_class
@@ -52,7 +46,7 @@ module Linecook
       # Parse options for the command, but yield with the necessary debugging
       # information - note that command_class is always the latest one to be
       # parsed so start with the command name as the callpath.
-      command = command_class.parse!(args) do |options|
+      command = command_class.parse!(argv) do |options|
         if block_given?
           yield([command_name], command_class, options)
         end
@@ -69,7 +63,11 @@ module Linecook
         end
       end if command.kind_of?(CommandSet)
 
-      command.call(args, &trace_block)
+      process(command, *argv, &trace_block)
+    end
+
+    def process(command, *args, &block)
+      command.call(args, &block)
     end
   end
 end
