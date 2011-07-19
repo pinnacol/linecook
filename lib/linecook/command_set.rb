@@ -31,7 +31,7 @@ module Linecook
       end
     end
 
-    def call(argv)
+    def call(argv=[])
       if argv.empty?
         raise CommandError, "no command specified"
       end
