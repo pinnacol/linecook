@@ -52,22 +52,24 @@ module Linecook
         end
       end
 
-      # The trace block causes nested CommandSets to roll back out to the main
-      # context with the callpath and latest command_class. Literally it wraps
-      # the block defined above.  Non-CommandSet commands will have nil, not a
-      # block passed to call - a NOP.
-      trace_block = lambda do |callpath, cmdclass, options|
-        if block_given?
-          callpath.unshift(command_name)
-          yield(callpath, cmdclass, options)
+      if command.kind_of?(CommandSet)
+        # The block causes nested CommandSets to roll back out to the main
+        # context with the callpath and latest command_class. Literally it
+        # wraps the block defined above.  Non-CommandSet commands will have
+        # nil, not a block passed to call - a NOP.
+        command.call(argv) do |callpath, cmdclass, options|
+          if block_given?
+            callpath.unshift(command_name)
+            yield(callpath, cmdclass, options)
+          end
         end
-      end if command.kind_of?(CommandSet)
-
-      process(command, *argv, &trace_block)
+      else
+        process(command, *argv)
+      end
     end
 
-    def process(command, *args, &block)
-      command.call(args, &block)
+    def process(command, *args)
+      command.call(args)
     end
   end
 end
