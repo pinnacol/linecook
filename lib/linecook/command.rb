@@ -47,8 +47,8 @@ module Linecook
       initialize_config(config)
     end
 
-    def call(argv=[], &block)
-      process(*argv, &block)
+    def call(argv=[])
+      process(*argv)
     end
 
     def process(*args)
