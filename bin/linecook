@@ -1,55 +1,35 @@
 #!/usr/bin/env ruby
 
 require 'linecook/version'
-require 'linecook/command_set'
-require 'linecook/commands/compile'
+require 'linecook/executable'
 
 if ARGV.empty?
   ARGV.unshift('--help')
 end
 
-module Linecook
-  # ::desc linecook command
-  #
-  # Launch stuff
-  class Executable < Linecook::CommandSet
-    class << self
-      def commands
-        {'compile' => Linecook::Commands::Compile}
-      end
-    end
-  end
-end
-
 begin
-  command_set = Linecook::Executable
-  command_set.parse!(ARGV) do |options|
+  Linecook::Executable.run do |callpath, command_class, options|
     options.on '-h', '--help', 'print this help' do
-      puts "usage: linecook #{command_set.signature}"
+      puts "usage: #{callpath.unshift('linecook').join(' ')} #{command_class.signature}"
       puts
-      puts "commands:"
-      command_set.command_list.each do |name, command|
-        puts "  %-16s   %s" % [name, command.desc]
+      if command_class.respond_to?(:command_list)
+        puts "commands:"
+        command_class.command_list.each do |name, command|
+          puts "  %-16s   %s" % [name, command.desc]
+        end
+        puts
       end
-      puts
       puts "options:"
       puts options.to_s.gsub(/^  /, '').gsub(/\s{14}/, '') # hack to fix spacing
 
       exit
     end
-
-    options.on("-v", "--version", "print version") do |v|
-      puts "linecook version #{Linecook::VERSION} -- #{Linecook::WEBSITE}"
-      exit
-    end
-  end.call(ARGV) do |callpath, command, options|
-    options.on '-h', '--help', 'print this help' do
-      puts "usage: linecook #{callpath.join(' ')} #{command.signature}"
-      puts
-      puts "options:"
-      puts options.to_s.gsub(/^  /, '').gsub(/\s{14}/, '') # hack to fix spacing
-
-      exit
+    
+    if command_class == Linecook::Executable
+      options.on("-v", "--version", "print version") do |v|
+        puts "linecook version #{Linecook::VERSION} -- #{Linecook::WEBSITE}"
+        exit
+      end
     end
   end
 rescue Linecook::CommandError

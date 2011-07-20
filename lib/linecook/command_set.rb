@@ -23,6 +23,16 @@ module Linecook
 
         command
       end
+      
+      def run(argv=ARGV, &block)
+        command = parse!(argv) do |options|
+          if block_given?
+            yield([], self, options)
+          end
+        end
+        
+        command.call(argv, &block)
+      end
 
       def command_list
         commands.keys.sort.collect do |name|
