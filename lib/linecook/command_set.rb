@@ -8,7 +8,7 @@ module Linecook
         @commands ||= {}
       end
 
-      def parse!(argv=ARGV)
+      def parse(argv=ARGV)
         command = super(argv) do |options|
           options.option_break = /\A(?:--\z|[^-])/
           options.preserve_option_break = true
@@ -25,7 +25,7 @@ module Linecook
       end
       
       def run(argv=ARGV, &block)
-        command = parse!(argv) do |options|
+        command = parse(argv) do |options|
           if block_given?
             yield([], self, options)
           end
@@ -56,7 +56,7 @@ module Linecook
       # Parse options for the command, but yield with the necessary debugging
       # information - note that command_class is always the latest one to be
       # parsed so start with the command name as the callpath.
-      command = command_class.parse!(argv) do |options|
+      command = command_class.parse(argv) do |options|
         if block_given?
           yield([command_name], command_class, options)
         end

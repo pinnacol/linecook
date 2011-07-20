@@ -3,7 +3,7 @@ require 'configurable'
 module Linecook
   class Command
     class << self
-      def parse!(argv=ARGV)
+      def parse(argv=ARGV)
         parser = configs.to_parser(:add_defaults => false)
         yield(parser) if block_given?
         parser.parse!(argv)
