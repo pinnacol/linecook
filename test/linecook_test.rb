@@ -40,7 +40,6 @@ class LinecookTest < Test::Unit::TestCase
   #
 
   def test_compile_builds_the_recipe_in_a_dir_named_like_the_recipe_minus_extname
-    skip "not ready yet..."
     recipe_path = prepare('recipe.rb') do |io|
       io << "writeln 'echo hello world'"
     end
@@ -54,7 +53,6 @@ class LinecookTest < Test::Unit::TestCase
   end
 
   def test_compile_guesses_with_d_extname_for_recipes_without_extname
-    skip "not ready yet..."
     recipe_path = prepare('recipe') {}
     assert_script_match %{
       $ linecook compile #{recipe_path}
@@ -63,16 +61,16 @@ class LinecookTest < Test::Unit::TestCase
   end
 
   def test_compile_allows_specification_of_an_alternate_package_dir
-    skip "not ready yet..."
-    recipe_path = prepare('recipe.rb') {}
+    recipe_path  = prepare('recipe.rb') {}
+    package_path = path('package')
+
     assert_script_match %{
-      $ linecook compile -dpackage #{recipe_path}
+      $ linecook compile -d#{package_path} #{recipe_path}
       package/recipe
     }
   end
 
   def test_compile_allows_specification_of_an_alternate_script_name
-    skip "not ready yet..."
     recipe_path = prepare('recipe.rb') do |io|
       io << "writeln 'echo hello world'"
     end
@@ -86,7 +84,6 @@ class LinecookTest < Test::Unit::TestCase
   end
 
   def test_compile_execute_syntax
-    skip "not ready yet..."
     recipe_path = prepare('recipe.rb') do |io|
       io << "writeln 'echo hello world'"
     end
