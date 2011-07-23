@@ -5,25 +5,26 @@ module Linecook
   module Commands
     # ::desc compile recipes, helpers, packages
     class Compile < Command
+      class << self
+        def parse(argv=ARGV)
+          super(argv) do |options|
+            options.on('--load-path PATH', '-I', 'prepend to LOAD_PATH') do |path|
+              $LOAD_PATH.unshift File.expand_path(path)
+            end
+            
+            if block_given?
+              yield(options)
+            end
+          end
+        end
+      end
+      
       config_type(:path) do |input|
         File.expand_path(input)
       end
 
       config :output_dir, '.', :type => :path    # -o : specify the output dir
       config :script_name, 'run'                 # -s : specify the script name
-      config :load_path, [], :type => :path      # -I : prepend to LOAD_PATH
-
-      def load_path=(paths)
-        (@load_path ||= []).each do |path|
-          $LOAD_PATH.delete(path)
-        end
-
-        @load_path = paths
-
-        @load_path.reverse_each do |path|
-          $LOAD_PATH.unshift(path)
-        end
-      end
 
       def process(recipe_path)
         basename    = File.basename(recipe_path).chomp(File.extname(recipe_path))
