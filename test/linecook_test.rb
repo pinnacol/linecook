@@ -50,10 +50,10 @@ class LinecookTest < Test::Unit::TestCase
       writeln 'echo hello world'
     })
     
-    assert_script_match %{
+    assert_script %{
       $ linecook compile '#{recipe_path}'
-      recipe
-      $ . recipe/run
+      #{Dir.pwd}/recipe
+      $ . '#{Dir.pwd}/recipe/run'
       hello world
     }
   end
@@ -63,9 +63,9 @@ class LinecookTest < Test::Unit::TestCase
       writeln 'echo hello world'
     })
 
-    assert_script_match %{
+    assert_script %{
       $ linecook compile -opackage '#{recipe_path}'
-      package/recipe
+      #{Dir.pwd}/package/recipe
     }
   end
 
@@ -74,10 +74,8 @@ class LinecookTest < Test::Unit::TestCase
       writeln 'echo hello world'
     })
 
-    assert_script_match %{
-      $ linecook compile -stest '#{recipe_path}'
-      recipe
-      $ . recipe/test
+    assert_script %{
+      $ . "$(linecook compile -stest '#{recipe_path}')"/test
       hello world
     }
   end
@@ -87,7 +85,7 @@ class LinecookTest < Test::Unit::TestCase
       writeln 'echo hello world'
     })
 
-    assert_script_match %{
+    assert_script %{
       $ $(linecook compile '#{recipe_path}')/run
       hello world
     }
@@ -108,10 +106,8 @@ class LinecookTest < Test::Unit::TestCase
       echo 'hello world'
     })
 
-    assert_script_match %{
-      $ linecook compile -Ilib '#{recipe_path}'
-      recipe
-      $ . recipe/run
+    assert_script %{
+      $ . "$(linecook compile -Ilib '#{recipe_path}')"/run
       hello world
     }
   end
@@ -130,10 +126,8 @@ class LinecookTest < Test::Unit::TestCase
       echo 'hello world'
     })
 
-    assert_script_match %{
-      $ linecook compile -r'#{echo_path}' '#{recipe_path}'
-      recipe
-      $ . recipe/run
+    assert_script %{
+      $ . "$(linecook compile -r'#{echo_path}' '#{recipe_path}')"/run
       hello world
     }
   end

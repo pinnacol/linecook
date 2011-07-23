@@ -23,12 +23,12 @@ module Linecook
         end
       end
 
-      config_type(:path) do |input|
-        File.expand_path(input)
-      end
+      config :output_dir, '.'      # -o DIRECTORY : specify the output dir
+      config :script_name, 'run'   # -s NAME : specify the script name
 
-      config :output_dir, '.', :type => :path    # -o DIRECTORY : specify the output dir
-      config :script_name, 'run'                 # -s NAME : specify the script name
+      def output_dir=(input)
+        @output_dir = File.expand_path(input)
+      end
 
       def process(recipe_path)
         basename    = File.basename(recipe_path).chomp(File.extname(recipe_path))
