@@ -8,7 +8,7 @@ module Linecook
       class << self
         def parse(argv=ARGV)
           super(argv) do |options|
-            options.on('--load-path PATH', '-I', 'prepend to LOAD_PATH') do |path|
+            options.on('-I PATH', 'prepend to LOAD_PATH') do |path|
               $LOAD_PATH.unshift File.expand_path(path)
             end
             
