@@ -115,4 +115,26 @@ class LinecookTest < Test::Unit::TestCase
       hello world
     }
   end
+
+  def test_compile_allows_specification_of_requires
+    echo_path = prepare('lib/echo.rb', %q{
+      module Echo
+        def echo(str)
+          writeln "echo #{str}"
+        end
+      end
+    })
+
+    recipe_path = prepare('recipe.rb', %{
+      extend Echo
+      echo 'hello world'
+    })
+
+    assert_script_match %{
+      $ linecook compile -r'#{echo_path}' #{recipe_path}
+      recipe
+      $ . recipe/run
+      hello world
+    }
+  end
 end

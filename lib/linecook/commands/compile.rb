@@ -12,6 +12,10 @@ module Linecook
               $LOAD_PATH.unshift File.expand_path(path)
             end
             
+            options.on('-r PATH', 'require the library') do |path|
+              require(path)
+            end
+            
             if block_given?
               yield(options)
             end
