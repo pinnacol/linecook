@@ -51,7 +51,7 @@ class LinecookTest < Test::Unit::TestCase
     })
     
     assert_script_match %{
-      $ linecook compile #{recipe_path}
+      $ linecook compile '#{recipe_path}'
       recipe
       $ . recipe/run
       hello world
@@ -64,7 +64,7 @@ class LinecookTest < Test::Unit::TestCase
     })
 
     assert_script_match %{
-      $ linecook compile -opackage #{recipe_path}
+      $ linecook compile -opackage '#{recipe_path}'
       package/recipe
     }
   end
@@ -75,7 +75,7 @@ class LinecookTest < Test::Unit::TestCase
     })
 
     assert_script_match %{
-      $ linecook compile -stest #{recipe_path}
+      $ linecook compile -stest '#{recipe_path}'
       recipe
       $ . recipe/test
       hello world
@@ -88,7 +88,7 @@ class LinecookTest < Test::Unit::TestCase
     })
 
     assert_script_match %{
-      $ $(linecook compile #{recipe_path})/run
+      $ $(linecook compile '#{recipe_path}')/run
       hello world
     }
   end
@@ -109,7 +109,7 @@ class LinecookTest < Test::Unit::TestCase
     })
 
     assert_script_match %{
-      $ linecook compile -Ilib #{recipe_path}
+      $ linecook compile -Ilib '#{recipe_path}'
       recipe
       $ . recipe/run
       hello world
@@ -131,7 +131,7 @@ class LinecookTest < Test::Unit::TestCase
     })
 
     assert_script_match %{
-      $ linecook compile -r'#{echo_path}' #{recipe_path}
+      $ linecook compile -r'#{echo_path}' '#{recipe_path}'
       recipe
       $ . recipe/run
       hello world

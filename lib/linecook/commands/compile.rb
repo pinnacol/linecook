@@ -11,18 +11,18 @@ module Linecook
             options.on('-I PATH', 'prepend to LOAD_PATH') do |path|
               $LOAD_PATH.unshift File.expand_path(path)
             end
-            
+
             options.on('-r PATH', 'require the library') do |path|
               require(path)
             end
-            
+
             if block_given?
               yield(options)
             end
           end
         end
       end
-      
+
       config_type(:path) do |input|
         File.expand_path(input)
       end
