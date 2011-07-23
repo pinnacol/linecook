@@ -20,7 +20,7 @@ begin
         puts
       end
       puts "options:"
-      puts options.to_s.gsub(/^  /, '').gsub(/\s{14}/, '') # hack to fix spacing
+      puts options.to_s.gsub(/^  /, '').gsub(/\s{16}/, '') # hack to fix spacing
 
       exit
     end
