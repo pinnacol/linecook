@@ -8,11 +8,11 @@ module Linecook
       class << self
         def parse(argv=ARGV)
           super(argv) do |options|
-            options.on('-I PATH', 'prepend to LOAD_PATH') do |path|
+            options.on('-I DIRECTORY', 'prepend to LOAD_PATH') do |path|
               $LOAD_PATH.unshift File.expand_path(path)
             end
 
-            options.on('-r PATH', 'require the library') do |path|
+            options.on('-r LIBRARY', 'require the library') do |path|
               require(path)
             end
 
@@ -27,8 +27,8 @@ module Linecook
         File.expand_path(input)
       end
 
-      config :output_dir, '.', :type => :path    # -o : specify the output dir
-      config :script_name, 'run'                 # -s : specify the script name
+      config :output_dir, '.', :type => :path    # -o DIRECTORY : specify the output dir
+      config :script_name, 'run'                 # -s NAME : specify the script name
 
       def process(recipe_path)
         basename    = File.basename(recipe_path).chomp(File.extname(recipe_path))
