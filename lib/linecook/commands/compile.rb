@@ -31,22 +31,24 @@ module Linecook
         @output_dir = File.expand_path(input)
       end
 
-      def process(recipe_path)
-        basename    = File.basename(recipe_path).chomp(File.extname(recipe_path))
-        package_dir = File.join(output_dir, basename)
-        script_path = File.join(package_dir, script_name)
+      def process(*recipes)
+        recipes.collect do |recipe_path|
+          basename    = File.basename(recipe_path).chomp(File.extname(recipe_path))
+          package_dir = File.join(output_dir, basename)
+          script_path = File.join(package_dir, script_name)
 
-        script = prepare(script_path)
-        recipe = Recipe.new(script)
-        recipe.instance_eval File.read(recipe_path), recipe_path
-        script.close
-        
-        if executable
-          FileUtils.chmod 0744, script_path
+          script = prepare(script_path)
+          recipe = Recipe.new(script)
+          recipe.instance_eval File.read(recipe_path), recipe_path
+          script.close
+
+          if executable
+            FileUtils.chmod 0744, script_path
+          end
+
+          puts package_dir
+          package_dir
         end
-
-        puts package_dir
-        package_dir
       end
 
       def prepare(path)

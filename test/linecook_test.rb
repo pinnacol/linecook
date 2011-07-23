@@ -58,6 +58,25 @@ class LinecookTest < Test::Unit::TestCase
     }
   end
 
+  def test_compile_builds_multiple_recipes
+    a = prepare('path/to/a.rb', %{
+      writeln 'echo hello a'
+    })
+    b = prepare('b.rb', %{
+      writeln 'echo hello b'
+    })
+
+    assert_script_match %{
+      $ linecook compile '#{a}' '#{b}'
+      #{Dir.pwd}/a
+      #{Dir.pwd}/b
+      $ . '#{Dir.pwd}/a/run'
+      hello a
+      $ . '#{Dir.pwd}/b/run'
+      hello b
+    }
+  end
+
   def test_compile_allows_specification_of_an_alternate_output_dir
     recipe_path = prepare('recipe.rb', %{
       writeln 'echo hello world'
