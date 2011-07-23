@@ -80,13 +80,13 @@ class LinecookTest < Test::Unit::TestCase
     }
   end
 
-  def test_compile_execute_syntax_works
+  def test_compile_allows_script_to_be_made_executable
     recipe_path = prepare('recipe.rb', %{
       writeln 'echo hello world'
     })
 
     assert_script %{
-      $ $(linecook compile '#{recipe_path}')/run
+      $ "$(linecook compile -x '#{recipe_path}')"/run
       hello world
     }
   end

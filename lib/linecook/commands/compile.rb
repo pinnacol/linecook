@@ -25,6 +25,7 @@ module Linecook
 
       config :output_dir, '.'      # -o DIRECTORY : specify the output dir
       config :script_name, 'run'   # -s NAME : specify the script name
+      config :executable, false    # -x : make the script executable
 
       def output_dir=(input)
         @output_dir = File.expand_path(input)
@@ -39,7 +40,10 @@ module Linecook
         recipe = Recipe.new(script)
         recipe.instance_eval File.read(recipe_path), recipe_path
         script.close
-        FileUtils.chmod 0744, script_path
+        
+        if executable
+          FileUtils.chmod 0744, script_path
+        end
 
         puts package_dir
         package_dir
