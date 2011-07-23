@@ -3,6 +3,12 @@ require File.expand_path('../test_helper', __FILE__)
 class LinecookTest < Test::Unit::TestCase
   include ShellTest
 
+  def setup
+    super
+    FileUtils.mkdir_p(method_dir)
+    Dir.chdir(method_dir)
+  end
+
   def parse_script(script, options={})
     super.each {|triplet| triplet[0] = "2>&1 #{triplet[0]}" }
   end
@@ -39,54 +45,47 @@ class LinecookTest < Test::Unit::TestCase
   # compile test
   #
 
-  def test_compile_builds_the_recipe_in_a_dir_named_like_the_recipe_minus_extname
-    recipe_path = prepare('recipe.rb') do |io|
-      io << "writeln 'echo hello world'"
-    end
-
+  def test_compile_builds_the_recipe_in_a_dir_under_pwd_named_like_the_recipe
+    recipe_path = prepare('path/to/recipe.rb', %{
+      writeln 'echo hello world'
+    })
+    
     assert_script_match %{
       $ linecook compile #{recipe_path}
-      #{recipe_path.chomp('.rb')}
-      $ . #{recipe_path.chomp('.rb')}/run
+      recipe
+      $ . recipe/run
       hello world
     }
   end
 
-  def test_compile_guesses_with_d_extname_for_recipes_without_extname
-    recipe_path = prepare('recipe') {}
-    assert_script_match %{
-      $ linecook compile #{recipe_path}
-      recipe.d
-    }
-  end
-
-  def test_compile_allows_specification_of_an_alternate_package_dir
-    recipe_path  = prepare('recipe.rb') {}
-    package_path = path('package')
+  def test_compile_allows_specification_of_an_alternate_output_dir
+    recipe_path = prepare('recipe.rb', %{
+      writeln 'echo hello world'
+    })
 
     assert_script_match %{
-      $ linecook compile -d#{package_path} #{recipe_path}
+      $ linecook compile -opackage #{recipe_path}
       package/recipe
     }
   end
 
   def test_compile_allows_specification_of_an_alternate_script_name
-    recipe_path = prepare('recipe.rb') do |io|
-      io << "writeln 'echo hello world'"
-    end
+    recipe_path = prepare('recipe.rb', %{
+      writeln 'echo hello world'
+    })
 
     assert_script_match %{
       $ linecook compile -stest #{recipe_path}
-      #{recipe_path.chomp('.rb')}
-      $ . #{recipe_path.chomp('.rb')}/test
+      recipe
+      $ . recipe/test
       hello world
     }
   end
 
-  def test_compile_execute_syntax
-    recipe_path = prepare('recipe.rb') do |io|
-      io << "writeln 'echo hello world'"
-    end
+  def test_compile_execute_syntax_works
+    recipe_path = prepare('recipe.rb', %{
+      writeln 'echo hello world'
+    })
 
     assert_script_match %{
       $ $(linecook compile #{recipe_path})/run

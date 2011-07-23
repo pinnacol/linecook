@@ -5,11 +5,16 @@ module Linecook
   module Commands
     # ::desc compile recipes, helpers, packages
     class Compile < Command
-      config :default_package_dir, nil  # -d, --package-dir : specify the package dir
-      config :script_name, 'run'        # -s : specify the script name
+      config_type(:path) do |input|
+        File.expand_path(input)
+      end
+
+      config :output_dir, '.', :type => :path    # -o : specify the output dir
+      config :script_name, 'run'                 # -s : specify the script name
 
       def process(recipe_path)
-        package_dir = guess_package_dir(recipe_path)
+        basename    = File.basename(recipe_path).chomp(File.extname(recipe_path))
+        package_dir = File.join(output_dir, basename)
         script_path = File.join(package_dir, script_name)
 
         script = prepare(script_path)
@@ -21,27 +26,9 @@ module Linecook
         puts package_dir
         package_dir
       end
-      
-      def guess_package_dir(recipe_path)
-        extname = File.extname(recipe_path)
-
-        case
-        when default_package_dir
-          basename = File.basename(recipe_path).chomp(extname)
-          File.join(default_package_dir, basename)
-        when extname.empty?
-          "#{recipe_path}.d"
-        else
-          recipe_path.chomp(extname)
-        end
-      end
 
       def prepare(path)
-        dir = File.dirname(path)
-        unless File.exists?(dir)
-          FileUtils.mkdir_p(dir)
-        end
-
+        FileUtils.mkdir_p File.dirname(path)
         File.open(path, 'w')
       end
     end
