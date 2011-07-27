@@ -199,4 +199,24 @@ class LinecookTest < Test::Unit::TestCase
       c
     }
   end
+  
+  def test_compiled_helpers_allow_capture
+    prepare 'helpers/example/wrln.rb', %q{
+      (str)
+      --
+      writeln str
+    }
+
+    recipe_path = prepare 'recipe.rb', %q{
+      helper 'example'
+      wrln "echo abc"
+      writeln "echo #{_wrln('xyz').upcase}"
+    }
+
+    assert_script %{
+      $ . "$(linecook compile -H helpers '#{recipe_path}' 2>&1)"/run
+      abc
+      XYZ
+    }
+  end
 end

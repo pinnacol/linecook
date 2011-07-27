@@ -169,7 +169,7 @@ class CompileHelperCommandTest < Test::Unit::TestCase
           end
 
           def _a(*args, &block) # :nodoc:
-            str = capture_str { a(*args, &block) }
+            str = capture { a(*args, &block) }
             str.strip!
             str
           end
@@ -199,7 +199,7 @@ class CompileHelperCommandTest < Test::Unit::TestCase
           end
 
           def _a(*args, &block) # :nodoc:
-            str = capture_str { a(*args, &block) }
+            str = capture { a(*args, &block) }
             str.strip!
             str
           end
