@@ -46,9 +46,9 @@ class LinecookTest < Test::Unit::TestCase
   #
 
   def test_compile_builds_the_recipe_in_a_dir_under_pwd_named_like_the_recipe
-    recipe_path = prepare('path/to/recipe.rb', %{
+    recipe_path = prepare 'path/to/recipe.rb', %{
       writeln 'echo hello world'
-    })
+    }
     
     assert_script %{
       $ linecook compile '#{recipe_path}'
@@ -59,12 +59,12 @@ class LinecookTest < Test::Unit::TestCase
   end
 
   def test_compile_builds_multiple_recipes
-    a = prepare('path/to/a.rb', %{
+    a = prepare 'path/to/a.rb', %{
       writeln 'echo hello a'
-    })
-    b = prepare('b.rb', %{
+    }
+    b = prepare 'b.rb', %{
       writeln 'echo hello b'
-    })
+    }
 
     assert_script_match %{
       $ linecook compile '#{a}' '#{b}'
@@ -78,9 +78,9 @@ class LinecookTest < Test::Unit::TestCase
   end
 
   def test_compile_allows_specification_of_an_alternate_output_dir
-    recipe_path = prepare('recipe.rb', %{
+    recipe_path = prepare 'recipe.rb', %{
       writeln 'echo hello world'
-    })
+    }
 
     assert_script %{
       $ linecook compile -opackage '#{recipe_path}'
@@ -89,9 +89,9 @@ class LinecookTest < Test::Unit::TestCase
   end
 
   def test_compile_allows_specification_of_an_alternate_script_name
-    recipe_path = prepare('recipe.rb', %{
+    recipe_path = prepare 'recipe.rb', %{
       writeln 'echo hello world'
-    })
+    }
 
     assert_script %{
       $ . "$(linecook compile -stest '#{recipe_path}')"/test
@@ -100,9 +100,9 @@ class LinecookTest < Test::Unit::TestCase
   end
 
   def test_compile_allows_script_to_be_made_executable
-    recipe_path = prepare('recipe.rb', %{
+    recipe_path = prepare 'recipe.rb', %{
       writeln 'echo hello world'
-    })
+    }
 
     assert_script %{
       $ "$(linecook compile -x '#{recipe_path}')"/run
@@ -111,19 +111,19 @@ class LinecookTest < Test::Unit::TestCase
   end
 
   def test_compile_allows_specification_of_load_paths
-    prepare('lib/echo.rb', %q{
+    prepare 'lib/echo.rb', %q{
       module Echo
         def echo(str)
           writeln "echo #{str}"
         end
       end
-    })
+    }
 
-    recipe_path = prepare('recipe.rb', %{
+    recipe_path = prepare 'recipe.rb', %{
       require 'echo'
       extend Echo
       echo 'hello world'
-    })
+    }
 
     assert_script %{
       $ . "$(linecook compile -Ilib '#{recipe_path}')"/run
@@ -132,18 +132,18 @@ class LinecookTest < Test::Unit::TestCase
   end
 
   def test_compile_allows_specification_of_requires
-    echo_path = prepare('lib/echo.rb', %q{
+    echo_path = prepare 'lib/echo.rb', %q{
       module Echo
         def echo(str)
           writeln "echo #{str}"
         end
       end
-    })
+    }
 
-    recipe_path = prepare('recipe.rb', %{
+    recipe_path = prepare 'recipe.rb', %{
       extend Echo
       echo 'hello world'
-    })
+    }
 
     assert_script %{
       $ . "$(linecook compile -r'#{echo_path}' '#{recipe_path}')"/run
