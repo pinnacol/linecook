@@ -6,6 +6,10 @@ class RecipeTest < Test::Unit::TestCase
 
   Recipe = Linecook::Recipe
 
+  # Note these methods largely duplicate what is in Linecook::Test but I
+  # prefer to repeat them to keep Recipe tests separate from the Test module
+  # tests, which depend on Recipe, and thereby prevent a circular test setup.
+
   def recipe
     @recipe ||= Recipe.new
   end
