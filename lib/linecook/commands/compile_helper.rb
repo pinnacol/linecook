@@ -12,7 +12,7 @@ module Linecook
     # source file becomes a method in the module, named after the source file
     # itself.
     #
-    # The helper module will be generated under the outptut directory, by
+    # The helper module will be generated under the output directory, by
     # default 'lib', in a file corresponding to const_name (which can also be
     # a constant path). By default, all files under the corresponding helpers
     # directory will be used as sources.  For example these are equivalent and
@@ -56,14 +56,17 @@ module Linecook
     #     ...
     #   end
     #
-    # Check and bang methods can be specified by adding -check and -bang to
-    # the end of the file name.  These extensions are stripped off like:
+    # Special characters can be added to a method name by using a -char to the
+    # file name.  For example 'file-check.erb' defines the 'file?' method.
+    # These special characters are supported:
     #
-    #   [file-check.erb]   # => def file? ...
-    #   [make-bang.rb]     # => def make! ...
+    #   char  extension
+    #   ?     -check
+    #   !     -bang
+    #   =     -eq
     #
-    # Otherwise the basename of the source file must be a word; non-word
-    # basenames raise an error.
+    # Otherwise the basename of the source file must be a valid method name;
+    # invalid names raise an error.
     #
     # == Section Files
     #

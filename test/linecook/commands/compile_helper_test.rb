@@ -211,19 +211,14 @@ class CompileHelperCommandTest < Test::Unit::TestCase
   end
 
   def test_build_raises_error_for_invalid_formats
-    definition = prepare("method_name.json") {|io| }
+    definition = prepare "method_name.json", ""
 
     err = assert_raises(::Linecook::CommandError) { cmd.build("A::B", [definition]) }
     assert_equal "invalid definition format: \".json\" (#{definition.inspect})", err.message
   end
 
-  def test_build_raises_error_for_non_word_method_definitions
-    definition = prepare "-.rb", %{
-      Override minus, for why?
-      (arg)
-      --
-    }
-
+  def test_build_raises_error_for_invalid_method_names
+    definition = prepare "-.rb", ""
     err = assert_raises(::Linecook::CommandError) { cmd.build("A::B", [definition]) }
     assert_equal "invalid method name: \"-\" (#{definition.inspect})", err.message
   end
