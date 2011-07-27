@@ -178,6 +178,29 @@ echo 'x y z'
   end
 
   #
+  # helper test
+  #
+
+  def test_helper_requires_helper_and_extends_with_module
+    prepare 'lib/helper_module.rb', %{
+      module HelperModule
+        def helper_method
+        end
+      end
+    }
+
+    lib_path = path 'lib'
+    begin
+      $:.unshift lib_path
+      recipe.helper 'helper_module'
+    ensure
+      $:.delete lib_path
+    end
+
+    assert recipe.respond_to?(:helper_method)
+  end
+
+  #
   # capture test
   #
 

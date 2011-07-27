@@ -1,4 +1,5 @@
 require 'stringio'
+require 'linecook/utils'
 
 module Linecook
   # Recipe is the context in which recipes are evaluated (literally).  Recipe
@@ -99,6 +100,12 @@ module Linecook
     def _rstrip_
       match = _rewrite_(/\s+\z/)
       match ? match[0] : ''
+    end
+
+    # Looks up and extends self with the specified helper.
+    def helper(helper_name)
+      require Utils.underscore(helper_name)
+      extend Utils.constantize(helper_name)
     end
 
     # Captures and returns output for the duration of a block by redirecting
