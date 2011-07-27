@@ -227,7 +227,7 @@ class LinecookTest < Test::Unit::TestCase
       c
     }
   end
-  
+
   def test_compiled_helpers_allow_capture
     prepare 'helpers/example/wrln.rb', %q{
       (str)
@@ -245,6 +245,30 @@ class LinecookTest < Test::Unit::TestCase
       $ . "$(linecook compile -H helpers '#{recipe_path}' 2>&1)"/run
       abc
       XYZ
+    }
+  end
+
+  #
+  # compile_helper test
+  #
+
+  def test_compile_helper_compiles_source_files_to_helper_module
+    source_file = prepare 'echo.erb', %{
+      (str)
+      --
+      echo <%= str %>
+    }
+
+    recipe_path = prepare 'recipe.rb', %q{
+      helper 'example'
+      echo 'abc'
+    }
+
+    assert_script %{
+      $ linecook compile_helper Example '#{source_file}'
+      #{Dir.pwd}/lib/example.rb
+      $ . "$(linecook compile -Ilib '#{recipe_path}' 2>&1)"/run
+      abc
     }
   end
 end

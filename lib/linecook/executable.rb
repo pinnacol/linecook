@@ -5,7 +5,10 @@ module Linecook
   class Executable < Linecook::CommandSet
     class << self
       def commands
-        {'compile' => Linecook::Commands::Compile}
+        {
+          'compile' => Linecook::Commands::Compile,
+          'compile_helper' => Linecook::Commands::CompileHelper
+        }
       end
     end
   end
