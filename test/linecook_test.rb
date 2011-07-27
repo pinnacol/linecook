@@ -150,4 +150,53 @@ class LinecookTest < Test::Unit::TestCase
       hello world
     }
   end
+
+  def test_compile_compiles_helpers_if_specified
+    prepare('helpers/example/echo.rb', %q{
+      (str)
+      ---
+      writeln "echo #{str}"
+    })
+
+    recipe_path = prepare 'recipe.rb', %{
+      helper 'example'
+      echo 'hello world'
+    }
+
+    assert_script %{
+      $ . "$(linecook compile -H helpers '#{recipe_path}' 2>&1)"/run
+      hello world
+    }
+  end
+
+  def test_compiled_helpers_allow_method_chaining
+    prepare 'helpers/example/cat.erb', %{
+      cat
+    }
+
+    prepare 'helpers/example/heredoc.erb', %{
+      ()
+      _rstrip_ if _chain_?
+      --
+       <<DOC
+      <% yield %>
+      DOC
+    }
+
+    recipe_path = prepare 'recipe.rb', %{
+      helper 'example'
+      cat.heredoc do
+        writeln 'a'
+        writeln 'b'
+        writeln 'c'
+      end
+    }
+
+    assert_script %{
+      $ . "$(linecook compile -H helpers '#{recipe_path}' 2>&1)"/run
+      a
+      b
+      c
+    }
+  end
 end

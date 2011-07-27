@@ -100,7 +100,7 @@ module Linecook
         end
 
         sources = default_sources(const_path) if sources.empty?
-        target  = File.expand_path(File.join('lib', "#{const_path}.rb"), project_dir)
+        target  = File.expand_path(File.join(output_dir, "#{const_path}.rb"))
 
         if sources.empty?
           raise CommandError, "no sources specified (and none found under 'helpers/#{const_path}')"
@@ -279,7 +279,7 @@ DOC
 def <%= method_name %><%= signature %>
 <%= method_body %>
 
-  chain_proxy
+  _chain_proxy_
 end
 
 def _<%= method_name %>(*args, &block) # :nodoc:

@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'linecook/recipe'
+require 'linecook/commands/compile_helper'
 
 module Linecook
   module Commands
@@ -23,15 +24,21 @@ module Linecook
         end
       end
 
+      config :helpers, []          # -H DIRECTORY : compile helpers
       config :output_dir, '.'      # -o DIRECTORY : specify the output dir
       config :script_name, 'run'   # -s NAME : specify the script name
       config :executable, false    # -x : make the script executable
+      config :force, false         # -f : overwrite existing
 
       def output_dir=(input)
         @output_dir = File.expand_path(input)
       end
 
       def process(*recipes)
+        helpers.each do |helpers_dir|
+          compile_helpers(helpers_dir)
+        end
+
         recipes.collect do |recipe_path|
           basename    = File.basename(recipe_path).chomp(File.extname(recipe_path))
           package_dir = File.join(output_dir, basename)
@@ -53,7 +60,39 @@ module Linecook
 
       def prepare(path)
         FileUtils.mkdir_p File.dirname(path)
-        File.open(path, 'w')
+        FileUtils.touch(path)
+        File.open(path, 'r+')
+      end
+
+      def glob_helpers(helpers_dir)
+        sources = {}
+        helpers = []
+
+        Dir.glob("#{helpers_dir}/*/**/*").each do |source_file|
+          next if File.directory?(source_file)
+          (sources[File.dirname(source_file)] ||= []) << source_file
+        end
+
+        sources.each_pair do |dir, source_files|
+          name = dir[(helpers_dir.length + 1)..-1]
+          helpers << [name, source_files]
+        end
+
+        helpers.sort_by {|name, source_files| name }
+      end
+
+      def compile_helpers(helpers_dir)
+        compiler = CompileHelper.new(
+          :force => force,
+          :quiet => true
+        )
+
+        helpers = glob_helpers(helpers_dir)
+        helpers.each do |(name, sources)|
+          compiler.process(name, *sources)
+        end
+
+        $LOAD_PATH.unshift compiler.output_dir
       end
     end
   end

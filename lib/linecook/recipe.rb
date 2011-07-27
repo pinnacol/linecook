@@ -1,5 +1,6 @@
 require 'stringio'
 require 'linecook/utils'
+require 'linecook/proxy'
 
 module Linecook
   # Recipe is the context in which recipes are evaluated (literally).  Recipe
@@ -37,12 +38,16 @@ module Linecook
     # The current recipe target
     attr_reader :target
 
+    # The recipe proxy
+    attr_reader :_proxy_
+
     def initialize(target=StringIO.new)
       @_target_ = target
       @target   = target
-
-      @indents     = []
-      @outdents    = []
+      @_proxy_  = Proxy.new(self)
+      @_chain_  = false
+      @indents  = []
+      @outdents = []
 
       if block_given?
         instance_eval(&Proc.new)
@@ -212,6 +217,25 @@ module Linecook
       end
 
       self
+    end
+
+    # Sets _chain_? to return true and calls the method (thereby allowing the
+    # method to invoke chain-specific behavior).  Calls to _chain_ are
+    # typically invoked via _proxy_.
+    def _chain_(method_name, *args, &block)
+      @_chain_ = true
+      send(method_name, *args, &block)
+    end
+
+    # Returns true if the current context was invoked through chain.
+    def _chain_?
+      @_chain_
+    end
+
+    # Sets _chain_? to return false and returns the proxy.
+    def _chain_proxy_
+      @_chain_ = false
+      _proxy_
     end
   end
 end
