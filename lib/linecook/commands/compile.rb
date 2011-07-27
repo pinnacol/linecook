@@ -42,15 +42,14 @@ module Linecook
         recipes.collect do |recipe_path|
           basename    = File.basename(recipe_path).chomp(File.extname(recipe_path))
           package_dir = File.join(output_dir, basename)
-          script_path = File.join(package_dir, script_name)
 
-          script = prepare(script_path)
+          script = prepare(package_dir, script_name)
           recipe = Recipe.new(script)
           recipe.instance_eval File.read(recipe_path), recipe_path
           script.close
 
           if executable
-            FileUtils.chmod 0744, script_path
+            FileUtils.chmod 0744, script.path
           end
 
           puts package_dir
@@ -58,8 +57,17 @@ module Linecook
         end
       end
 
-      def prepare(path)
-        FileUtils.mkdir_p File.dirname(path)
+      def prepare(package_dir, script_name)
+        if File.exists?(package_dir)
+          unless force
+            raise CommandError, "already exists: #{package_dir.inspect}"
+          end
+          FileUtils.rm_r(package_dir)
+        end
+
+        path = File.join(package_dir, script_name)
+
+        FileUtils.mkdir_p(package_dir)
         FileUtils.touch(path)
         File.open(path, 'r+')
       end

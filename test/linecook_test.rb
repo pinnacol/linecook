@@ -88,6 +88,34 @@ class LinecookTest < Test::Unit::TestCase
     }
   end
 
+  def test_compile_raises_error_if_package_dir_exists
+    recipe_path = prepare 'path/to/recipe.rb', %{
+      writeln 'new'
+    }
+
+    assert_script %{
+      $ echo 'current' > '#{Dir.pwd}/recipe'
+      $ linecook compile '#{recipe_path}' 2>&1 # [1]
+      already exists: "#{Dir.pwd}/recipe"
+      $ cat '#{Dir.pwd}/recipe'
+      current
+    }
+  end
+
+  def test_compile_overwrites_package_dir_on_force
+    recipe_path = prepare 'path/to/recipe.rb', %{
+      writeln 'new'
+    }
+
+    assert_script %{
+      $ echo 'current' > '#{Dir.pwd}/recipe'
+      $ linecook compile -f '#{recipe_path}' 2>&1
+      #{Dir.pwd}/recipe
+      $ cat '#{Dir.pwd}/recipe/run'
+      new
+    }
+  end
+
   def test_compile_allows_specification_of_an_alternate_script_name
     recipe_path = prepare 'recipe.rb', %{
       writeln 'echo hello world'
