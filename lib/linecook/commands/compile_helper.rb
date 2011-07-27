@@ -14,13 +14,16 @@ module Linecook
     #
     # The helper module will be generated under the output directory, by
     # default 'lib', in a file corresponding to const_name (which can also be
-    # a constant path). By default, all files under the corresponding helpers
-    # directory will be used as sources.  For example these are equivalent and
-    # produce the Const::Name module in 'lib/const/name.rb':
+    # a constant path). For example these are equivalent and produce the
+    # Const::Name module in 'lib/const/name.rb':
     #
-    #   $ linecook compile_helper Const::Name
-    #   $ linecook compile_helper const/name
+    #   $ linecook compile_helper Const::Name helpers/const/name/*
     #   $ linecook compile_helper const/name helpers/const/name/*
+    #
+    # To have compile_helper search for source files under a specific
+    # directory, use the -s option:
+    #
+    #   $ linecook compile_helper const/name -s helpers
     #
     # == Source Files
     #
@@ -89,6 +92,7 @@ module Linecook
     # instead the contents are directly transcribed into the target file.
     class CompileHelper < Command
       config :output_dir, 'lib'   # -o : the output directory
+      config :search_dirs, []     # -s : search for helpers
       config :force, false        # -f : force creation
       config :quiet, false        # -q : print nothing
 
@@ -102,11 +106,11 @@ module Linecook
           raise CommandError, "invalid constant name: #{const_name.inspect}"
         end
 
-        sources = default_sources(const_path) if sources.empty?
+        sources = sources | search_sources(const_path)
         target  = File.expand_path(File.join(output_dir, "#{const_path}.rb"))
 
         if sources.empty?
-          raise CommandError, "no sources specified (and none found under 'helpers/#{const_path}')"
+          raise CommandError, "no sources specified"
         end
 
         if force || !FileUtils.uptodate?(target, sources)
@@ -124,11 +128,16 @@ module Linecook
         target
       end
 
-      # Returns the default source files for a given constant path, which are
-      # all files under the 'project_dir/helpers/const_path' folder.
-      def default_sources(const_path)
-        pattern = File.join(project_dir, 'helpers', const_path, '*')
-        sources = Dir.glob(pattern)
+      # Returns source files for a given constant path, which are all files
+      # under the 'search_dir/const_path' folder.
+      def search_sources(const_path)
+        sources = []
+
+        search_dirs.each do |search_dir|
+          pattern = File.join(search_dir, const_path, '*')
+          sources.concat Dir.glob(pattern)
+        end
+
         sources.select {|path| File.file?(path) }
       end
 

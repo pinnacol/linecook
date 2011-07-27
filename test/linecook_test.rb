@@ -272,6 +272,41 @@ class LinecookTest < Test::Unit::TestCase
     }
   end
 
+  def test_compile_helper_searches_for_source_files_by_const_path_under_search_dirs
+    prepare 'a/example/echo_a.erb', %{
+      (str)
+      --
+      echo a <%= str %>
+    }
+
+    prepare 'b/example/echo_b.erb', %{
+      (str)
+      --
+      echo b <%= str %>
+    }
+
+    recipe_path = prepare 'recipe.rb', %q{
+      helper 'example'
+      echo_a 'abc'
+      echo_b 'xyz'
+    }
+
+    assert_script %{
+      $ linecook compile_helper Example -s '#{path('a')}' -s '#{path('b')}'
+      #{Dir.pwd}/lib/example.rb
+      $ . "$(linecook compile -Ilib '#{recipe_path}' 2>&1)"/run
+      a abc
+      b xyz
+    }
+  end
+
+  def test_compile_helper_has_sensible_error_for_no_sources_specified
+    assert_script %{
+      $ linecook compile_helper Example # [1]
+      no sources specified
+    }
+  end
+
   def test_compile_helper_has_sensible_error_for_invalid_constant_name
     assert_script %{
       $ linecook compile_helper _Example # [1]
