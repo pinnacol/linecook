@@ -96,10 +96,10 @@ module Linecook
 
       def process(const_name, *sources)
         const_path = underscore(const_name)
-        const_name = camelize(const_path)
+        const_name = camelize(const_name)
 
         unless const_name?(const_name)
-          raise "invalid constant name: #{const_name.inspect}"
+          raise CommandError, "invalid constant name: #{const_name.inspect}"
         end
 
         sources = default_sources(const_path) if sources.empty?
@@ -170,7 +170,7 @@ module Linecook
 
         [desc, parse_method_name(name), signature, method_body(body, extname)]
       rescue CommandError
-        err = CommandError.new("#{$!.message} (#{path.inspect})")
+        err = CommandError.new("invalid source file: #{path.inspect} (#{$!.message})")
         err.set_backtrace($!.backtrace)
         raise err
       end
@@ -198,7 +198,7 @@ module Linecook
         when /-bang\z/  then basename.sub(/-bang$/, '!')
         when /-eq\z/    then basename.sub(/-eq$/, '=')
         when /\A\w+\z/  then basename
-        else raise CommandError.new("invalid method name: #{basename.inspect}")
+        else raise CommandError.new("not a method name #{basename.inspect}")
         end
       end
 
@@ -224,7 +224,7 @@ module Linecook
           body.rstrip
 
         else
-          raise CommandError.new("invalid definition format: #{extname.inspect}")
+          raise CommandError.new("unsupported format #{extname.inspect}")
         end
       end
 

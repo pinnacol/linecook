@@ -271,4 +271,27 @@ class LinecookTest < Test::Unit::TestCase
       abc
     }
   end
+
+  def test_compile_helper_has_sensible_error_for_invalid_constant_name
+    assert_script %{
+      $ linecook compile_helper _Example # [1]
+      invalid constant name: "_Example"
+    }
+  end
+
+  def test_compile_helper_has_sensible_error_for_invalid_source_file_names
+    source_file = prepare '-.rb', ''
+    assert_script %{
+      $ linecook compile_helper Example '#{source_file}' # [1]
+      invalid source file: "#{source_file}" (not a method name "-")
+    }
+  end
+
+  def test_compile_helper_has_sensible_error_for_invalid_formats
+    source_file = prepare 'method_name.json', ''
+    assert_script %{
+      $ linecook compile_helper Example '#{source_file}' # [1]
+      invalid source file: "#{source_file}" (unsupported format ".json")
+    }
+  end
 end
