@@ -51,22 +51,23 @@ module Linecook
     #     eval ERB.new("echo <%= args.join(' ') %>").src
     #   end
     #
-    # A second method is also generated to return the result without writing
-    # it to the target.  The latter method is prefixed by an underscore like:
+    # A second 'capture' method is also generated to return the result without
+    # writing it to the target.  The latter method is prefixed by an
+    # underscore like:
     #
     #   # Return the output of echo, without writing to the target
     #   def _echo(*args)
     #     ...
     #   end
     #
-    # Special characters can be added to a method name by using a -char to the
-    # file name.  For example 'file-check.erb' defines the 'file?' method.
-    # These special characters are supported:
+    # Special characters can be added to a method name by using a -extension
+    # to the file name.  For example 'file-check.erb' defines the 'file?'
+    # method. These extensions are supported:
     #
-    #   char  extension
-    #   ?     -check
-    #   !     -bang
-    #   =     -eq
+    #   extension  character
+    #   -check     ?
+    #   -bang      !
+    #   -eq        =
     #
     # Otherwise the basename of the source file must be a valid method name;
     # invalid names raise an error.
