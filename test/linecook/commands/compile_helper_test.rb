@@ -46,6 +46,28 @@ class CompileHelperCommandTest < Test::Unit::TestCase
     }, cmd.load_sections(paths))
   end
 
+  def test_load_sections_comments_out_lines_for_rdoc_files
+    section_file = prepare "_section.rdoc", %{
+      Line one
+      Line two
+      
+         indent
+      
+      Line three
+    }
+
+    sections = cmd.load_sections([section_file])
+
+    assert_output_equal %{
+      # Line one
+      # Line two
+      # 
+      #    indent
+      # 
+      # Line three
+    }, sections['section']
+  end
+
   #
   # load_definition test
   #

@@ -329,4 +329,12 @@ class LinecookTest < Test::Unit::TestCase
       invalid source file: "#{source_file}" (unsupported format ".json")
     }
   end
+
+  def test_compile_helper_has_sensible_error_for_invalid_section_formats
+    source_file = prepare '_section_name.json', ''
+    assert_script %{
+      $ linecook compile_helper Example '#{source_file}' # [1]
+      invalid source file: "#{source_file}" (unsupported section format ".json")
+    }
+  end
 end

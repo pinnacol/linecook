@@ -73,7 +73,7 @@ module Linecook
     #
     # == Section Files
     #
-    # Special section files can be used to define non-standard code in the
+    # Section files are source files that can be used to insert code in the
     # following places:
     #
     #   [:header]
@@ -88,8 +88,16 @@ module Linecook
     #   [:footer]
     #
     # Section files are defined by prepending '_' to the file basename (like
-    # path/to/_header.rb) and are not processed like other source files;
-    # instead the contents are directly transcribed into the target file.
+    # path/to/_header.rb) and are, like other source files, processed
+    # according to their extname:
+    #
+    #   extname      translation
+    #   .rb          file defines ruby (directly inserted)
+    #   .rdoc        file defines RDoc (lines commented out, then inserted)
+    #
+    # Note that section files prevent the easy definition of methods beginning
+    # with an underscore; this is intentional and prevents collisions with
+    # capture methods.
     class CompileHelper < Command
       config :output_dir, 'lib'   # -o : the output directory
       config :search_dirs, []     # -s : search for helpers
@@ -162,13 +170,32 @@ module Linecook
         sections = {}
 
         paths.each do |path|
-          basename = File.basename(path)
-          extname  = File.extname(path)
-          key = basename[1, basename.length - extname.length - 1]
-          sections[key] = File.read(path)
+          begin
+            basename = File.basename(path)
+            extname  = File.extname(path)
+            key = basename[1, basename.length - extname.length - 1]
+            sections[key] = section_content(File.read(path), extname)
+          rescue CommandError
+            err = CommandError.new("invalid source file: #{path.inspect} (#{$!.message})")
+            err.set_backtrace($!.backtrace)
+            raise err
+          end
         end
 
         sections
+      end
+
+      def section_content(content, extname) # :nodoc:
+        case extname
+        when '.rdoc'
+          content.gsub(/^/, '# ')
+
+        when '.rb'
+          content
+
+        else
+          raise CommandError.new("unsupported section format #{extname.inspect}")
+        end
       end
 
       # helper to load and parse a definition file
