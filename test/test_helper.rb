@@ -16,5 +16,9 @@ module ShellTest
       content = outdent(content) if content
       _prepare(path, content, &block)
     end
+
+    def content(relative_path)
+      File.read path(relative_path)
+    end
   end
 end
