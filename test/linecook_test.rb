@@ -340,7 +340,7 @@ class LinecookTest < Test::Unit::TestCase
     source_file = prepare('-.rb', '')
     assert_script %{
       $ linecook compile_helper Example '#{source_file}' # [1]
-      invalid source file: "#{source_file}" (not a method name "-")
+      invalid source file: "#{source_file}" (invalid method name "-")
     }
   end
 

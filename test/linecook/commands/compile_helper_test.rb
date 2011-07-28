@@ -167,6 +167,14 @@ class CompileHelperCommandTest < Test::Unit::TestCase
     assert_equal "method_name=", cmd.parse_method_name("method_name-eq")
   end
 
+  def test_parse_method_name_raises_an_error_for_non_word_method_names
+    err = assert_raises(Linecook::CommandError) { cmd.parse_method_name("-") }
+    assert_equal 'invalid method name "-"', err.message
+
+    err = assert_raises(Linecook::CommandError) { cmd.parse_method_name("0") }
+    assert_equal 'invalid method name "0"', err.message
+  end
+
   #
   # build test
   #

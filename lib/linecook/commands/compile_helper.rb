@@ -234,8 +234,8 @@ module Linecook
         when /-check\z/ then basename.sub(/-check$/, '?')
         when /-bang\z/  then basename.sub(/-bang$/, '!')
         when /-eq\z/    then basename.sub(/-eq$/, '=')
-        when /\A\w+\z/  then basename
-        else raise CommandError.new("not a method name #{basename.inspect}")
+        when /\A[A-Za-z]\w*\z/  then basename
+        else raise CommandError.new("invalid method name #{basename.inspect}")
         end
       end
 
