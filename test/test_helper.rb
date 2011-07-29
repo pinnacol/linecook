@@ -1,6 +1,18 @@
 require 'rubygems'
 require 'bundler'
-Bundler.setup
+runtime = Bundler.setup
+
+# Workaround the performance penalty of reactivating bundler on each system
+# call to linecook - see https://github.com/carlhuda/bundler/issues/1323
+path, rubyopt = [], []
+runtime.gems.each do |gemspec|
+  path.unshift File.join(gemspec.full_gem_path, gemspec.bindir)
+  gemspec.require_paths.each do |require_path|
+    rubyopt.unshift "-I#{File.join(gemspec.full_gem_path, require_path)}"
+  end
+end
+ENV['RUBYOPT']=rubyopt.join(' ')
+ENV['PATH']="#{path.join(':')}:#{ENV['PATH']}"
 
 require 'shell_test/unit'
 
