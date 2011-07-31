@@ -46,6 +46,13 @@ module Linecook
       registry.delete(target_name)
     end
 
+    def unregister(source)
+      path = resolve_source_path(source)
+      registry.delete_if do |target_name, source_path|
+        path == source_path
+      end
+    end
+
     # Returns the source_path for target_name, as registered in self.  Returns
     # nil if the target is not registered.
     def source_path(target_name)

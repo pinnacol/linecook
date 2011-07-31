@@ -295,6 +295,19 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal "content", content('recipe/pkgfile.txt')
   end
 
+  def test_compile_need_not_generate_a_script
+    recipe_path = prepare 'recipe.rb', %{
+      _package_.unregister target
+    }
+
+    assert_script %{
+      $ linecook compile '#{recipe_path}'
+      #{path('recipe')}
+    }
+
+    assert_equal [], Dir.glob(path('recipe/*'))
+  end
+
   #
   # compile_helper test
   #
