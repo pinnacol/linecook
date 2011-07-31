@@ -69,6 +69,17 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'content', File.read(path('export/dir/target/path'))
   end
 
+  def test_export_moves_sources_marked_for_move_on_export
+    source_path = prepare('source', 'content')
+    package.add('target/path', source_path)
+    package.move_on_export(source_path)
+
+    package.export path('export/dir')
+
+    assert_equal false, File.exists?(source_path)
+    assert_equal 'content', File.read(path('export/dir/target/path'))
+  end
+
   def test_export_rewrites_and_returns_registry_with_new_source_paths
     source_path = prepare('source', 'content')
     package.add('target/path', source_path)

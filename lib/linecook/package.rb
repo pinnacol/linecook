@@ -11,9 +11,12 @@ module Linecook
     # are included in the package.
     attr_reader :registry
 
+    attr_reader :moveable_source_paths
+
     def initialize(remote_dir=nil)
       @remote_dir = remote_dir
       @registry   = {}
+      @moveable_source_paths = []
     end
 
     def resolve_source_path(source)
@@ -57,6 +60,14 @@ module Linecook
       end
     end
 
+    def move_on_export(source_path)
+      @moveable_source_paths << source_path
+    end
+
+    def copy_on_export(source_path)
+      @moveable_source_paths.delete(source_path)
+    end
+
     # Returns the content of the source_path for target_name, as registered in
     # self.  Returns nil if the target is not registered.
     def content(target_name, length=nil, offset=nil)
@@ -79,7 +90,13 @@ module Linecook
 
         export_dir = File.dirname(export_path)
         FileUtils.mkdir_p(export_dir)
-        FileUtils.cp(source_path, export_path)
+
+        if moveable_source_paths.include?(source_path)
+          FileUtils.mv(source_path, export_path)
+        else
+          FileUtils.cp(source_path, export_path)
+        end
+
         registry[target_name] = export_path
       end
 

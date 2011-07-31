@@ -267,7 +267,7 @@ class LinecookTest < Test::Unit::TestCase
   def test_compile_copies_added_files_to_package_dir
     file_path = prepare 'file.txt', 'content'
     recipe_path = prepare 'recipe.rb', %{
-      _package_.add('pkgfile.txt', '#{file_path}')
+      _package_.add 'pkgfile.txt', '#{file_path}'
     }
 
     assert_script %{
@@ -276,6 +276,22 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_equal "content", content('file.txt')
+    assert_equal "content", content('recipe/pkgfile.txt')
+  end
+
+  def test_compile_moves_files_marked_for_move
+    file_path = prepare 'file.txt', 'content'
+    recipe_path = prepare 'recipe.rb', %{
+      _package_.add 'pkgfile.txt', '#{file_path}'
+      _package_.move_on_export '#{file_path}'
+    }
+
+    assert_script %{
+      $ linecook compile '#{recipe_path}'
+      #{path('recipe')}
+    }
+
+    assert_equal false, File.exists?(file_path)
     assert_equal "content", content('recipe/pkgfile.txt')
   end
 
