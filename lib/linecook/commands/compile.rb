@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'linecook/recipe'
 require 'linecook/commands/compile_helper'
+require 'tempfile'
 
 module Linecook
   module Commands
@@ -43,33 +44,31 @@ module Linecook
           basename    = File.basename(recipe_path).chomp(File.extname(recipe_path))
           package_dir = File.join(output_dir, basename)
 
-          script = prepare(package_dir, script_name)
-          recipe = Recipe.new(script)
-          recipe.instance_eval File.read(recipe_path), recipe_path
-          script.close
+          if File.exists?(package_dir)
+            unless force
+              raise CommandError, "already exists: #{package_dir.inspect}"
+            end
+            FileUtils.rm_r(package_dir)
+          end
 
-          if executable
-            FileUtils.chmod 0744, script.path
+          script  = Tempfile.new(script_name)
+          package = Package.new
+          package.add(script_name, script)
+
+          recipe = Recipe.new(script, package)
+          recipe.instance_eval File.read(recipe_path), recipe_path
+
+          script.close
+          package.export(package_dir)
+          script_path = package.source_path(script_name)
+
+          if executable && script_path
+            FileUtils.chmod 0744, script_path
           end
 
           puts package_dir
           package_dir
         end
-      end
-
-      def prepare(package_dir, script_name)
-        if File.exists?(package_dir)
-          unless force
-            raise CommandError, "already exists: #{package_dir.inspect}"
-          end
-          FileUtils.rm_r(package_dir)
-        end
-
-        path = File.join(package_dir, script_name)
-
-        FileUtils.mkdir_p(package_dir)
-        FileUtils.touch(path)
-        File.open(path, 'r+')
       end
 
       def glob_helpers(helpers_dir)

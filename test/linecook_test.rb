@@ -264,6 +264,21 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal "ECHO XYZ", content('recipe/run')
   end
 
+  def test_compile_copies_added_files_to_package_dir
+    file_path = prepare 'file.txt', 'content'
+    recipe_path = prepare 'recipe.rb', %{
+      _package_.add('pkgfile.txt', '#{file_path}')
+    }
+
+    assert_script %{
+      $ linecook compile '#{recipe_path}'
+      #{path('recipe')}
+    }
+
+    assert_equal "content", content('file.txt')
+    assert_equal "content", content('recipe/pkgfile.txt')
+  end
+
   #
   # compile_helper test
   #

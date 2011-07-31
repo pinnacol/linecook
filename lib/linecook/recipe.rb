@@ -1,6 +1,7 @@
 require 'stringio'
 require 'linecook/utils'
 require 'linecook/proxy'
+require 'linecook/package'
 
 module Linecook
   # Recipe is the context in which recipes are evaluated (literally).  Recipe
@@ -32,6 +33,9 @@ module Linecook
   #   # }
   #
   class Recipe
+    # The recipe package
+    attr_reader :_package_
+
     # The recipe target
     attr_reader :_target_
 
@@ -41,9 +45,10 @@ module Linecook
     # The recipe proxy
     attr_reader :_proxy_
 
-    def initialize(target=StringIO.new)
+    def initialize(target=StringIO.new, package=Package.new)
       @_target_ = target
       @target   = target
+      @_package_ = package
       @_proxy_  = Proxy.new(self)
       @_chain_  = false
       @indents  = []
