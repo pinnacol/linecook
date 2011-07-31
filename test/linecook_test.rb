@@ -308,6 +308,23 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal [], Dir.glob(path('recipe/*'))
   end
 
+  def test_compiled_scripts_can_reference_package_files_when_invoked_using_full_path
+    file_path = prepare 'file.txt', %{
+      content
+    }
+    recipe_path = prepare 'recipe.rb', %{
+      _package_.add 'pkgfile.txt', '#{file_path}'
+      write 'cat "' + _package_.target_path('pkgfile.txt') + '"'
+    }
+
+    assert_script %{
+      $ linecook compile -x '#{recipe_path}'
+      #{path('recipe')}
+      $ #{path('recipe')}/run
+      content
+    }
+  end
+
   #
   # compile_helper test
   #
