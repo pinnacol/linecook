@@ -54,7 +54,7 @@ module Linecook
           end
 
           script  = Tempfile.new(script_name)
-          package = Package.new("${0%%/#{script_name}}/%s", load_env(package_file))
+          package = Package.new(load_env(package_file))
           package.add(script_name, script)
 
           recipe = Recipe.new(script, package)

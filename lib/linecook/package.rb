@@ -3,23 +3,15 @@ module Linecook
     # The package environment
     attr_reader :env
 
-    # A string format used to determine the target_path for a given target
-    # name.  The remote_dir is intended to represent the directory where a
-    # package is ultimately deployed (and as such recipes can reliably
-    # reference target names). When remote_dir is set to nil the target_name
-    # is treated as the the target_path.
-    attr_accessor :remote_dir
-
     # A registry of (target_name, source_path) pairs recording what files
     # are included in the package.
     attr_reader :registry
 
     attr_reader :moveable_source_paths
 
-    def initialize(remote_dir=nil, env={})
-      @remote_dir = remote_dir
+    def initialize(env={})
       @env = env
-      @registry   = {}
+      @registry = {}
       @moveable_source_paths = []
     end
 
@@ -61,14 +53,6 @@ module Linecook
     # nil if the target is not registered.
     def source_path(target_name)
       registry[target_name]
-    end
-
-    def target_path(target_name)
-      if registry.has_key?(target_name)
-        remote_dir ? (remote_dir % target_name) : target_name
-      else
-        nil
-      end
     end
 
     def move_on_export(source_path)
