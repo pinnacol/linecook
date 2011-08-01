@@ -15,6 +15,10 @@ module Linecook
       @moveable_source_paths = []
     end
 
+    # Resolves a source (ex a StringIO or Tempfile) to a source path by
+    # calling `source.path`, which should return a String pathname. If the
+    # source does not respond to path, then the source should be the pathname.
+    # Returns the expanded source path.
     def resolve_source_path(source)
       source_path = source.respond_to?(:path) ? source.path : source
       unless source_path.kind_of?(String)
@@ -23,7 +27,8 @@ module Linecook
       File.expand_path(source_path)
     end
 
-    # Registers the source to the target_path.
+    # Registers the source to the target_path.  The source is first resolved
+    # to a source path using resolve_source_path.
     def add(target_path, source)
       source_path = resolve_source_path(source)
 
@@ -38,10 +43,14 @@ module Linecook
       source
     end
 
+    # Removes a target path from the registry.
     def rm(target_path)
       registry.delete(target_path)
     end
 
+    # Removes all target paths that reference a source in the registry.  The
+    # source is resolved to a source path using resolve_source_path in the
+    # same way as add.
     def unregister(source)
       path = resolve_source_path(source)
       registry.delete_if do |target_path, source_path|
@@ -49,19 +58,24 @@ module Linecook
       end
     end
 
+    # Returns the content for a target, as registered in self.  Returns nil if
+    # the target is not registered.
+    def content(target_path, length=nil, offset=nil)
+      path = registry[target_path]
+      path ? File.read(path, length, offset) : nil
+    end
+
+    # Marks a source to be moved into place during export.
     def move_on_export(source_path)
       @moveable_source_paths << source_path
     end
 
+    # Marks a source to be copied into place during export.  Copy-on-export is
+    # the default behavior so there is no need to call this method for every
+    # source; it primarily exists to switch back sources marked by
+    # move_on_export.
     def copy_on_export(source_path)
       @moveable_source_paths.delete(source_path)
-    end
-
-    # Returns the content of the source_path for target_path, as registered in
-    # self.  Returns nil if the target is not registered.
-    def content(target_path, length=nil, offset=nil)
-      path = registry[target_path]
-      path ? File.read(path, length, offset) : nil
     end
 
     def export(dir)

@@ -36,6 +36,29 @@ class PackageTest < Test::Unit::TestCase
   end
 
   #
+  # rm test
+  #
+
+  def test_rm_removes_target_path_from_registry
+    package.add('target/path', 'source/a')
+    package.rm('target/path')
+    assert_equal false, package.registry.has_key?('target/path')
+  end
+
+  #
+  # rm test
+  #
+
+  def test_unregister_removes_source_path_from_registry
+    package.add('target/a', 'source/one')
+    package.add('target/b', 'source/one')
+    package.add('target/c', 'source/two')
+    package.unregister('source/one')
+
+    assert_equal({'target/c' => File.expand_path('source/two')}, package.registry)
+  end
+
+  #
   # content test
   #
 
