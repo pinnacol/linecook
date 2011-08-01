@@ -45,10 +45,10 @@ module Linecook
     # The recipe proxy
     attr_reader :_proxy_
 
-    def initialize(target=StringIO.new, package=Package.new)
+    def initialize(package=Package.new, target=StringIO.new)
+      @_package_ = package
       @_target_ = target
       @target   = target
-      @_package_ = package
       @_proxy_  = Proxy.new(self)
       @_chain_  = false
       @attributes  = {}

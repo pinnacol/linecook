@@ -57,7 +57,7 @@ module Linecook
           package = Package.new(load_env(package_file))
           package.add(script_name, script)
 
-          recipe = Recipe.new(script, package)
+          recipe = Recipe.new(package, script)
           recipe.instance_eval File.read(recipe_path), recipe_path
 
           script.close
