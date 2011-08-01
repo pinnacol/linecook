@@ -2,6 +2,7 @@ require 'fileutils'
 require 'linecook/recipe'
 require 'linecook/commands/compile_helper'
 require 'tempfile'
+require 'yaml'
 
 module Linecook
   module Commands
@@ -25,6 +26,7 @@ module Linecook
         end
       end
 
+      config :package_file, nil    # -P FILE : specify a package file
       config :helpers, []          # -H DIRECTORY : compile helpers
       config :output_dir, '.'      # -o DIRECTORY : specify the output dir
       config :script_name, 'run'   # -s NAME : specify the script name
@@ -52,7 +54,7 @@ module Linecook
           end
 
           script  = Tempfile.new(script_name)
-          package = Package.new("${0%%/#{script_name}}/%s")
+          package = Package.new("${0%%/#{script_name}}/%s", load_env(package_file))
           package.add(script_name, script)
 
           recipe = Recipe.new(script, package)
@@ -69,6 +71,10 @@ module Linecook
           puts package_dir
           package_dir
         end
+      end
+
+      def load_env(package_file)
+        package_file ? YAML.load_file(package_file) : {}
       end
 
       def glob_helpers(helpers_dir)

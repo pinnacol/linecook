@@ -325,6 +325,22 @@ class LinecookTest < Test::Unit::TestCase
     }
   end
 
+  def test_compile_can_specify_a_package_file_defining_recipe_attrs
+    package_file = prepare 'package.yml', %{
+      key: value
+    }
+    recipe_path  = prepare 'recipe.rb', %{
+      write attrs['key']
+    }
+
+    assert_script %{
+      $ linecook compile -P '#{package_file}' '#{recipe_path}'
+      #{path('recipe')}
+    }
+
+    assert_equal 'value', content('recipe/run')
+  end
+
   #
   # compile_helper test
   #
