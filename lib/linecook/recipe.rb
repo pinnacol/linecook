@@ -60,59 +60,6 @@ module Linecook
       end
     end
 
-    # Captures output to the target for the duration of a block.  Returns the
-    # capture target.
-    def _capture_(target=StringIO.new)
-      current = @target
-
-      begin
-        @target = target
-        yield
-      ensure
-        @target = current
-      end
-
-      target
-    end
-
-    # Returns the contents of target.
-    def _result_
-      target.flush
-      target.rewind
-      target.read
-    end
-
-    # Truncates the contents of target starting at the first match of pattern
-    # and returns the resulting match data. If a block is given then rewrite
-    # yields the match data to the block and returns the block result.
-    # 
-    # ==== Notes
-    #
-    # Rewrites can be computationally expensive because they require the
-    # current target to be flushed, rewound, and read in it's entirety.  In
-    # practice the performance of rewrite is almost never an issue because
-    # recipe output is usually small in size.
-    #
-    # If performance becomes an issue, then wrap the rewritten bits in a
-    # capture block to reassign the current target to a StringIO (which is
-    # much faster to rewrite), and to limit the scope of the rewritten text.
-    def _rewrite_(pattern)
-      if match = pattern.match(_result_)
-        start = match.begin(0)
-        target.pos = start
-        target.truncate start
-      end
-
-      block_given? ? yield(match) : match
-    end
-
-    # Strips whitespace from the end of target and returns the stripped
-    # whitespace, or an empty string if no whitespace is available.
-    def _rstrip_
-      match = _rewrite_(/\s+\z/)
-      match ? match[0] : ''
-    end
-
     # Loads the specified attributes file and merges the results into attrs. A
     # block may be given to specify attrs as well; it will be evaluated in the
     # context of an Attributes instance.
@@ -249,6 +196,59 @@ module Linecook
       end
 
       self
+    end
+
+    # Returns the contents of target.
+    def _result_
+      target.flush
+      target.rewind
+      target.read
+    end
+
+    # Captures output to the target for the duration of a block.  Returns the
+    # capture target.
+    def _capture_(target=StringIO.new)
+      current = @target
+
+      begin
+        @target = target
+        yield
+      ensure
+        @target = current
+      end
+
+      target
+    end
+
+    # Truncates the contents of target starting at the first match of pattern
+    # and returns the resulting match data. If a block is given then rewrite
+    # yields the match data to the block and returns the block result.
+    # 
+    # ==== Notes
+    #
+    # Rewrites can be computationally expensive because they require the
+    # current target to be flushed, rewound, and read in it's entirety.  In
+    # practice the performance of rewrite is almost never an issue because
+    # recipe output is usually small in size.
+    #
+    # If performance becomes an issue, then wrap the rewritten bits in a
+    # capture block to reassign the current target to a StringIO (which is
+    # much faster to rewrite), and to limit the scope of the rewritten text.
+    def _rewrite_(pattern)
+      if match = pattern.match(_result_)
+        start = match.begin(0)
+        target.pos = start
+        target.truncate start
+      end
+
+      block_given? ? yield(match) : match
+    end
+
+    # Strips whitespace from the end of target and returns the stripped
+    # whitespace, or an empty string if no whitespace is available.
+    def _rstrip_
+      match = _rewrite_(/\s+\z/)
+      match ? match[0] : ''
     end
 
     # Sets _chain_? to return true and calls the method (thereby allowing the
