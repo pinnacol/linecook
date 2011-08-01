@@ -62,7 +62,7 @@ module Linecook
 
           script.close
           package.export(package_dir)
-          script_path = package.source_path(script_name)
+          script_path = package.registry[script_name]
 
           if executable && script_path
             FileUtils.chmod 0744, script_path

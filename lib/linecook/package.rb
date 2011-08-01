@@ -3,7 +3,7 @@ module Linecook
     # The package environment
     attr_reader :env
 
-    # A registry of (target_name, source_path) pairs recording what files
+    # A registry of (target_path, source_path) pairs recording what files
     # are included in the package.
     attr_reader :registry
 
@@ -23,36 +23,30 @@ module Linecook
       File.expand_path(source_path)
     end
 
-    # Registers the source to the target_name.
-    def add(target_name, source)
+    # Registers the source to the target_path.
+    def add(target_path, source)
       source_path = resolve_source_path(source)
 
-      if current = registry[target_name]
+      if current = registry[target_path]
         unless current == source_path
-          raise "already registered: #{target_name.inspect} (#{current.inspect})"
+          raise "already registered: #{target_path.inspect} (#{current.inspect})"
         end
       else
-        registry[target_name] = source_path
+        registry[target_path] = source_path
       end
 
       source
     end
 
-    def rm(target_name)
-      registry.delete(target_name)
+    def rm(target_path)
+      registry.delete(target_path)
     end
 
     def unregister(source)
       path = resolve_source_path(source)
-      registry.delete_if do |target_name, source_path|
+      registry.delete_if do |target_path, source_path|
         path == source_path
       end
-    end
-
-    # Returns the source_path for target_name, as registered in self.  Returns
-    # nil if the target is not registered.
-    def source_path(target_name)
-      registry[target_name]
     end
 
     def move_on_export(source_path)
@@ -63,10 +57,10 @@ module Linecook
       @moveable_source_paths.delete(source_path)
     end
 
-    # Returns the content of the source_path for target_name, as registered in
+    # Returns the content of the source_path for target_path, as registered in
     # self.  Returns nil if the target is not registered.
-    def content(target_name, length=nil, offset=nil)
-      path = source_path(target_name)
+    def content(target_path, length=nil, offset=nil)
+      path = registry[target_path]
       path ? File.read(path, length, offset) : nil
     end
 
@@ -75,9 +69,9 @@ module Linecook
         raise "already exists: #{dir.inspect}"
       end
 
-      registry.each_key do |target_name|
-        export_path = File.join(dir, target_name)
-        source_path = registry[target_name]
+      registry.each_key do |target_path|
+        export_path = File.join(dir, target_path)
+        source_path = registry[target_path]
 
         if source_path == export_path
           next
@@ -92,7 +86,7 @@ module Linecook
           FileUtils.cp(source_path, export_path)
         end
 
-        registry[target_name] = export_path
+        registry[target_path] = export_path
       end
 
       registry

@@ -18,19 +18,19 @@ class PackageTest < Test::Unit::TestCase
   # add test
   #
 
-  def test_add_registers_source_file_to_target_name
+  def test_add_registers_source_file_to_target_path
     package.add('target/path', 'source/path')
     assert_equal File.expand_path('source/path'), package.registry['target/path']
   end
 
-  def test_add_raises_error_for_target_name_added_to_a_different_source
+  def test_add_raises_error_for_target_path_added_to_a_different_source
     package.add('target/path', 'source/a')
 
     err = assert_raises(RuntimeError) { package.add('target/path', 'source/b') }
     assert_equal %{already registered: "target/path" ("#{File.expand_path('source/a')}")}, err.message
   end
 
-  def test_add_does_not_raise_error_for_double_add_of_same_source_and_target_name
+  def test_add_does_not_raise_error_for_double_add_of_same_source_and_target_path
     package.add('target/path', 'source/a')
     assert_nothing_raised { package.add('target/path', 'source/a') }
   end
