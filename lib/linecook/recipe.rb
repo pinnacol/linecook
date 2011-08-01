@@ -51,6 +51,7 @@ module Linecook
       @_package_ = package
       @_proxy_  = Proxy.new(self)
       @_chain_  = false
+      @attributes  = {}
       @indents  = []
       @outdents = []
 
@@ -110,6 +111,32 @@ module Linecook
     def _rstrip_
       match = _rewrite_(/\s+\z/)
       match ? match[0] : ''
+    end
+
+    # Loads the specified attributes file and merges the results into attrs. A
+    # block may be given to specify attrs as well; it will be evaluated in the
+    # context of an Attributes instance.
+    def attributes(path=nil, &block)
+      attributes = Attributes.new
+
+      if path
+        attributes.load_attrs(path)
+      end
+
+      if block_given?
+        attributes.instance_eval(&block)
+      end
+
+      @attributes = Utils.deep_merge(@attributes, attributes.to_hash)
+      @attrs = nil
+      self
+    end
+
+    # Returns the package env merged over any attrs specified by attributes.
+    # The attrs hash should be treated as if it were read-only because changes
+    # could alter the package env and thereby spill over into other recipes.
+    def attrs
+      @attrs ||= Utils.deep_merge(@attributes, _package_.env)
     end
 
     # Looks up and extends self with the specified helper.

@@ -14,6 +14,10 @@ class RecipeTest < Test::Unit::TestCase
     @recipe ||= Recipe.new
   end
 
+  def package
+    recipe._package_
+  end
+
   def setup_recipe(&block)
     @recipe = Recipe.new
     @recipe.instance_eval(&block) if block
@@ -175,6 +179,93 @@ echo 'x y z'
 
   def test_target_is_an_alias_for__target__
     assert_equal recipe._target_, recipe.target
+  end
+
+  #
+  # attributes test
+  #
+
+  def test_attributes_evals_the_attributes_file_in_the_context_of_attributes
+    path = prepare('example.rb') {|io| io << "attrs[:key] = 'value'"}
+    assert_equal nil, recipe.attrs[:key]
+
+    recipe.attributes(path)
+    assert_equal 'value', recipe.attrs[:key]
+  end
+  
+  def test_attributes_evals_a_block_for_attrs
+    assert_equal nil, recipe.attrs[:key]
+    
+    recipe.attributes do
+      attrs[:key] = 'value'
+    end
+    
+    assert_equal 'value', recipe.attrs[:key]
+  end
+  
+  def test_attributes_loads_yml_files_as_yaml
+    path = prepare('example.yml') {|io| io << ":key: value" }
+    assert_equal nil, recipe.attrs[:key]
+    
+    recipe.attributes(path)
+    assert_equal 'value', recipe.attrs[:key]
+  end
+  
+  #
+  # attrs test
+  #
+  
+  def test_attrs_merges_attrs_and_env_where_env_wins
+    package.env[:a] = 'A'
+    
+    recipe.attributes do
+      attrs[:a]     = '-'
+      attrs[:b]     = 'B'
+    end
+
+    assert_equal 'A', recipe.attrs[:a]
+    assert_equal 'B', recipe.attrs[:b]
+  end
+  
+  def test_attrs_are_additive_and_still_ensure_env_wins
+    package.env[:a] = 'A'
+    
+    recipe.attributes do
+      attrs[:a]     = '-'
+      attrs[:b]     = '-'
+      attrs[:c]     = 'C'
+    end
+    
+    recipe.attributes do
+      attrs[:b]     = 'B'
+    end
+    
+    assert_equal 'A', recipe.attrs[:a]
+    assert_equal 'B', recipe.attrs[:b]
+    assert_equal 'C', recipe.attrs[:c]
+  end
+  
+  def test_attrs_performs_deep_merge
+    recipe.attributes do
+      attrs[:a] = 'A'
+      attrs[:b] = '-'
+      attrs[:one][:a] = 'a'
+      attrs[:one][:b] = '-'
+    end
+    
+    package.env[:b]   = 'B'
+    package.env[:one] = {:b => 'b'}
+    
+    assert_equal 'A', recipe.attrs[:a]
+    assert_equal 'B', recipe.attrs[:b]
+    assert_equal({:a => 'a', :b => 'b'}, recipe.attrs[:one])
+  end
+  
+  def test_attrs_does_not_auto_nest
+    recipe.attributes { attrs[:b] }
+    
+    assert_equal nil, recipe.attrs[:a]
+    assert_equal nil, recipe.attrs[:b][:c]
   end
 
   #

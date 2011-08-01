@@ -51,6 +51,26 @@ module Linecook
       @attrs = Attributes.nest_hash
     end
 
+    # Loads the attributes file into attrs. The loading mechanism depends on
+    # the file extname:
+    #
+    #   .rb: evaluate in the context of attributes
+    #   .yml,.yaml,.json: load as YAML and merge into attrs
+    #
+    # All other file types raise an error.
+    def load_attrs(path)
+      case File.extname(path)
+      when '.rb'
+        instance_eval(File.read(path), path)
+      when '.yml', '.yaml', '.json'
+        attrs.merge!(YAML.load_file(path))
+      else
+        raise "unsupported attributes format: #{path.inspect}"
+      end
+
+      self
+    end
+
     # Disables automatic nesting and returns attrs.
     def to_hash
       Attributes.disable_nest_hash(attrs)
