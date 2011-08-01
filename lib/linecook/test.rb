@@ -13,8 +13,16 @@ module Linecook
       @helpers ||= []
     end
 
+    def setup_package(env={})
+      @package = Package.new(env)
+    end
+
+    def package
+      @package ||= setup_package
+    end
+
     def setup_recipe(&block)
-      recipe = Recipe.new
+      recipe = Recipe.new(package)
       helpers.each {|helper| recipe.extend helper }
       recipe.instance_eval(&block) if block_given?
       @recipe = recipe

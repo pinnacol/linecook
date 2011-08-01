@@ -7,6 +7,23 @@ class TestTest < Test::Unit::TestCase
   TestUnitErrorClass = Object.const_defined?(:MiniTest) ? MiniTest::Assertion : Test::Unit::AssertionFailedError
 
   #
+  # setup_package test
+  #
+
+  def test_setup_package_initializes_package_with_env
+    package = setup_package 'key' => 'value'
+    assert_equal 'value', package.env['key']
+  end
+
+  def test_setup_package_sets_package
+    setup_package 'key' => 'a'
+    assert_equal 'a', package.env['key']
+
+    setup_package 'key' => 'b'
+    assert_equal 'b', package.env['key']
+  end
+
+  #
   # setup_recipe test
   #
 
@@ -74,6 +91,11 @@ class TestTest < Test::Unit::TestCase
   def test_assert_recipe_evaluates_block_for_recipe_if_specified
     recipe = setup_recipe { write 'a'}
     assert_recipe('ab', recipe) { write 'b'}
+  end
+
+  def test_assert_recipe_uses_current_package_if_set
+    setup_package('key' => 'value')
+    assert_recipe('value') { write attrs['key'] }
   end
 
   #
