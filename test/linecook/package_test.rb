@@ -116,7 +116,7 @@ class PackageTest < Test::Unit::TestCase
 
   def test_on_export_sets_export_options_for_target_path
     package.on_export('target/path', :move => true)
-    assert_equal({:move => true}, package.export_opts['target/path'])
+    assert_equal({:move => true}, package.export_options('target/path'))
   end
 
   #
@@ -144,7 +144,7 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'content', File.read(path('export/dir/target/path'))
   end
 
-  def test_export_sets_the_mode_for_the_target_as_specified_in_export_opts
+  def test_export_sets_the_mode_for_the_target_as_specified_in_export_options
     source_path = prepare('source', 'content')
     package.add('target/path', source_path)
     package.on_export('target/path', :mode => 0640)
@@ -180,7 +180,7 @@ class PackageTest < Test::Unit::TestCase
   def test_export_uses_default_export_options
     source_path = prepare('source', 'content')
     package.add('target/path', source_path)
-    package.default_export_opts = {:mode => 0640}
+    package.default_export_options[:mode] = 0640
     package.export path('export/dir')
 
     mode = File.stat(path('export/dir/target/path')).mode

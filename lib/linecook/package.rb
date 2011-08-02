@@ -7,19 +7,19 @@ module Linecook
     # are included in the package.
     attr_reader :registry
 
-    # A hash of (source_path, Hash) pairs identifing export options for a
-    # source path, for example a flag to move rather than copy the file.
-    attr_reader :export_opts
-
     # A hash of the default export options.  These are merged with the export
     # opts for a given target path.
-    attr_accessor :default_export_opts
+    attr_reader :default_export_options
+
+    # A hash of (target_path, Hash) pairs identifing export options for a
+    # target path.  See on_export.
+    attr_reader :export_option_overrides
 
     def initialize(env={})
       @env = env
       @registry = {}
-      @export_opts = Hash.new
-      @default_export_opts = {}
+      @default_export_options  = {}
+      @export_option_overrides = {}
     end
 
     # Resolves a source (ex a StringIO or Tempfile) to a source path by
@@ -80,14 +80,22 @@ module Linecook
     #   :mode     Sets the mode of the target to the option value
     #
     def on_export(target_path, options={})
-      export_opts[target_path] = options
+      export_option_overrides[target_path] = options
+    end
+
+    # Returns a hash of the export options for a target path, equivalent to
+    # the default_export_options merged with any overriding options set for
+    # the target.
+    def export_options(target_path)
+      overrides = export_option_overrides[target_path] || {}
+      default_export_options.merge(overrides)
     end
 
     def export(dir)
       registry.each_key do |target_path|
         export_path = File.join(dir, target_path)
         source_path = registry[target_path]
-        options     = default_export_opts.merge(export_opts[target_path] || {})
+        options     = export_options(target_path)
 
         if source_path != export_path
           export_dir = File.dirname(export_path)
