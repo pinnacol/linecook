@@ -176,4 +176,14 @@ class PackageTest < Test::Unit::TestCase
     mode = File.stat(path('export/dir/target/path')).mode
     assert_equal '100600', sprintf("%o", mode)
   end
+
+  def test_export_uses_default_export_options
+    source_path = prepare('source', 'content')
+    package.add('target/path', source_path)
+    package.default_export_opts = {:mode => 0640}
+    package.export path('export/dir')
+
+    mode = File.stat(path('export/dir/target/path')).mode
+    assert_equal '100640', sprintf("%o", mode)
+  end
 end

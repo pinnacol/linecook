@@ -11,10 +11,15 @@ module Linecook
     # source path, for example a flag to move rather than copy the file.
     attr_reader :export_opts
 
+    # A hash of the default export options.  These are merged with the export
+    # opts for a given target path.
+    attr_accessor :default_export_opts
+
     def initialize(env={})
       @env = env
       @registry = {}
       @export_opts = Hash.new
+      @default_export_opts = {}
     end
 
     # Resolves a source (ex a StringIO or Tempfile) to a source path by
@@ -82,7 +87,7 @@ module Linecook
       registry.each_key do |target_path|
         export_path = File.join(dir, target_path)
         source_path = registry[target_path]
-        options     = export_opts[target_path] || {}
+        options     = default_export_opts.merge(export_opts[target_path] || {})
 
         if source_path != export_path
           export_dir = File.dirname(export_path)
