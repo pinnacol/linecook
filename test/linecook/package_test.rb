@@ -114,11 +114,9 @@ class PackageTest < Test::Unit::TestCase
   # on_export test
   #
 
-  def test_on_export_sets_export_options_for_source
-    source = Tempfile.new('source')
-    package.on_export(source, :move => true)
-
-    assert_equal({:move => true}, package.export_opts[source.path])
+  def test_on_export_sets_export_options_for_target_path
+    package.on_export('target/path', :move => true)
+    assert_equal({:move => true}, package.export_opts['target/path'])
   end
 
   #
@@ -135,10 +133,10 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'content', File.read(path('export/dir/target/path'))
   end
 
-  def test_export_moves_sources_marked_for_move
+  def test_export_moves_sources_for_targets_marked_for_move
     source_path = prepare('source', 'content')
     package.add('target/path', source_path)
-    package.on_export(source_path, :move => true)
+    package.on_export('target/path', :move => true)
 
     package.export path('export/dir')
 
@@ -146,10 +144,10 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'content', File.read(path('export/dir/target/path'))
   end
 
-  def test_export_chmods_the_exported_file_as_specified_in_export_opts
+  def test_export_sets_the_mode_for_the_target_as_specified_in_export_opts
     source_path = prepare('source', 'content')
     package.add('target/path', source_path)
-    package.on_export(source_path, :mode => 0640)
+    package.on_export('target/path', :mode => 0640)
 
     package.export path('export/dir')
 
@@ -161,28 +159,18 @@ class PackageTest < Test::Unit::TestCase
     source_path = prepare('source', 'content')
     package.add('target/path', source_path)
     registry = package.export path('export/dir')
+
     assert_equal path('export/dir/target/path'), registry['target/path']
-  end
-
-  def test_export_rewrites_export_opts_to_new_source_paths
-    source_path = prepare('source', 'content')
-    package.add('target/path', source_path)
-    package.on_export(source_path, :mode => 0640)
-
-    package.export path('export/dir')
-
-    assert_equal({
-      path('export/dir/target/path') => {:mode => 0640}
-    }, package.export_opts)
   end
 
   def test_export_can_be_used_to_update_an_export
     source_path = prepare('source', 'content')
     package.add('target/path', source_path)
 
-    package.on_export(source_path, :mode => 0640)
+    package.on_export('target/path', :mode => 0640)
     package.export path('export/dir')
-    package.on_export(package.registry['target/path'], :mode => 0600)
+
+    package.on_export('target/path', :mode => 0600)
     package.export path('export/dir')
 
     mode = File.stat(path('export/dir/target/path')).mode

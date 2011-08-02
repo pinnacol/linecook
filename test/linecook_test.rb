@@ -283,7 +283,7 @@ class LinecookTest < Test::Unit::TestCase
     file_path = prepare 'file.txt', 'content'
     recipe_path = prepare 'recipe.rb', %{
       _package_.add 'pkgfile.txt', '#{file_path}'
-      _package_.on_export '#{file_path}', :move => true
+      _package_.on_export 'pkgfile.txt', :move => true
     }
 
     assert_script %{

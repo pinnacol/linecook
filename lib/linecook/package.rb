@@ -67,23 +67,22 @@ module Linecook
       path ? File.read(path, length, offset) : nil
     end
 
-    # Sets export options for the source.  Available options include:
+    # Sets export options for the target path.  Available options include:
     #
     #   Option    Description
-    #   :move     When set to true the source will be moved into place rather
-    #             than copied (the default)
-    #   :mode     Sets the mode of the exported file to the option value
+    #   :move     When set to true the target source will be moved into place
+    #             rather than copied (the default)
+    #   :mode     Sets the mode of the target to the option value
     #
-    def on_export(source, options={})
-      source_path = resolve_source_path(source)
-      export_opts[source_path] = options
+    def on_export(target_path, options={})
+      export_opts[target_path] = options
     end
 
     def export(dir)
       registry.each_key do |target_path|
         export_path = File.join(dir, target_path)
         source_path = registry[target_path]
-        options     = export_opts[source_path] || {}
+        options     = export_opts[target_path] || {}
 
         if source_path != export_path
           export_dir = File.dirname(export_path)
@@ -101,7 +100,6 @@ module Linecook
         end
 
         registry[target_path] = export_path
-        export_opts[export_path] = export_opts.delete(source_path)
       end
 
       registry

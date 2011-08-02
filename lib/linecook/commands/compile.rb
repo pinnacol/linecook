@@ -58,7 +58,7 @@ module Linecook
           package.add(script_name, script)
 
           if executable
-            package.on_export(script, :mode => 0744)
+            package.on_export(script_name, :mode => 0744)
           end
 
           recipe = Recipe.new(package, script)
