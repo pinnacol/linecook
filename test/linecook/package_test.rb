@@ -146,6 +146,17 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'content', File.read(path('export/dir/target/path'))
   end
 
+  def test_export_chmods_the_exported_file_as_specified_in_export_opts
+    source_path = prepare('source', 'content')
+    package.add('target/path', source_path)
+    package.on_export(source_path, :mode => 0640)
+
+    package.export path('export/dir')
+
+    mode = File.stat(path('export/dir/target/path')).mode
+    assert_equal '100640', sprintf("%o", mode)
+  end
+
   def test_export_rewrites_and_returns_registry_with_new_source_paths
     source_path = prepare('source', 'content')
     package.add('target/path', source_path)

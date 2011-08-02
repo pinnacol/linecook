@@ -57,16 +57,15 @@ module Linecook
           package = Package.new(load_env(package_file))
           package.add(script_name, script)
 
+          if executable
+            package.on_export(script, :mode => 0744)
+          end
+
           recipe = Recipe.new(package, script)
           recipe.instance_eval File.read(recipe_path), recipe_path
 
           script.close
           package.export(package_dir)
-          script_path = package.registry[script_name]
-
-          if executable && script_path
-            FileUtils.chmod 0744, script_path
-          end
 
           puts package_dir
           package_dir

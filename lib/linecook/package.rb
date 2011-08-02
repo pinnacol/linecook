@@ -69,9 +69,10 @@ module Linecook
 
     # Sets export options for the source.  Available options include:
     #
-    #   option           desc
-    #   :move            when set to true the source will be moved into
-    #                    place rather than copied (the default)
+    #   Option    Description
+    #   :move     When set to true the source will be moved into place rather
+    #             than copied (the default)
+    #   :mode     Sets the mode of the exported file to the option value
     #
     def on_export(source, options={})
       source_path = resolve_source_path(source)
@@ -99,6 +100,10 @@ module Linecook
           FileUtils.mv(source_path, export_path)
         else
           FileUtils.cp(source_path, export_path)
+        end
+
+        if mode = options[:mode]
+          FileUtils.chmod(mode, export_path)
         end
 
         registry[target_path] = export_path
