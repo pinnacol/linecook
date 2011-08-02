@@ -163,4 +163,29 @@ class PackageTest < Test::Unit::TestCase
     registry = package.export path('export/dir')
     assert_equal path('export/dir/target/path'), registry['target/path']
   end
+
+  def test_export_rewrites_export_opts_to_new_source_paths
+    source_path = prepare('source', 'content')
+    package.add('target/path', source_path)
+    package.on_export(source_path, :mode => 0640)
+
+    package.export path('export/dir')
+
+    assert_equal({
+      path('export/dir/target/path') => {:mode => 0640}
+    }, package.export_opts)
+  end
+
+  def test_export_can_be_used_to_update_an_export
+    source_path = prepare('source', 'content')
+    package.add('target/path', source_path)
+
+    package.on_export(source_path, :mode => 0640)
+    package.export path('export/dir')
+    package.on_export(package.registry['target/path'], :mode => 0600)
+    package.export path('export/dir')
+
+    mode = File.stat(path('export/dir/target/path')).mode
+    assert_equal '100600', sprintf("%o", mode)
+  end
 end

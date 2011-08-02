@@ -14,7 +14,7 @@ module Linecook
     def initialize(env={})
       @env = env
       @registry = {}
-      @export_opts = Hash.new({})
+      @export_opts = Hash.new
     end
 
     # Resolves a source (ex a StringIO or Tempfile) to a source path by
@@ -80,26 +80,20 @@ module Linecook
     end
 
     def export(dir)
-      if File.exists?(dir)
-        raise "already exists: #{dir.inspect}"
-      end
-
       registry.each_key do |target_path|
         export_path = File.join(dir, target_path)
         source_path = registry[target_path]
-        options     = export_opts[source_path]
+        options     = export_opts[source_path] || {}
 
-        if source_path == export_path
-          next
-        end
+        if source_path != export_path
+          export_dir = File.dirname(export_path)
+          FileUtils.mkdir_p(export_dir)
 
-        export_dir = File.dirname(export_path)
-        FileUtils.mkdir_p(export_dir)
-
-        if options[:move]
-          FileUtils.mv(source_path, export_path)
-        else
-          FileUtils.cp(source_path, export_path)
+          if options[:move]
+            FileUtils.mv(source_path, export_path)
+          else
+            FileUtils.cp(source_path, export_path)
+          end
         end
 
         if mode = options[:mode]
@@ -107,6 +101,7 @@ module Linecook
         end
 
         registry[target_path] = export_path
+        export_opts[export_path] = export_opts.delete(source_path)
       end
 
       registry
