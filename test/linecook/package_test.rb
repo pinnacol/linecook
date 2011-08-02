@@ -111,6 +111,17 @@ class PackageTest < Test::Unit::TestCase
   end
 
   #
+  # on_export test
+  #
+
+  def test_on_export_sets_export_options_for_source
+    source = Tempfile.new('source')
+    package.on_export(source, :move => true)
+
+    assert_equal({:move => true}, package.export_opts[source.path])
+  end
+
+  #
   # export test
   #
 
@@ -124,10 +135,10 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'content', File.read(path('export/dir/target/path'))
   end
 
-  def test_export_moves_sources_marked_for_move_on_export
+  def test_export_moves_sources_marked_for_move
     source_path = prepare('source', 'content')
     package.add('target/path', source_path)
-    package.move_on_export(source_path)
+    package.on_export(source_path, :move => true)
 
     package.export path('export/dir')
 

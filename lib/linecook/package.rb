@@ -7,12 +7,14 @@ module Linecook
     # are included in the package.
     attr_reader :registry
 
-    attr_reader :moveable_source_paths
+    # A hash of (source_path, Hash) pairs identifing export options for a
+    # source path, for example a flag to move rather than copy the file.
+    attr_reader :export_opts
 
     def initialize(env={})
       @env = env
       @registry = {}
-      @moveable_source_paths = []
+      @export_opts = Hash.new({})
     end
 
     # Resolves a source (ex a StringIO or Tempfile) to a source path by
@@ -65,17 +67,15 @@ module Linecook
       path ? File.read(path, length, offset) : nil
     end
 
-    # Marks a source to be moved into place during export.
-    def move_on_export(source_path)
-      @moveable_source_paths << source_path
-    end
-
-    # Marks a source to be copied into place during export.  Copy-on-export is
-    # the default behavior so there is no need to call this method for every
-    # source; it primarily exists to switch back sources marked by
-    # move_on_export.
-    def copy_on_export(source_path)
-      @moveable_source_paths.delete(source_path)
+    # Sets export options for the source.  Available options include:
+    #
+    #   option           desc
+    #   :move            when set to true the source will be moved into
+    #                    place rather than copied (the default)
+    #
+    def on_export(source, options={})
+      source_path = resolve_source_path(source)
+      export_opts[source_path] = options
     end
 
     def export(dir)
@@ -86,6 +86,7 @@ module Linecook
       registry.each_key do |target_path|
         export_path = File.join(dir, target_path)
         source_path = registry[target_path]
+        options     = export_opts[source_path]
 
         if source_path == export_path
           next
@@ -94,7 +95,7 @@ module Linecook
         export_dir = File.dirname(export_path)
         FileUtils.mkdir_p(export_dir)
 
-        if moveable_source_paths.include?(source_path)
+        if options[:move]
           FileUtils.mv(source_path, export_path)
         else
           FileUtils.cp(source_path, export_path)
