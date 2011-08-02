@@ -1,6 +1,7 @@
 require File.expand_path('../../test_helper', __FILE__)
 require 'linecook/package'
 require 'tempfile'
+require 'ostruct'
 
 class PackageTest < Test::Unit::TestCase
   include ShellTest
@@ -15,12 +16,35 @@ class PackageTest < Test::Unit::TestCase
   end
 
   #
+  # resolve_source_path test
+  #
+
+  def test_resolve_source_path_resolves_sources_to_path_using_path_method
+    source = OpenStruct.new :path => '/source/path'
+    assert_equal '/source/path', package.resolve_source_path(source)
+  end
+
+  def test_resolve_source_path_uses_source_as_path_if_it_does_not_have_a_path_method
+    assert_equal '/source/path', package.resolve_source_path('/source/path')
+  end
+
+  def test_resolve_source_path_expands_path
+    assert_equal File.expand_path('source/path'), package.resolve_source_path('source/path')
+  end
+
+  #
   # add test
   #
 
-  def test_add_registers_source_file_to_target_path
+  def test_add_registers_source_path_to_target_path
     package.add('target/path', 'source/path')
     assert_equal File.expand_path('source/path'), package.registry['target/path']
+  end
+
+  def test_add_resolves_sources_to_path_before_register
+    source = Tempfile.new('source')
+    package.add('target/path', source)
+    assert_equal source.path, package.registry['target/path']
   end
 
   def test_add_raises_error_for_target_path_added_to_a_different_source
@@ -46,7 +70,7 @@ class PackageTest < Test::Unit::TestCase
   end
 
   #
-  # rm test
+  # unregister test
   #
 
   def test_unregister_removes_source_path_from_registry
@@ -56,6 +80,14 @@ class PackageTest < Test::Unit::TestCase
     package.unregister('source/one')
 
     assert_equal({'target/c' => File.expand_path('source/two')}, package.registry)
+  end
+
+  def test_unregister_resolves_source_to_source_path
+    source = Tempfile.new('source')
+    package.add('target/path', source.path)
+    package.unregister(source)
+
+    assert_equal false, package.registry.has_key?('target/path')
   end
 
   #
