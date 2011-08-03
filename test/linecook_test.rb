@@ -235,7 +235,7 @@ class LinecookTest < Test::Unit::TestCase
       #{path('recipe')}
     }
 
-    assert_output_equal %{
+    assert_str_equal %{
       cat <<DOC
       a
       b
@@ -347,7 +347,7 @@ class LinecookTest < Test::Unit::TestCase
       #{path('recipe')}
     }
 
-    assert_output_equal %{
+    assert_str_equal %{
       echo abc
     }, content('recipe/run')
   end
@@ -376,7 +376,7 @@ class LinecookTest < Test::Unit::TestCase
       #{path('recipe')}
     }
 
-    assert_output_equal %{
+    assert_str_equal %{
       echo a abc
       echo b xyz
     }, content('recipe/run')

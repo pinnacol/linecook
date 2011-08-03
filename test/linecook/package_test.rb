@@ -150,9 +150,7 @@ class PackageTest < Test::Unit::TestCase
     package.on_export('target/path', :mode => 0640)
 
     package.export path('export/dir')
-
-    mode = File.stat(path('export/dir/target/path')).mode
-    assert_equal '100640', sprintf("%o", mode)
+    assert_equal '100640', mode('export/dir/target/path')
   end
 
   def test_export_rewrites_and_returns_registry_with_new_source_paths
@@ -173,8 +171,7 @@ class PackageTest < Test::Unit::TestCase
     package.on_export('target/path', :mode => 0600)
     package.export path('export/dir')
 
-    mode = File.stat(path('export/dir/target/path')).mode
-    assert_equal '100600', sprintf("%o", mode)
+    assert_equal '100600', mode('export/dir/target/path')
   end
 
   def test_export_uses_default_export_options
@@ -183,7 +180,6 @@ class PackageTest < Test::Unit::TestCase
     package.default_export_options[:mode] = 0640
     package.export path('export/dir')
 
-    mode = File.stat(path('export/dir/target/path')).mode
-    assert_equal '100640', sprintf("%o", mode)
+    assert_equal '100640', mode('export/dir/target/path')
   end
 end
