@@ -9,150 +9,81 @@ class CookbookTest < Test::Unit::TestCase
 
   def setup
     super
-    @cookbook = Cookbook.new
+    @cookbook = Cookbook.new path('a'), path('b')
   end
 
   #
   # initialize test
   #
 
-  def test_initialize_adds_each_project_dir
+  def test_initialize_sets_path
     cookbook = Cookbook.new path('a'), path('b')
-    assert_equal [path('a'), path('b')], cookbook.project_dirs
-    assert_equal [path('a/attributes'), path('b/attributes')], cookbook.path(:attributes)
+    assert_equal [path('a'), path('b')], cookbook.paths
   end
 
-  #
-  # path test
-  #
-
-  def test_path_returns_the_path_for_type
-    cookbook.paths[:type] = ['a', 'b']
-    assert_equal ['a', 'b'], cookbook.path(:type)
+  def test_initialize_adds_mappings_to_path
+    cookbook = Cookbook.new({:dir => path('a')})
+    assert_equal [{:dir => path('a')}], cookbook.paths
   end
 
-  def test_path_sets_empty_array_for_unknown_types
-    path = cookbook.path(:type)
-    assert_equal [], path
-    path << 'a'
-    assert_equal ['a'], cookbook.paths[:type]
+  def test_initialize_expands_dir_mapping_arrays
+    cookbook = Cookbook.new [method_dir, {:dir => 'a'}]
+    assert_equal [{:dir => path('a')}], cookbook.paths
   end
 
   #
   # add test
   #
 
-  def test_add_expands_and_pushes_dir_onto_path_for_type
-    cookbook.add :type, 'a'
-    cookbook.add :type, 'b'
-    assert_equal [File.expand_path('a'), File.expand_path('b')], cookbook.path(:type)
+  def test_add_pushes_expanded_dir_onto_path
+    cookbook = Cookbook.new
+    cookbook.add 'a'
+    cookbook.add 'b'
+    assert_equal [File.expand_path('a'), File.expand_path('b')], cookbook.paths
+  end
+
+  def test_add_expands_mappings_and_adds_the_result_to_path
+    cookbook = Cookbook.new
+    cookbook.add 'a', :type => 'one'
+    assert_equal [{:type => File.expand_path('one', 'a')}], cookbook.paths
+  end
+
+  def test_add_project_dir_loads_cookbook_file_for_mappings_if_it_exists
+    prepare 'cookbook.yml', 'type: one'
+    cookbook = Cookbook.new
+    cookbook.add method_dir, 'cookbook.yml'
+    assert_equal [{:type => path('one')}], cookbook.paths
+  end
+
+  def test_add_project_dir_pushes_expanded_dir_onto_path_if_cookbook_file_does_not_exist
+    cookbook = Cookbook.new
+    cookbook.add method_dir, 'cookbook.yml'
+    assert_equal [method_dir], cookbook.paths
   end
 
   #
   # rm test
   #
 
-  def test_rm_deletes_expanded_dir_from_path_for_type
-    cookbook.add :type, 'a'
-    cookbook.add :type, 'b'
-    cookbook.add :type, 'c'
-    cookbook.rm  :type, 'b'
-    assert_equal [File.expand_path('a'), File.expand_path('c')], cookbook.path(:type)
+  def test_rm_deletes_expanded_dir_from_path
+    cookbook = Cookbook.new path('a'), File.expand_path('b'), path('c')
+    cookbook.rm 'b'
+    assert_equal [path('a'), path('c')], cookbook.paths
+  end
+
+  def test_rm_expands_mappings_and_removes_the_result_from_path
+    cookbook = Cookbook.new :type => File.expand_path('one', 'a')
+    cookbook.rm 'a', :type => 'one'
+    assert_equal [], cookbook.paths
   end
 
   #
-  # add_project_dir test
+  # path test
   #
 
-  def test_add_project_dir_adds_path_for_each_of_project_paths
-    cookbook.project_paths[:type] = 'dir'
-    cookbook.add_project_dir 'a'
-    assert_equal [File.expand_path('a/dir')], cookbook.path(:type)
-  end
-
-  def test_add_project_dir_adds_path_to_project_dirs
-    cookbook.add_project_dir 'a'
-    assert_equal [File.expand_path('a')], cookbook.project_dirs
-  end
-
-  def test_add_project_dir_loads_cookbook_file_for_project_paths_if_it_exists
-    cookbook.project_paths[:type] = 'dir'
-    prepare 'cookbook.yml', 'type: alt'
-    cookbook.add_project_dir method_dir
-    assert_equal [path('alt')], cookbook.path(:type)
-  end
-
-  def test_add_project_dir_assumes_default_paths_if_cookbook_file_loads_to_nil
-    cookbook.project_paths[:type] = 'dir'
-    prepare 'cookbook.yml', ''
-    cookbook.add_project_dir method_dir
-    assert_equal [path('dir')], cookbook.path(:type)
-  end
-
-  #
-  # rm_project_dir test
-  #
-
-  def test_rm_project_dir_removes_path_for_each_of_project_paths
-    cookbook.project_paths[:type] = 'dir'
-    cookbook.add :type, 'a/dir'
-    cookbook.rm_project_dir 'a'
-
-    assert_equal [], cookbook.path(:type)
-  end
-
-  def test_rm_project_dir_removes_path_from_project_dirs
-    cookbook.add :projects, 'a'
-    cookbook.rm_project_dir 'a'
-    assert_equal [], cookbook.project_dirs
-  end
-
-  def test_rm_project_dir_loads_cookbook_file_for_project_paths_if_it_exists
-    cookbook.project_paths[:type] = 'dir'
-    cookbook.add :type, path('alt')
-    prepare 'cookbook.yml', 'type: alt'
-
-    cookbook.rm_project_dir method_dir
-    assert_equal [], cookbook.path(:type)
-  end
-
-  #
-  # bulk_add test
-  #
-
-  def test_bulk_add_concats_paths_for_each_type
-    cookbook.add :one, 'a'
-    cookbook.add :two, 'b'
-    cookbook.bulk_add :two => ['B'], :three => ['C']
-
-    assert_equal [File.expand_path('a')], cookbook.path(:one)
-    assert_equal [File.expand_path('b'), File.expand_path('B')], cookbook.path(:two)
-    assert_equal [File.expand_path('C')], cookbook.path(:three)
-  end
-
-  def test_bulk_add_allows_single_values
-    cookbook.bulk_add :one => 'a'
-    assert_equal [File.expand_path('a')], cookbook.path(:one)
-  end
-
-  #
-  # bulk_rm test
-  #
-
-  def test_bulk_rm_removes_paths_for_each_type
-    cookbook.add :one, 'a'
-    cookbook.add :one, 'A'
-    cookbook.add :two, 'b'
-    cookbook.bulk_rm :one => ['a'], :two => ['b']
-
-    assert_equal [File.expand_path('A')], cookbook.path(:one)
-    assert_equal [], cookbook.path(:three)
-  end
-
-  def test_bulk_rm_allows_single_values
-    cookbook.add :one, 'a'
-    cookbook.bulk_rm :one => 'a'
-    assert_equal [], cookbook.path(:one)
+  def test_path_returns_the_effective_path_for_a_type
+    cookbook = Cookbook.new path('a'), [method_dir, {:type => 'b'}], {:type => path('c')}
+    assert_equal [path('a/type'), path('b'), path('c')], cookbook.path(:type)
   end
 
   #
@@ -171,40 +102,31 @@ class CookbookTest < Test::Unit::TestCase
     assert_equal nil, cookbook.find(:type, path)
   end
 
-  def test_find_searches_paths_of_the_given_type_for_the_file
-    cookbook.paths[:type] = [path('a'), path('b')]
-    b = prepare('b/file')
+  def test_find_searches_path_for_the_file
+    b = prepare('b/type/file')
     assert_equal b, cookbook.find(:type, 'file')
   end
 
-  def test_find_returns_first_existing_path
-    cookbook.paths[:type] = [path('a'), path('b')]
-    a = prepare('a/file')
-    b = prepare('b/file')
+  def test_find_returns_the_first_existing_file
+    a = prepare('a/type/file')
+    b = prepare('b/type/file')
     assert_equal a, cookbook.find(:type, 'file')
   end
 
-  def test_find_checks_each_extname_if_no_full_path_is_found
-    cookbook.paths[:type] = [path('a')]
-    a = prepare('a/file.txt')
-    b = prepare('a/script.rb')
+  def test_find_checks_each_extname_if_no_file_is_found
+    a = prepare('a/type/file.txt')
+    b = prepare('a/type/script.rb')
     assert_equal a, cookbook.find(:type, 'file', ['.txt', '.rb'])
     assert_equal b, cookbook.find(:type, 'script', ['.txt', '.rb'])
   end
 
-  def test_find_checks_each_extname_vs_a_path_before_checking_other_paths
-    cookbook.paths[:type] = [path('a'), path('b')]
-    a = prepare('a/file.txt')
-    b = prepare('b/file')
+  def test_find_checks_each_extname_before_checking_other_paths
+    a = prepare('a/type/file.txt')
+    b = prepare('b/type/file')
     assert_equal a, cookbook.find(:type, 'file', ['.txt'])
   end
 
   def test_find_returns_nil_if_no_file_is_found
-    cookbook.paths[:type] = [path('a')]
-    assert_equal nil, cookbook.find(:type, 'file')
-  end
-
-  def test_find_raises_no_error_if_no_paths_for_the_type_are_registered
     assert_equal nil, cookbook.find(:type, 'file')
   end
 end

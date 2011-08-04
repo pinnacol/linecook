@@ -1,9 +1,5 @@
-require 'linecook/utils'
-
 module Linecook
   class Cookbook
-    include Utils
-
     DEFAULT_PROJECT_PATHS = {
       :attributes => ['attributes'],
       :files      => ['files'],
@@ -11,60 +7,59 @@ module Linecook
       :recipes    => ['recipes']
     }
 
-    # A hash of (type, [paths]) pairs tracking lookup paths of a given type.
     attr_reader :paths
 
-    attr_reader :project_dirs
-
-    attr_reader :project_paths
-
     def initialize(*project_dirs)
-      options = project_dirs.last.kind_of?(Hash) ? project_dirs.pop : {}
-      @paths = options[:paths] || {}
-      @project_paths = options[:project_paths] || DEFAULT_PROJECT_PATHS.dup
-      @project_dirs  = []
-      project_dirs.each {|dir| add_project_dir(dir) }
+      @paths = []
+      project_dirs.each do |dir|
+        case dir
+        when String then add(dir)
+        when Hash   then add('.', dir)
+        else add(*dir)
+        end
+      end
     end
 
     # Returns an array of directories comprising the path for type.
     def path(type)
-      paths[type] ||= []
+      paths.collect do |dir|
+        if dir.kind_of?(String)
+          File.join(dir, type.to_s)
+        else
+          dir[type]
+        end
+      end.compact
     end
 
-    # Expands and pushes the directory onto the path for type.
-    def add(type, dir)
-      path(type).push File.expand_path(dir)
-    end
-
-    # Removes the directory from the path for type.
-    def rm(type, dir)
-      path(type).delete File.expand_path(dir)
-    end
-
-    def add_project_dir(dir, cookbook_file='cookbook.yml')
-      each_project_path(dir, cookbook_file) do |type, path|
-        add type, path
-      end
-      project_dirs.push File.expand_path(dir)
-    end
-
-    def rm_project_dir(dir, cookbook_file='cookbook.yml')
-      each_project_path(dir, cookbook_file) do |type, path|
-        rm type, path
-      end
-      project_dirs.delete File.expand_path(dir)
-    end
-
-    def bulk_add(paths)
-      each_bulk_path(paths) do |type, path|
-        add type, path
+    def resolve(dir, mappings=nil)
+      case mappings
+      when nil
+        File.expand_path(dir)
+      when Hash
+        expand_hash(dir, mappings)
+      when String
+        cookbook_file = File.expand_path(mappings, dir)
+        mappings = File.exists?(cookbook_file) ? YAML.load_file(cookbook_file) : nil
+        mappings ? expand_hash(dir, mappings) : File.expand_path(dir)
+      else
+        raise ArgumentError, "invalid mappings: #{mappings.inspect} (must be String, Hash, or nil)"
       end
     end
 
-    def bulk_rm(paths)
-      each_bulk_path(paths) do |type, path|
-        rm type, path
+    def expand_hash(dir, mappings)
+      path_hash = {}
+      mappings.each_pair do |type, path|
+        path_hash[type.to_sym] = File.expand_path(path, dir)
       end
+      path_hash
+    end
+
+    def add(dir, mappings=nil)
+      paths << resolve(dir, mappings) 
+    end
+
+    def rm(dir, mappings=nil)
+      paths.delete resolve(dir, mappings)
     end
 
     # Searches for a file by expanding filename vs each directory in the path
@@ -90,29 +85,28 @@ module Linecook
 
     protected
 
-    def arrayify(obj)
-      obj.kind_of?(Array) ? obj : [obj]
-    end
-    
-    def each_project_path(dir, cookbook_file)
-      cookbook_file = File.expand_path(cookbook_file, dir)
-      paths = File.exists?(cookbook_file) ? YAML.load_file(cookbook_file) : nil
-      paths ||= project_paths
-      
-      paths.each_pair do |type, relative_paths|
-        type = type.to_sym
-        arrayify(relative_paths).each do |relative_path|
-          yield type, File.join(dir, relative_path)
-        end
+    if Dir.pwd[0] == ?/
+      def absolute?(path)
+        path && path[0] == ?/
+      end
+    else
+      def absolute?(path)
+        path && path =~ /^[A-z]:\//
       end
     end
 
-    def each_bulk_path(paths)
-      paths.each_pair do |type, dirs|
-        arrayify(dirs).each do |dir|
-          yield type, dir
-        end
-      end
+    def subpath?(dir, full_path)
+      full_path.index(dir) == 0
+    end
+
+    def each_full_path(dir, path, extnames=nil)
+      full_path = File.expand_path(path, dir)
+      yield full_path
+
+      extnames.each do |extname|
+        full_path = File.expand_path("#{path}#{extname}", dir)
+        yield full_path
+      end if extnames
     end
   end
 end

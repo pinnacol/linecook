@@ -111,17 +111,17 @@ echo 'x y z'
   end
 
   def test_attributes_looks_for_files_along_attributes_path
-    prepare('example.yml') {|io| io << ":key: value" }
-    cookbook.add(:attributes, method_dir)
+    prepare('attributes/example.yml') {|io| io << ":key: value" }
+    cookbook.add(method_dir)
 
     recipe.attributes('example.yml')
     assert_equal 'value', recipe.attrs[:key]
   end
 
   def test_attributes_checks_rb_and_yaml_formats
-    prepare 'a.rb', 'attrs[:one] = "A"'
-    prepare 'b.yml', ':two: B'
-    cookbook.add(:attributes, method_dir)
+    prepare 'attributes/a.rb', 'attrs[:one] = "A"'
+    prepare 'attributes/b.yml', ':two: B'
+    cookbook.add(method_dir)
 
     recipe.attributes('a')
     recipe.attributes('b')
