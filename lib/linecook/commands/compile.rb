@@ -60,8 +60,10 @@ module Linecook
           if executable
             package.on_export(script_name, :mode => 0744)
           end
+          
+          cookbook = Cookbook.new
 
-          recipe = Recipe.new(package, script)
+          recipe = Recipe.new(package, cookbook, script)
           recipe.instance_eval File.read(recipe_path), recipe_path
 
           script.close
