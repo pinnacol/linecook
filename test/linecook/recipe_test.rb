@@ -18,6 +18,10 @@ class RecipeTest < Test::Unit::TestCase
     recipe._package_
   end
 
+  def cookbook
+    recipe._cookbook_
+  end
+
   def setup_recipe(&block)
     @recipe = Recipe.new
     @recipe.instance_eval(&block) if block
@@ -104,6 +108,25 @@ echo 'x y z'
 
     recipe.attributes(path)
     assert_equal 'value', recipe.attrs[:key]
+  end
+
+  def test_attributes_looks_for_files_along_attributes_path
+    prepare('example.yml') {|io| io << ":key: value" }
+    cookbook.add(:attributes, method_dir)
+
+    recipe.attributes('example.yml')
+    assert_equal 'value', recipe.attrs[:key]
+  end
+
+  def test_attributes_checks_rb_and_yaml_formats
+    prepare 'a.rb', 'attrs[:one] = "A"'
+    prepare 'b.yml', ':two: B'
+    cookbook.add(:attributes, method_dir)
+
+    recipe.attributes('a')
+    recipe.attributes('b')
+    assert_equal 'A', recipe.attrs[:one]
+    assert_equal 'B', recipe.attrs[:two]
   end
 
   #

@@ -40,11 +40,11 @@ module Linecook
 
     if Dir.pwd[0] == ?/
       def absolute?(path)
-        path[0] == ?/
+        path && path[0] == ?/
       end
     else
       def absolute?(path)
-        path =~ /^[A-z]:\//
+        path && path =~ /^[A-z]:\//
       end
     end
 

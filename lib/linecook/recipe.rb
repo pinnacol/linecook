@@ -2,6 +2,7 @@ require 'stringio'
 require 'linecook/utils'
 require 'linecook/proxy'
 require 'linecook/package'
+require 'linecook/cookbook'
 
 module Linecook
   # Recipe is the context in which recipes are evaluated (literally).  Recipe
@@ -36,6 +37,9 @@ module Linecook
     # The recipe package
     attr_reader :_package_
 
+    # The recipe cookbook
+    attr_reader :_cookbook_
+
     # The recipe target
     attr_reader :_target_
 
@@ -45,8 +49,9 @@ module Linecook
     # The recipe proxy
     attr_reader :_proxy_
 
-    def initialize(package=Package.new, target=StringIO.new)
+    def initialize(package=Package.new, target=StringIO.new, cookbook=Cookbook.new)
       @_package_ = package
+      @_cookbook_ = cookbook
       @_target_ = target
       @target   = target
       @_proxy_  = Proxy.new(self)
@@ -66,8 +71,8 @@ module Linecook
     def attributes(path=nil, &block)
       attributes = Attributes.new
 
-      if path
-        attributes.load_attrs(path)
+      if full_path = _cookbook_.find(:attributes, path, Attributes::EXTNAMES)
+        attributes.load_attrs(full_path)
       end
 
       if block_given?

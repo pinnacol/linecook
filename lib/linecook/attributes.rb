@@ -44,6 +44,9 @@ module Linecook
       end
     end
 
+    # A list of file extnames that may be loaded by load_attrs
+    EXTNAMES = %w{.rb .yml .yaml .json}
+
     # An auto-filling nested hash
     attr_reader :attrs
 
