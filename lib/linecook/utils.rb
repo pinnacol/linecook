@@ -37,5 +37,29 @@ module Linecook
 
       const
     end
+
+    if Dir.pwd[0] == ?/
+      def absolute?(path)
+        path[0] == ?/
+      end
+    else
+      def absolute?(path)
+        path =~ /^[A-z]:\//
+      end
+    end
+
+    def subpath?(dir, full_path)
+      full_path.index(dir) == 0
+    end
+
+    def each_full_path(dir, path, extnames=nil)
+      full_path = File.expand_path(path, dir)
+      yield full_path
+
+      extnames.each do |extname|
+        full_path = File.expand_path("#{path}#{extname}", dir)
+        yield full_path
+      end if extnames
+    end
   end
 end
