@@ -13,6 +13,16 @@ class CookbookTest < Test::Unit::TestCase
   end
 
   #
+  # initialize test
+  #
+
+  def test_initialize_adds_each_project_dir
+    cookbook = Cookbook.new path('a'), path('b')
+    assert_equal [path('a'), path('b')], cookbook.project_dirs
+    assert_equal [path('a/attributes'), path('b/attributes')], cookbook.path(:attributes)
+  end
+
+  #
   # path test
   #
 
@@ -60,9 +70,9 @@ class CookbookTest < Test::Unit::TestCase
     assert_equal [File.expand_path('a/dir')], cookbook.path(:type)
   end
 
-  def test_add_project_dir_adds_path_to_projects_type
+  def test_add_project_dir_adds_path_to_project_dirs
     cookbook.add_project_dir 'a'
-    assert_equal [File.expand_path('a')], cookbook.path(:projects)
+    assert_equal [File.expand_path('a')], cookbook.project_dirs
   end
 
   def test_add_project_dir_loads_cookbook_file_for_project_paths_if_it_exists
@@ -91,10 +101,10 @@ class CookbookTest < Test::Unit::TestCase
     assert_equal [], cookbook.path(:type)
   end
 
-  def test_rm_project_dir_removes_path_from_projects_type
+  def test_rm_project_dir_removes_path_from_project_dirs
     cookbook.add :projects, 'a'
     cookbook.rm_project_dir 'a'
-    assert_equal [], cookbook.path(:projects)
+    assert_equal [], cookbook.project_dirs
   end
 
   def test_rm_project_dir_loads_cookbook_file_for_project_paths_if_it_exists

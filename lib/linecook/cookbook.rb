@@ -14,11 +14,16 @@ module Linecook
     # A hash of (type, [paths]) pairs tracking lookup paths of a given type.
     attr_reader :paths
 
+    attr_reader :project_dirs
+
     attr_reader :project_paths
 
-    def initialize(paths={}, project_paths=DEFAULT_PROJECT_PATHS)
-      @paths = paths
-      @project_paths = project_paths
+    def initialize(*project_dirs)
+      options = project_dirs.last.kind_of?(Hash) ? project_dirs.pop : {}
+      @paths = options[:paths] || {}
+      @project_paths = options[:project_paths] || DEFAULT_PROJECT_PATHS.dup
+      @project_dirs  = []
+      project_dirs.each {|dir| add_project_dir(dir) }
     end
 
     # Returns an array of directories comprising the path for type.
@@ -40,14 +45,14 @@ module Linecook
       each_project_path(dir, cookbook_file) do |type, path|
         add type, path
       end
-      add :projects, dir
+      project_dirs.push File.expand_path(dir)
     end
 
     def rm_project_dir(dir, cookbook_file='cookbook.yml')
       each_project_path(dir, cookbook_file) do |type, path|
         rm type, path
       end
-      rm :projects, dir
+      project_dirs.delete File.expand_path(dir)
     end
 
     def bulk_add(paths)
