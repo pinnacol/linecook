@@ -51,6 +51,101 @@ class CookbookTest < Test::Unit::TestCase
   end
 
   #
+  # add_project_dir test
+  #
+
+  def test_add_project_dir_adds_path_for_each_of_project_paths
+    cookbook.project_paths[:type] = 'dir'
+    cookbook.add_project_dir 'a'
+    assert_equal [File.expand_path('a/dir')], cookbook.path(:type)
+  end
+
+  def test_add_project_dir_adds_path_to_projects_type
+    cookbook.add_project_dir 'a'
+    assert_equal [File.expand_path('a')], cookbook.path(:projects)
+  end
+
+  def test_add_project_dir_loads_cookbook_file_for_project_paths_if_it_exists
+    cookbook.project_paths[:type] = 'dir'
+    prepare 'cookbook.yml', 'type: alt'
+    cookbook.add_project_dir method_dir
+    assert_equal [path('alt')], cookbook.path(:type)
+  end
+
+  def test_add_project_dir_assumes_default_paths_if_cookbook_file_loads_to_nil
+    cookbook.project_paths[:type] = 'dir'
+    prepare 'cookbook.yml', ''
+    cookbook.add_project_dir method_dir
+    assert_equal [path('dir')], cookbook.path(:type)
+  end
+
+  #
+  # rm_project_dir test
+  #
+
+  def test_rm_project_dir_removes_path_for_each_of_project_paths
+    cookbook.project_paths[:type] = 'dir'
+    cookbook.add :type, 'a/dir'
+    cookbook.rm_project_dir 'a'
+
+    assert_equal [], cookbook.path(:type)
+  end
+
+  def test_rm_project_dir_removes_path_from_projects_type
+    cookbook.add :projects, 'a'
+    cookbook.rm_project_dir 'a'
+    assert_equal [], cookbook.path(:projects)
+  end
+
+  def test_rm_project_dir_loads_cookbook_file_for_project_paths_if_it_exists
+    cookbook.project_paths[:type] = 'dir'
+    cookbook.add :type, path('alt')
+    prepare 'cookbook.yml', 'type: alt'
+
+    cookbook.rm_project_dir method_dir
+    assert_equal [], cookbook.path(:type)
+  end
+
+  #
+  # bulk_add test
+  #
+
+  def test_bulk_add_concats_paths_for_each_type
+    cookbook.add :one, 'a'
+    cookbook.add :two, 'b'
+    cookbook.bulk_add :two => ['B'], :three => ['C']
+
+    assert_equal [File.expand_path('a')], cookbook.path(:one)
+    assert_equal [File.expand_path('b'), File.expand_path('B')], cookbook.path(:two)
+    assert_equal [File.expand_path('C')], cookbook.path(:three)
+  end
+
+  def test_bulk_add_allows_single_values
+    cookbook.bulk_add :one => 'a'
+    assert_equal [File.expand_path('a')], cookbook.path(:one)
+  end
+
+  #
+  # bulk_rm test
+  #
+
+  def test_bulk_rm_removes_paths_for_each_type
+    cookbook.add :one, 'a'
+    cookbook.add :one, 'A'
+    cookbook.add :two, 'b'
+    cookbook.bulk_rm :one => ['a'], :two => ['b']
+
+    assert_equal [File.expand_path('A')], cookbook.path(:one)
+    assert_equal [], cookbook.path(:three)
+  end
+
+  def test_bulk_rm_allows_single_values
+    cookbook.add :one, 'a'
+    cookbook.bulk_rm :one => 'a'
+    assert_equal [], cookbook.path(:one)
+  end
+
+  #
   # find test
   #
 
