@@ -58,14 +58,13 @@ module Linecook
             FileUtils.rm_r(package_dir)
           end
 
-          script  = Tempfile.new(script_name)
           package = Package.new(load_env(package_file))
-          package.add(script_name, script)
+          script  = package.tempfile(script_name)
 
           if executable
             package.on_export(script_name, :mode => 0744)
           end
-          
+
           cookbook = Cookbook.new({
             :attributes => attributes_path,
             :files => files_path,
@@ -76,9 +75,7 @@ module Linecook
           recipe = Recipe.new(package, cookbook, script)
           recipe.instance_eval File.read(recipe_path), recipe_path
 
-          script.close
           package.export(package_dir)
-
           puts package_dir
           package_dir
         end
