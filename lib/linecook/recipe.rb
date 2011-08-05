@@ -1,6 +1,7 @@
 require 'erb'
 require 'tilt'
 require 'stringio'
+require 'tempfile'
 require 'linecook/attributes'
 require 'linecook/cookbook'
 require 'linecook/package'
@@ -74,8 +75,10 @@ module Linecook
     def attributes(path=nil, &block)
       attributes = Attributes.new
 
-      if full_path = _cookbook_.find(:attributes, path, Attributes::EXTNAMES)
-        attributes.load_attrs(full_path)
+      unless path.nil?
+        if full_path = _cookbook_.find(:attributes, path, Attributes::EXTNAMES)
+          attributes.load_attrs(full_path)
+        end
       end
 
       if block_given?
@@ -100,41 +103,44 @@ module Linecook
       extend Utils.constantize(helper_name)
     end
 
+    # Returns the path to the target as used at runtime (vs compile time). 
+    # Mainly target_path is a hook for helpers to override - by default it
+    # simply returns target_name.
     def target_path(target_name)
       target_name
     end
 
-    def file_path(source_name, target_name=source_name)
-      if source_path = _cookbook_.find(:files, source_name)
-        _package_.add(target_name, source_path)
-        target_path target_name
-      else
-        raise "unknown source: #{source_name.inspect}"
+    # Finds the source file corresponding to the source_name, adds it to the
+    # package under the target_name, and returns the target_path for the
+    # result.
+    def file_path(source_name, target_name=nil)
+      if target_name.nil?
+        target_name = _guess_target_name_(source_name)
       end
+
+      source_path = _cookbook_.find(:files, source_name)
+      _package_.add target_name, source_path
+      target_path target_name
     end
 
-    def recipe_path(source_name, target_name=source_name.chomp('.rb'))
-      if source_path = _cookbook_.find(:recipes, source_name, ['.rb'])
-        target = Tempfile.new File.basename(source_name)
-        recipe = Recipe.new(@package, @cookbook, target)
-        recipe.instance_eval File.read(source_path), source_path
-
-        # todo: need to hold onto a reference!
-        target.close
-
-        _package_.add(target_name, target)
-        target_path target_name
-      else
-        raise "unknown source: #{source_name.inspect}"
+    def recipe_path(source_name, target_name=nil)
+      if target_name.nil?
+        target_name = _guess_recipe_name_(source_name)
       end
+
+      source_path = _cookbook_.find(:recipes, source_name, ['.rb'])
+      target = Tempfile.new File.basename(source_name)
+      recipe = Recipe.new(_package_, _cookbook_, target)
+      recipe.instance_eval File.read(source_path), source_path
+      target.close
+
+      _package_.add(target_name, target)
+      target_path target_name
     end
 
     def render(source_name, locals={})
-      if source_path = _cookbook_.find(:templates, source_name, ['.erb'])
-        Tilt.new(source_path).render(Object.new, locals)
-      else
-        raise "unknown source: #{source_name.inspect}"
-      end
+      source_path = _cookbook_.find(:templates, source_name, _render_formats_)
+      Tilt.new(source_path).render(Object.new, locals)
     end
 
     # Captures and returns output for the duration of a block by redirecting
@@ -241,6 +247,18 @@ module Linecook
       end
 
       self
+    end
+
+    def _guess_target_name_(source_name)
+      File.basename(source_name)
+    end
+
+    def _guess_recipe_name_(source_name)
+      _guess_target_name_(source_name).chomp('.rb')
+    end
+
+    def _render_formats_
+      @render_formats ||= ['.erb']
     end
 
     # Returns the contents of target.

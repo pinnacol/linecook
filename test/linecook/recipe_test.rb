@@ -5,10 +5,12 @@ class RecipeTest < Test::Unit::TestCase
   include ShellTest
 
   Recipe = Linecook::Recipe
+  Package = Linecook::Recipe
+  Cookbook = Linecook::Recipe
 
-  # Note these methods largely duplicate what is in Linecook::Test but I
-  # prefer to repeat them to keep Recipe tests separate from the Test module
-  # tests, which depend on Recipe, and thereby prevent a circular test setup.
+  # Note these methods are similar to those in Linecook::Test but I prefer to
+  # repeat them to keep Recipe tests separate from the Test module tests,
+  # which depend on Recipe, and thereby prevent a circular test setup.
 
   def recipe
     @recipe ||= Recipe.new
@@ -207,6 +209,93 @@ echo 'x y z'
     end
 
     assert recipe.respond_to?(:helper_method)
+  end
+
+  #
+  # target_path test
+  #
+
+  def test_target_path_returns_target_name
+    assert_equal 'target_name', recipe.target_path('target_name')
+  end
+
+  #
+  # file_path test
+  #
+
+  def test_file_path_adds_source_path_to_package_at_target_path
+    path = prepare 'file.txt', 'content'
+    assert_equal 'file.txt', recipe.file_path(path)
+    assert_equal 'content', package.content('file.txt')
+  end
+
+  def test_file_path_allows_specification_of_target_name
+    path = prepare 'file.txt', 'content'
+    assert_equal 'target/name', recipe.file_path(path, 'target/name')
+    assert_equal 'content', package.content('target/name')
+  end
+
+  def test_file_path_finds_files_via_cookbook
+    prepare 'files/dir/file.txt', 'content'
+    cookbook.add method_dir
+
+    assert_equal 'file.txt', recipe.file_path('dir/file.txt')
+    assert_equal 'content', package.content('file.txt')
+  end
+
+  def test_file_path_raises_error_for_unknown_source
+    err = assert_raises(RuntimeError) { recipe.file_path('unknown') }
+    assert_equal 'could not find file: "unknown"', err.message
+  end
+
+  #
+  # recipe_path test
+  #
+
+  def test_recipe_path_builds_and_adds_the_recipe_target_to_package_at_target_path
+    path = prepare 'recipe.rb', 'write "content"'
+    assert_equal 'recipe',  recipe.recipe_path(path)
+    assert_equal 'content', package.content('recipe')
+  end
+
+  def test_recipe_path_allows_specification_of_target_name
+    path = prepare 'recipe.rb', 'write "content"'
+    assert_equal 'target/name', recipe.recipe_path(path, 'target/name')
+    assert_equal 'content', package.content('target/name')
+  end
+
+  def test_recipe_path_finds_recipes_via_cookbook
+    prepare 'recipes/recipe.rb', 'write "content"'
+    cookbook.add method_dir
+
+    assert_equal 'recipe', recipe.recipe_path('recipe')
+    assert_equal 'content', package.content('recipe')
+  end
+
+  def test_recipe_path_raises_error_for_unknown_source
+    err = assert_raises(RuntimeError) { recipe.recipe_path('unknown') }
+    assert_equal 'could not find file: "unknown" (tried .rb)', err.message
+  end
+
+  #
+  # render test
+  #
+
+  def test_render_renders_template_with_locals
+    path = prepare 'template.erb', 'got <%= obj %>'
+    assert_equal 'got milk',  recipe.render(path, :obj => 'milk')
+  end
+
+  def test_render_finds_recipes_via_cookbook
+    prepare 'templates/template.erb', 'got <%= obj %>'
+    cookbook.add method_dir
+
+    assert_equal 'got milk', recipe.render('template', :obj => 'milk')
+  end
+
+  def test_render_raises_error_for_unknown_source
+    err = assert_raises(RuntimeError) { recipe.render('unknown') }
+    assert_equal 'could not find file: "unknown" (tried .erb)', err.message
   end
 
   #
