@@ -89,7 +89,7 @@ module Linecook
 
       def sh!(cmd)
         unless sh(cmd)
-          raise CommandError.new("", $?.exitstatus)
+          raise CommandError, "non-zero exit status: #{$?.exitstatus}"
         end
       end
 
