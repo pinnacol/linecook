@@ -42,7 +42,7 @@ module Linecook
 
     # Registers the source to the target_path.  The source is first resolved
     # to a source path using resolve_source_path.
-    def add(target_path, source)
+    def add(target_path, source, options={})
       source_path = resolve_source_path(source)
 
       if current = registry[target_path]
@@ -52,6 +52,8 @@ module Linecook
       else
         registry[target_path] = source_path
       end
+
+      on_export(target_path, options)
 
       source
     end
@@ -74,11 +76,11 @@ module Linecook
     # Generates a tempfile for the target path and adds it to self. As
     # with register, the target_name will be incremented as needed.  Returns
     # the open tempfile.
-    def tempfile(target_name)
+    def tempfile(target_name, options={})
       tempfile = Tempfile.new File.basename(target_name)
 
       add target_name, tempfile
-      on_export target_name, :move => true
+      on_export target_name, {:move => true}.merge(options)
 
       tempfiles << tempfile
       tempfile

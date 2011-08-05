@@ -59,6 +59,11 @@ class PackageTest < Test::Unit::TestCase
     assert_nothing_raised { package.add('target/path', 'source/a') }
   end
 
+  def test_add_accepts_export_options
+    package.add('target/path', 'source/path', :move => true)
+    assert_equal true, package.export_options('target/path')[:move]
+  end
+
   #
   # rm test
   #
@@ -109,6 +114,11 @@ class PackageTest < Test::Unit::TestCase
   def test_tempfiles_are_marked_for_move_by_default
     package.tempfile('target/path')
     assert_equal true, package.export_options('target/path')[:move]
+  end
+
+  def test_tempfile_accepts_export_options
+    package.tempfile('target/path', :mode => 0640)
+    assert_equal 0640, package.export_options('target/path')[:mode]
   end
 
   #
