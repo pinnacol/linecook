@@ -1,7 +1,6 @@
 require 'erb'
 require 'tilt'
 require 'stringio'
-require 'tempfile'
 require 'linecook/attributes'
 require 'linecook/cookbook'
 require 'linecook/package'
@@ -129,24 +128,22 @@ module Linecook
       end
 
       source_path = _cookbook_.find(:recipes, source_name, ['.rb'])
-      target = Tempfile.new File.basename(source_name)
-      _package_.add(target_name, target)
+      target = _package_.tempfile(target_name)
 
       recipe = Recipe.new(_package_, _cookbook_, target)
       recipe.instance_eval File.read(source_path), source_path
 
-      target.close
+      target.close unless target.closed?
       target_path target_name
     end
 
     def capture_path(target_name, content=nil)
-      target = Tempfile.new File.basename(target_name)
-      _package_.add(target_name, target)
+      target = _package_.tempfile(target_name)
 
       target << content if content
       _capture_(target) { yield } if block_given?
 
-      target.close
+      target.close unless target.closed?
       target_path target_name
     end
 
