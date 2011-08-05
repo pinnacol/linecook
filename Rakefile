@@ -69,6 +69,32 @@ task :bundle do
 end
 
 #
+# VM Tasks
+#
+
+desc "start each vm at CURRENT"
+task :start => :bundle do
+  sh 'bundle exec linecook start --socket --snapshot CURRENT'
+end
+
+desc "snapshot each vm to a new CURRENT"
+task :snapshot => :bundle do
+  sh 'bundle exec linecook snapshot CURRENT'
+end
+
+desc "reset each vm to BASE"
+task :reset_base => :bundle do
+  sh 'bundle exec linecook snapshot --reset BASE'
+  sh 'bundle exec linecook snapshot CURRENT'
+  sh 'bundle exec linecook start --socket --snapshot CURRENT'
+end
+
+desc "stop each vm"
+task :stop => :bundle do
+  sh 'bundle exec linecook stop'
+end
+
+#
 # Test tasks
 #
 
@@ -76,8 +102,8 @@ def current_ruby
   `ruby -v`.split[0,2].join('-')
 end
 
-desc 'Run the tests'
-task :test => :bundle do
+desc 'Run the tests assuming the vm is running'
+task :quicktest => :bundle do
   tests = Dir.glob('test/**/*_test.rb')
   tests.delete_if {|test| test =~ /_test\/test_/ }
   
@@ -87,6 +113,16 @@ task :test => :bundle do
     sh('rcov', '-w', '--text-report', '--exclude', '^/', *tests)
   else
     sh('ruby', '-w', '-e', 'ARGV.dup.each {|test| load test}', *tests)
+  end
+end
+
+desc 'Run the tests'
+task :test do
+  begin
+    Rake::Task["start"].invoke
+    Rake::Task["quicktest"].invoke
+  ensure
+    Rake::Task["stop"].execute(nil)
   end
 end
 
