@@ -10,6 +10,11 @@ module Linecook
           :recipes    => ['recipes']
         }
       end
+
+      attr_writer :default_file_name
+      def default_file_name
+        @default_file_name ||= 'cookbook.yml'
+      end
     end
 
     attr_reader :registry
@@ -124,7 +129,7 @@ module Linecook
     end
 
     def resolve_path_map(dir, path_map=nil)
-      path_map ||= self.class.default_path_map
+      path_map ||= self.class.default_file_name
 
       case path_map
       when Hash

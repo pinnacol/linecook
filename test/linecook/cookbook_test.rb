@@ -63,11 +63,22 @@ class CookbookTest < Test::Unit::TestCase
   end
 
   def test_add_project_dir_loads_cookbook_file_for_path_map_if_it_exists
+    prepare 'cookbook_file.yml', %{
+      type: one
+    }
+    cookbook = Cookbook.new
+    cookbook.add method_dir, 'cookbook_file.yml'
+    assert_equal({
+      :type => [path('one')]
+    }, cookbook.registry)
+  end
+
+  def test_add_project_detects_default_file_name_if_it_exists
     prepare 'cookbook.yml', %{
       type: one
     }
     cookbook = Cookbook.new
-    cookbook.add method_dir, 'cookbook.yml'
+    cookbook.add method_dir
     assert_equal({
       :type => [path('one')]
     }, cookbook.registry)
