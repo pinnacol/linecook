@@ -32,18 +32,18 @@ class CookbookTest < Test::Unit::TestCase
     cookbook = Cookbook.new [method_dir, {:type => 'a'}]
     assert_equal({:type => [path('a')]}, cookbook.registry)
   end
-  
+
   def test_initialize_expands_paths_with_default_path_map
     cookbook = Cookbook.new path('a'), path('b')
     assert_equal({
       :type => [path('a/one'), path('a/two'), path('b/one'), path('b/two')]
     }, cookbook.registry)
   end
-  
+
   #
   # add test
   #
-  
+
   def test_add_expands_default_map_relative_to_dir_and_pushes_results_onto_registry
     cookbook = Cookbook.new
     cookbook.add 'a'
@@ -61,7 +61,7 @@ class CookbookTest < Test::Unit::TestCase
       :type => [File.expand_path('a/one'), File.expand_path('b/two')]
     }, cookbook.registry)
   end
-  
+
   def test_add_project_dir_loads_cookbook_file_for_path_map_if_it_exists
     prepare 'cookbook.yml', %{
       type: one
@@ -72,7 +72,7 @@ class CookbookTest < Test::Unit::TestCase
       :type => [path('one')]
     }, cookbook.registry)
   end
-  
+
   def test_add_project_uses_default_path_map_if_cookbook_file_does_not_exist
     cookbook = Cookbook.new
     cookbook.add method_dir, 'cookbook.yml'
@@ -80,11 +80,11 @@ class CookbookTest < Test::Unit::TestCase
       :type => [path('one'), path('two')]
     }, cookbook.registry)
   end
-  
+
   #
   # rm test
   #
-  
+
   def test_rm_expands_default_map_relative_to_dir_and_deletes_results_from_registry
     cookbook = Cookbook.new path('a'), path('b')
     cookbook.rm path('b')
@@ -92,7 +92,7 @@ class CookbookTest < Test::Unit::TestCase
       :type => [path('a/one'), path('a/two')]
     }, cookbook.registry)
   end
-  
+
   def test_rm_expands_path_map_and_removes_the_results_from_registry
     cookbook = Cookbook.new path('a'), path('b')
     cookbook.rm path('a'), :type => 'two'
@@ -101,11 +101,11 @@ class CookbookTest < Test::Unit::TestCase
       :type => [path('a/one'), path('b/two')]
     }, cookbook.registry)
   end
-  
+
   #
   # path test
   #
-  
+
   def test_path_returns_the_effective_path_for_a_type
     cookbook = Cookbook.new path('a'), path('b')
     assert_equal [path('a/one'), path('a/two'), path('b/one'), path('b/two')], cookbook.path(:type)
@@ -133,38 +133,38 @@ class CookbookTest < Test::Unit::TestCase
   #
   # find test
   #
-  
+
   def test_find_returns_existing_absolute_paths
     path = prepare('file', '')
     assert_equal path, File.expand_path(path)
     assert_equal path, cookbook.find(:type, path)
   end
-  
+
   def test__find__raises_error_for_non_existant_absolute_paths
     path = File.expand_path('file')
     assert_equal false, File.exists?(path)
     err = assert_raises(RuntimeError) { cookbook.find(:type, path) }
     assert_equal "no such file: #{path.inspect}", err.message
   end
-  
+
   def test_find_searches_path_for_the_file
     b = prepare('b/one/file')
     assert_equal b, cookbook.find(:type, 'file')
   end
-  
+
   def test_find_returns_the_first_existing_file
     a = prepare('a/one/file')
     b = prepare('b/one/file')
     assert_equal a, cookbook.find(:type, 'file')
   end
-  
+
   def test_find_checks_each_extname_if_no_file_is_found
     a = prepare('a/one/file.txt')
     b = prepare('a/one/script.rb')
     assert_equal a, cookbook.find(:type, 'file', ['.txt', '.rb'])
     assert_equal b, cookbook.find(:type, 'script', ['.txt', '.rb'])
   end
-  
+
   def test_find_checks_each_extname_before_checking_other_paths
     a = prepare('a/one/file.txt')
     b = prepare('b/one/file')
