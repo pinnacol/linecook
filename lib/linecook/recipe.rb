@@ -1,6 +1,5 @@
 require 'erb'
 require 'tilt'
-require 'stringio'
 require 'linecook/attributes'
 require 'linecook/cookbook'
 require 'linecook/package'
@@ -256,6 +255,24 @@ module Linecook
       end
 
       self
+    end
+
+    # Captures a block of output and concats to the named callback.
+    def callback(name)
+      target = _package_.callback(name)
+      _capture_(target) { yield }
+    end
+
+    # Writes the specified callback to the current target.
+    def write_callback(name, close=true)
+      target = _package_.callback(name)
+      target.rewind
+
+      write target.read
+
+      if close
+        target.close
+      end
     end
 
     def _guess_target_name_(source_name)

@@ -116,6 +116,17 @@ class PackageTest < Test::Unit::TestCase
   end
 
   #
+  # callback test
+  #
+
+  def test_callback_registers_and_returns_a_stringio
+    stringio = package.callback('name')
+    assert_equal StringIO, stringio.class
+    assert_equal false, stringio.closed?
+    assert_equal stringio, package.callbacks['name']
+  end
+
+  #
   # tempfile test
   #
 
@@ -148,6 +159,20 @@ class PackageTest < Test::Unit::TestCase
   def test_close_closes_all_open_tempfiles
     a = package.tempfile('a')
     b = package.tempfile('b')
+    a.close
+
+    assert a.closed?
+    assert !b.closed?
+
+    package.close
+
+    assert a.closed?
+    assert b.closed?
+  end
+
+  def test_close_closes_all_open_callbacks
+    a = package.callback('a')
+    b = package.callback('b')
     a.close
 
     assert a.closed?

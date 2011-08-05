@@ -495,6 +495,27 @@ a
   end
 
   #
+  # callback test
+  #
+
+  def test_callback_captures_block_to_be_later_written_by_write_callback
+    assert_recipe %{
+      acebd
+    } do
+      write 'a'
+      callback 'cb' do
+        write 'b'
+      end
+      write 'c'
+      callback 'cb' do
+        writeln 'd'
+      end
+      write 'e'
+      write_callback 'cb'
+    end
+  end
+
+  #
   # _result_ test
   #
 
