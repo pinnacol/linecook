@@ -1,16 +1,21 @@
 module Linecook
   class Cookbook
-    DEFAULT_PROJECT_PATHS = {
-      :attributes => ['attributes'],
-      :files      => ['files'],
-      :templates  => ['templates'],
-      :recipes    => ['recipes']
-    }
+    class << self
+      attr_writer :default_path_map
+      def default_path_map
+        @default_path_map ||= {
+          :attributes => ['attributes'],
+          :files      => ['files'],
+          :templates  => ['templates'],
+          :recipes    => ['recipes']
+        }
+      end
+    end
 
-    attr_reader :paths
+    attr_reader :registry
 
     def initialize(*project_dirs)
-      @paths = []
+      @registry = {}
       project_dirs.each do |dir|
         case dir
         when String then add(dir)
@@ -22,44 +27,26 @@ module Linecook
 
     # Returns an array of directories comprising the path for type.
     def path(type)
-      paths.collect do |dir|
-        if dir.kind_of?(String)
-          File.join(dir, type.to_s)
-        else
-          dir[type]
+      registry[type] || []
+    end
+
+    def add(dir, path_map=nil)
+      resolve_path_map(dir, path_map).each_pair do |type, paths|
+        (registry[type] ||= []).concat(paths)
+      end
+    end
+
+    def rm(dir, path_map=nil)
+      resolve_path_map(dir, path_map).each_pair do |type, paths|
+        if current = registry[type]
+          current = current - paths
+          if current.empty?
+            registry.delete(type)
+          else
+            registry[type] = current
+          end
         end
-      end.compact
-    end
-
-    def resolve(dir, mappings=nil)
-      case mappings
-      when nil
-        File.expand_path(dir)
-      when Hash
-        expand_hash(dir, mappings)
-      when String
-        cookbook_file = File.expand_path(mappings, dir)
-        mappings = File.exists?(cookbook_file) ? YAML.load_file(cookbook_file) : nil
-        mappings ? expand_hash(dir, mappings) : File.expand_path(dir)
-      else
-        raise ArgumentError, "invalid mappings: #{mappings.inspect} (must be String, Hash, or nil)"
       end
-    end
-
-    def expand_hash(dir, mappings)
-      path_hash = {}
-      mappings.each_pair do |type, path|
-        path_hash[type.to_sym] = File.expand_path(path, dir)
-      end
-      path_hash
-    end
-
-    def add(dir, mappings=nil)
-      paths << resolve(dir, mappings) 
-    end
-
-    def rm(dir, mappings=nil)
-      paths.delete resolve(dir, mappings)
     end
 
     # Searches for a file by expanding filename vs each directory in the path
@@ -107,6 +94,41 @@ module Linecook
         full_path = File.expand_path("#{path}#{extname}", dir)
         yield full_path
       end if extnames
+    end
+
+    def resolve_path_map(dir, path_map=nil)
+      path_map ||= self.class.default_path_map
+
+      case path_map
+      when Hash
+        expand_path_map(dir, path_map)
+      when String
+        cookbook_file = File.expand_path(path_map, dir)
+        path_map = File.exists?(cookbook_file) ? YAML.load_file(cookbook_file) : nil
+        path_map ||= self.class.default_path_map
+
+        unless path_map.kind_of?(Hash)
+          raise "could not load path map: #{cookbook_file.inspect} (does not load a Hash)"
+        end
+
+        expand_path_map(dir, path_map)
+      else
+        raise "could not resolve path map: #{path_map.inspect} (must be String, Hash, or nil)"
+      end
+    end
+
+    def expand_path_map(dir, path_map)
+      results = Hash.new {|hash, key| hash[key] = [] }
+
+      path_map.each_pair do |type, paths|
+        unless paths.kind_of?(Array)
+          paths = [paths]
+        end
+        paths.each do |path|
+          results[type.to_sym] << File.expand_path(path, dir)
+        end
+      end
+      results
     end
   end
 end
