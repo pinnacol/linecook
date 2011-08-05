@@ -378,12 +378,26 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal 'content', content('recipe/example.txt')
   end
 
+  def test_compile_can_specify_template_directories
+    prepare 'templates/example.erb', 'got <%= obj %>'
+    recipe_path = prepare 'recipe.rb', %{
+      write render('example', :obj => 'milk')
+    }
+
+    assert_script %{
+      $ linecook compile -T '#{path('templates')}' '#{recipe_path}'
+      #{path('recipe')}
+    }
+
+    assert_equal 'got milk', content('recipe/run')
+  end
+
   def test_compile_can_specify_recipe_directories
     prepare 'recipes/example.rb', %{
       write 'content'
     }
     recipe_path = prepare 'recipe.rb', %{
-      write recipe_path('example.rb')
+      write recipe_path('example')
     }
 
     assert_script %{

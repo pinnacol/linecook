@@ -29,6 +29,7 @@ module Linecook
       config :attributes_path, [], :delimiter => ':' # -A PATH : attributes dirs
       config :files_path, [], :delimiter => ':'      # -F PATH : file dirs
       config :recipes_path, [], :delimiter => ':'    # -R PATH : recipe dirs
+      config :templates_path, [], :delimiter => ':'  # -T PATH : templates dirs
       config :package_file, nil                      # -P FILE : a package file
       config :helpers, []                            # -H DIRECTORY : compile helpers
       config :output_dir, '.'                        # -o DIRECTORY : the output dir
@@ -67,7 +68,8 @@ module Linecook
           cookbook = Cookbook.new(
             :attributes => attributes_path,
             :files => files_path,
-            :recipes => recipes_path
+            :recipes => recipes_path,
+            :templates => templates_path
           )
 
           recipe = Recipe.new(package, cookbook, script)

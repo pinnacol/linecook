@@ -1,3 +1,5 @@
+require 'erb'
+require 'tilt'
 require 'stringio'
 require 'linecook/attributes'
 require 'linecook/cookbook'
@@ -122,6 +124,14 @@ module Linecook
 
         _package_.add(target_name, target)
         target_path target_name
+      else
+        raise "unknown source: #{source_name.inspect}"
+      end
+    end
+
+    def render(source_name, locals={})
+      if source_path = _cookbook_.find(:templates, source_name, ['.erb'])
+        Tilt.new(source_path).render(Object.new, locals)
       else
         raise "unknown source: #{source_name.inspect}"
       end
