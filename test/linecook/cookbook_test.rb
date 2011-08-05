@@ -125,6 +125,11 @@ class CookbookTest < Test::Unit::TestCase
     assert_equal nil, cookbook._find_(:type, 'file')
   end
 
+  def test__find__only_checks_extnames_if_source_name_has_no_extname
+    a = prepare('a/one/file.txt.rb')
+    assert_equal nil, cookbook._find_(:type, 'file.txt', ['.rb'])
+  end
+
   #
   # find test
   #
@@ -165,9 +170,14 @@ class CookbookTest < Test::Unit::TestCase
     b = prepare('b/one/file')
     assert_equal a, cookbook.find(:type, 'file', ['.txt'])
   end
-  
+
   def test_find_raises_error_if_no_file_is_found
     err = assert_raises(RuntimeError) { cookbook.find(:type, 'file', ['.txt', '.rb']) }
     assert_equal 'could not find file: "file" (tried .txt, .rb)', err.message
+  end
+
+  def test_find_error_reflects_not_trying_extnames_on_files_with_an_extname
+    err = assert_raises(RuntimeError) { cookbook.find(:type, 'file.txt', ['.rb']) }
+    assert_equal 'could not find file: "file.txt"', err.message
   end
 end

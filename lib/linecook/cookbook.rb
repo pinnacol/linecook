@@ -76,7 +76,7 @@ module Linecook
         if absolute?(source_name)
           raise "no such file: #{source_name.inspect}"
         else
-          try_string = extnames ? " (tried #{extnames.join(', ')})" : nil
+          try_string = try_extnames?(source_name, extnames) ? " (tried #{extnames.join(', ')})" : nil
           raise "could not find file: #{source_name.inspect}#{try_string}"
         end
       end
@@ -98,14 +98,20 @@ module Linecook
       full_path.index(dir) == 0
     end
 
+    def try_extnames?(path, extnames)
+      extnames && File.extname(path).empty?
+    end
+
     def each_full_path(dir, path, extnames=nil)
       full_path = File.expand_path(path, dir)
       yield full_path
 
-      extnames.each do |extname|
-        full_path = File.expand_path("#{path}#{extname}", dir)
-        yield full_path
-      end if extnames
+      if try_extnames?(path, extnames)
+        extnames.each do |extname|
+          full_path = File.expand_path("#{path}#{extname}", dir)
+          yield full_path
+        end
+      end
     end
 
     def resolve_path_map(dir, path_map=nil)
