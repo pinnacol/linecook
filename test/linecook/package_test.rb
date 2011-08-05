@@ -91,6 +91,27 @@ class PackageTest < Test::Unit::TestCase
   end
 
   #
+  # tempfile test
+  #
+
+  def test_tempfile_adds_and_returns_a_tempfile_at_the_specified_target_path
+    tempfile = package.tempfile('target/path')
+    assert_equal Tempfile, tempfile.class
+    assert_equal false, tempfile.closed?
+    assert_equal tempfile.path, package.registry['target/path']
+  end
+
+  def test_tempfile_adds_tempfile_to_package_tempfiles
+    tempfile = package.tempfile('target/path')
+    assert_equal [tempfile], package.tempfiles
+  end
+
+  def test_tempfiles_are_marked_for_move_by_default
+    package.tempfile('target/path')
+    assert_equal true, package.export_options('target/path')[:move]
+  end
+
+  #
   # content test
   #
 
@@ -108,6 +129,28 @@ class PackageTest < Test::Unit::TestCase
 
   def test_content_returns_nil_for_unadded_target
     assert_equal nil, package.content('not/added')
+  end
+
+  #
+  # close test
+  #
+
+  def test_close_closes_all_open_tempfiles
+    a = package.tempfile('a')
+    b = package.tempfile('b')
+    a.close
+
+    assert a.closed?
+    assert !b.closed?
+
+    package.close
+
+    assert a.closed?
+    assert b.closed?
+  end
+
+  def test_close_returns_self
+    assert_equal package, package.close
   end
 
   #
@@ -181,5 +224,13 @@ class PackageTest < Test::Unit::TestCase
     package.export path('export/dir')
 
     assert_equal '100640', mode('export/dir/target/path')
+  end
+
+  def test_export_closes_package
+    a = package.tempfile('a')
+    a << 'content'
+    package.export path('export/dir')
+    assert a.closed?
+    assert_equal 'content', content('export/dir/a')
   end
 end
