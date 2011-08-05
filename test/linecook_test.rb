@@ -409,6 +409,22 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal 'content', content('recipe/example')
   end
 
+  def test_compile_can_specify_cookbook_directories
+    prepare 'attributes/example.yml', 'obj: milk'
+    prepare 'templates/example.erb', 'got <%= obj %>'
+    recipe_path = prepare 'recipe.rb', %{
+      attributes 'example'
+      write render('example', attrs)
+    }
+
+    assert_script %{
+      $ linecook compile -C '#{method_dir}' '#{recipe_path}'
+      #{path('recipe')}
+    }
+
+    assert_equal 'got milk', content('recipe/run')
+  end
+
   #
   # compile_helper test
   #

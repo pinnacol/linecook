@@ -30,6 +30,7 @@ module Linecook
       config :files_path, [], :delimiter => ':'      # -F PATH : file dirs
       config :recipes_path, [], :delimiter => ':'    # -R PATH : recipe dirs
       config :templates_path, [], :delimiter => ':'  # -T PATH : templates dirs
+      config :cookbook_path, [], :delimiter => ':'   # -C PATH : cookbook dirs
       config :package_file, nil                      # -P FILE : a package file
       config :helpers, []                            # -H DIRECTORY : compile helpers
       config :output_dir, '.'                        # -o DIRECTORY : the output dir
@@ -65,12 +66,12 @@ module Linecook
             package.on_export(script_name, :mode => 0744)
           end
           
-          cookbook = Cookbook.new(
+          cookbook = Cookbook.new({
             :attributes => attributes_path,
             :files => files_path,
             :recipes => recipes_path,
             :templates => templates_path
-          )
+          }, *cookbook_path)
 
           recipe = Recipe.new(package, cookbook, script)
           recipe.instance_eval File.read(recipe_path), recipe_path
