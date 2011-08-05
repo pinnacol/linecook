@@ -73,6 +73,13 @@ module Linecook
       end
     end
 
+    # Returns the content for a target, as registered in self.  Returns nil if
+    # the target is not registered.
+    def content(target_path, length=nil, offset=nil)
+      path = registry[target_path]
+      path ? File.read(path, length, offset) : nil
+    end
+
     # Generates a tempfile for the target path and adds it to self. As
     # with register, the target_name will be incremented as needed.  Returns
     # the open tempfile.
@@ -84,13 +91,6 @@ module Linecook
 
       tempfiles << tempfile
       tempfile
-    end
-
-    # Returns the content for a target, as registered in self.  Returns nil if
-    # the target is not registered.
-    def content(target_path, length=nil, offset=nil)
-      path = registry[target_path]
-      path ? File.read(path, length, offset) : nil
     end
 
     # Closes all tempfiles and returns self.

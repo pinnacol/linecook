@@ -96,6 +96,26 @@ class PackageTest < Test::Unit::TestCase
   end
 
   #
+  # content test
+  #
+
+  def test_content_returns_the_contents_of_the_target
+    source_path = prepare('source', 'content')
+    package.add 'target/path', source_path
+    assert_equal 'content', package.content('target/path')
+  end
+
+  def test_content_returns_the_specified_length_and_offset
+    source_path = prepare('source', 'content')
+    package.add 'target/path', source_path
+    assert_equal 'nte', package.content('target/path', 3, 2)
+  end
+
+  def test_content_returns_nil_for_unadded_target
+    assert_equal nil, package.content('not/added')
+  end
+
+  #
   # tempfile test
   #
 
@@ -119,26 +139,6 @@ class PackageTest < Test::Unit::TestCase
   def test_tempfile_accepts_export_options
     package.tempfile('target/path', :mode => 0640)
     assert_equal 0640, package.export_options('target/path')[:mode]
-  end
-
-  #
-  # content test
-  #
-
-  def test_content_returns_the_contents_of_the_target
-    source_path = prepare('source', 'content')
-    package.add 'target/path', source_path
-    assert_equal 'content', package.content('target/path')
-  end
-
-  def test_content_returns_the_specified_length_and_offset
-    source_path = prepare('source', 'content')
-    package.add 'target/path', source_path
-    assert_equal 'nte', package.content('target/path', 3, 2)
-  end
-
-  def test_content_returns_nil_for_unadded_target
-    assert_equal nil, package.content('not/added')
   end
 
   #
