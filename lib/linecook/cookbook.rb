@@ -49,12 +49,8 @@ module Linecook
       end
     end
 
-    # Searches for a file by expanding filename vs each directory in the path
-    # for type. The first existing full path is returned.  If an array of
-    # extnames is provided, then each extname is tried for each directory,
-    # much as with Kernal.require. Absolute paths that exists are returned
-    # directly.  Returns nil if no file can be found.
-    def find(type, filename, extnames=nil)
+    # Same as find but returns nil if no file can be found.
+    def _find_(type, filename, extnames=nil)
       if absolute?(filename)
         return File.exists?(filename) ? filename : nil
       end
@@ -68,6 +64,22 @@ module Linecook
       end
 
       nil
+    end
+
+    # Searches for a file by expanding filename vs each directory in the path
+    # for type. The first existing full path is returned.  If an array of
+    # extnames is provided, then each extname is tried for each directory,
+    # much as with Kernal.require. Absolute paths that exists are returned
+    # directly.  Raises an error if the file cannot be found.
+    def find(type, source_name, extnames=nil)
+      _find_(type, source_name, extnames) or begin
+        if absolute?(source_name)
+          raise "no such file: #{source_name.inspect}"
+        else
+          try_string = extnames ? " (tried #{extnames.join(', ')})" : nil
+          raise "could not find file: #{source_name.inspect}#{try_string}"
+        end
+      end
     end
 
     protected

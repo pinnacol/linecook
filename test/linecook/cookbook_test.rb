@@ -110,7 +110,21 @@ class CookbookTest < Test::Unit::TestCase
     cookbook = Cookbook.new path('a'), path('b')
     assert_equal [path('a/one'), path('a/two'), path('b/one'), path('b/two')], cookbook.path(:type)
   end
-  
+
+  #
+  # _find_ test
+  #
+
+  def test__find__returns_nil_for_non_existing_absolute_paths
+    path = File.expand_path('file')
+    assert_equal false, File.exists?(path)
+    assert_equal nil, cookbook._find_(:type, path)
+  end
+
+  def test__find__returns_nil_if_no_file_is_found
+    assert_equal nil, cookbook._find_(:type, 'file')
+  end
+
   #
   # find test
   #
@@ -121,10 +135,11 @@ class CookbookTest < Test::Unit::TestCase
     assert_equal path, cookbook.find(:type, path)
   end
   
-  def test_find_returns_nil_for_non_existing_absolute_paths
+  def test__find__raises_error_for_non_existant_absolute_paths
     path = File.expand_path('file')
     assert_equal false, File.exists?(path)
-    assert_equal nil, cookbook.find(:type, path)
+    err = assert_raises(RuntimeError) { cookbook.find(:type, path) }
+    assert_equal "no such file: #{path.inspect}", err.message
   end
   
   def test_find_searches_path_for_the_file
@@ -151,7 +166,8 @@ class CookbookTest < Test::Unit::TestCase
     assert_equal a, cookbook.find(:type, 'file', ['.txt'])
   end
   
-  def test_find_returns_nil_if_no_file_is_found
-    assert_equal nil, cookbook.find(:type, 'file')
+  def test_find_raises_error_if_no_file_is_found
+    err = assert_raises(RuntimeError) { cookbook.find(:type, 'file', ['.txt', '.rb']) }
+    assert_equal 'could not find file: "file" (tried .txt, .rb)', err.message
   end
 end
