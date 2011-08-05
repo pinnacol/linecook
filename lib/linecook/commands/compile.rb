@@ -59,12 +59,6 @@ module Linecook
           end
 
           package = Package.new(load_env(package_file))
-          script  = package.tempfile(script_name)
-
-          if executable
-            package.on_export(script_name, :mode => 0744)
-          end
-
           cookbook = Cookbook.new({
             :attributes => attributes_path,
             :files => files_path,
@@ -72,6 +66,7 @@ module Linecook
             :templates => templates_path
           }, *cookbook_path)
 
+          script = package.tempfile(script_name, :mode => script_mode)
           recipe = Recipe.new(package, cookbook, script)
           recipe.instance_eval File.read(recipe_path), recipe_path
 
@@ -79,6 +74,10 @@ module Linecook
           puts package_dir
           package_dir
         end
+      end
+
+      def script_mode
+        executable ? 0744 : nil
       end
 
       def load_env(package_file)
