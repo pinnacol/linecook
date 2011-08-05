@@ -7,6 +7,37 @@ class TestTest < Test::Unit::TestCase
   TestUnitErrorClass = Object.const_defined?(:MiniTest) ? MiniTest::Assertion : Test::Unit::AssertionFailedError
 
   #
+  # setup_cookbook test
+  #
+  
+  def test_setup_cookbook_initializes_project_dir_to_method_dir
+    cookbook = setup_cookbook
+    assert_equal [path('recipes')], cookbook.path(:recipes)
+  end
+  
+  def test_setup_cookbook_uses_project_dirs_as_specified
+    cookbook = setup_cookbook(path('a'), path('b'))
+    assert_equal [path('a/recipes'), path('b/recipes')], cookbook.path(:recipes)
+  end
+  
+  def test_setup_cookbook_detects_and_uses_existing_cookbook_file
+    prepare 'cookbook.yml', %{
+      recipes: [a, b]
+    }
+    
+    cookbook = setup_cookbook
+    assert_equal [path('a'), path('b')], cookbook.path(:recipes)
+  end
+  
+  def test_setup_cookbook_sets_cookbook
+    setup_cookbook(path('a'))
+    assert_equal [path('a/recipes')], cookbook.path(:recipes)
+    
+    setup_cookbook(path('b'))
+    assert_equal [path('b/recipes')], cookbook.path(:recipes)
+  end
+
+  #
   # setup_package test
   #
 

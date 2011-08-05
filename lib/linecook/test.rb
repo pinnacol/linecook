@@ -13,6 +13,14 @@ module Linecook
       @helpers ||= []
     end
 
+    def setup_cookbook(project_dir=method_dir, *additional_project_dirs)
+      @cookbook = Cookbook.new(project_dir, *additional_project_dirs)
+    end
+
+    def cookbook
+      @cookbook ||= setup_cookbook
+    end
+
     def setup_package(env={})
       @package = Package.new(env)
     end
@@ -22,7 +30,7 @@ module Linecook
     end
 
     def setup_recipe(&block)
-      recipe = Recipe.new(package)
+      recipe = Recipe.new(package, cookbook)
       helpers.each {|helper| recipe.extend helper }
       recipe.instance_eval(&block) if block_given?
       @recipe = recipe
