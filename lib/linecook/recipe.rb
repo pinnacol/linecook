@@ -98,16 +98,32 @@ module Linecook
       extend Utils.constantize(helper_name)
     end
 
-    def target_path(target)
-      target
+    def target_path(target_name)
+      target_name
     end
 
-    def file_path(source, target=source)
-      if source_path = _cookbook_.find(:files, source)
-        _package_.add(target, source_path)
-        target_path target
+    def file_path(source_name, target_name=source_name)
+      if source_path = _cookbook_.find(:files, source_name)
+        _package_.add(target_name, source_path)
+        target_path target_name
       else
-        raise "unknown source: #{source.inspect}"
+        raise "unknown source: #{source_name.inspect}"
+      end
+    end
+
+    def recipe_path(source_name, target_name=source_name.chomp('.rb'))
+      if source_path = _cookbook_.find(:recipes, source_name, ['.rb'])
+        target = Tempfile.new File.basename(source_name)
+        recipe = Recipe.new(@package, @cookbook, target)
+        recipe.instance_eval File.read(source_path), source_path
+
+        # todo: need to hold onto a reference!
+        target.close
+
+        _package_.add(target_name, target)
+        target_path target_name
+      else
+        raise "unknown source: #{source_name.inspect}"
       end
     end
 

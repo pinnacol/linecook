@@ -26,12 +26,13 @@ module Linecook
         end
       end
 
-      config :attributes_path, [], :delimiter => ':' # -A PATH : specify attributes dirs
-      config :files_path, [], :delimiter => ':'      # -F PATH : specify file dirs
-      config :package_file, nil                      # -P FILE : specify a package file
+      config :attributes_path, [], :delimiter => ':' # -A PATH : attributes dirs
+      config :files_path, [], :delimiter => ':'      # -F PATH : file dirs
+      config :recipes_path, [], :delimiter => ':'    # -R PATH : recipe dirs
+      config :package_file, nil                      # -P FILE : a package file
       config :helpers, []                            # -H DIRECTORY : compile helpers
-      config :output_dir, '.'                        # -o DIRECTORY : specify the output dir
-      config :script_name, 'run'                     # -s NAME : specify the script name
+      config :output_dir, '.'                        # -o DIRECTORY : the output dir
+      config :script_name, 'run'                     # -s NAME : the script name
       config :executable, false                      # -x : make the script executable
       config :force, false                           # -f : overwrite existing
 
@@ -65,7 +66,8 @@ module Linecook
           
           cookbook = Cookbook.new(
             :attributes => attributes_path,
-            :files => files_path
+            :files => files_path,
+            :recipes => recipes_path
           )
 
           recipe = Recipe.new(package, cookbook, script)

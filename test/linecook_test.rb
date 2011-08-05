@@ -378,6 +378,23 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal 'content', content('recipe/example.txt')
   end
 
+  def test_compile_can_specify_recipe_directories
+    prepare 'recipes/example.rb', %{
+      write 'content'
+    }
+    recipe_path = prepare 'recipe.rb', %{
+      write recipe_path('example.rb')
+    }
+
+    assert_script %{
+      $ linecook compile -R '#{path('recipes')}' '#{recipe_path}'
+      #{path('recipe')}
+    }
+
+    assert_equal 'example', content('recipe/run')
+    assert_equal 'content', content('recipe/example')
+  end
+
   #
   # compile_helper test
   #
