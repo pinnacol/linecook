@@ -363,6 +363,21 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal 'onetwo', content('recipe/run')
   end
 
+  def test_compile_can_specify_file_directories
+    prepare 'files/example.txt', 'content'
+    recipe_path = prepare 'recipe.rb', %{
+      write file_path('example.txt')
+    }
+
+    assert_script %{
+      $ linecook compile -F '#{path('files')}' '#{recipe_path}'
+      #{path('recipe')}
+    }
+
+    assert_equal 'example.txt', content('recipe/run')
+    assert_equal 'content', content('recipe/example.txt')
+  end
+
   #
   # compile_helper test
   #

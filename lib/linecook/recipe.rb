@@ -98,6 +98,19 @@ module Linecook
       extend Utils.constantize(helper_name)
     end
 
+    def target_path(target)
+      target
+    end
+
+    def file_path(source, target=source)
+      if source_path = _cookbook_.find(:files, source)
+        _package_.add(target, source_path)
+        target_path target
+      else
+        raise "unknown source: #{source.inspect}"
+      end
+    end
+
     # Captures and returns output for the duration of a block by redirecting
     # target to a temporary buffer.
     def capture
