@@ -4,6 +4,7 @@ require 'linecook/commands/start'
 require 'linecook/commands/stop'
 require 'linecook/commands/state'
 require 'linecook/commands/snapshot'
+require 'linecook/commands/ssh'
 
 module Linecook
   class Executable < Linecook::CommandSet
@@ -15,7 +16,8 @@ module Linecook
           'start'          => Linecook::Commands::Start,
           'stop'           => Linecook::Commands::Stop,
           'state'          => Linecook::Commands::State,
-          'snapshot'       => Linecook::Commands::Snapshot
+          'snapshot'       => Linecook::Commands::Snapshot,
+          'ssh'            => Linecook::Commands::Ssh
         }
       end
     end
