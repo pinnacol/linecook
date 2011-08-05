@@ -112,21 +112,16 @@ module Linecook
     # package under the target_name, and returns the target_path for the
     # result.
     def file_path(source_name, target_name=nil)
-      if target_name.nil?
-        target_name = _guess_target_name_(source_name)
-      end
-
       source_path = _cookbook_.find(:files, source_name)
+      target_name ||= _guess_target_name_(source_name)
+      
       _package_.add target_name, source_path
       target_path target_name
     end
 
     def recipe_path(source_name, target_name=nil)
-      if target_name.nil?
-        target_name = _guess_recipe_name_(source_name)
-      end
-
       source_path = _cookbook_.find(:recipes, source_name, ['.rb'])
+      target_name ||= _guess_recipe_name_(source_path)
       target = _package_.tempfile(target_name)
 
       recipe = Recipe.new(_package_, _cookbook_, target)
@@ -138,10 +133,7 @@ module Linecook
 
     def template_path(source_name, target_name=nil, locals=attrs)
       source_path = _cookbook_.find(:templates, source_name, _render_formats_)
-
-      if target_name.nil?
-        target_name = _guess_template_name_(source_path)
-      end
+      target_name ||= _guess_template_name_(source_path)
 
       capture_path(target_name) { write render(source_path, locals) }
     end
@@ -285,16 +277,16 @@ module Linecook
       end
     end
 
-    def _guess_target_name_(source_name)
-      File.basename(source_name)
+    def _guess_target_name_(source_path)
+      File.basename(source_path)
     end
 
     def _guess_template_name_(source_path)
       _guess_target_name_(source_path).chomp(File.extname(source_path))
     end
 
-    def _guess_recipe_name_(source_name)
-      _guess_target_name_(source_name).chomp('.rb')
+    def _guess_recipe_name_(source_path)
+      _guess_target_name_(source_path).chomp('.rb')
     end
 
     def _render_formats_
