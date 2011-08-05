@@ -278,6 +278,17 @@ echo 'x y z'
   end
 
   #
+  # template_path test
+  #
+
+  def test_template_path_renders_source_template_to_package_at_target_path
+    path = prepare 'file.txt.erb', 'got <%= obj %>'
+    recipe.attrs[:obj] = 'milk'
+    assert_equal 'file.txt', recipe.template_path(path)
+    assert_equal 'got milk', package.content('file.txt')
+  end
+
+  #
   # render test
   #
 

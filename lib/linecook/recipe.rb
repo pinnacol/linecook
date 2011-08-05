@@ -136,6 +136,16 @@ module Linecook
       target_path target_name
     end
 
+    def template_path(source_name, target_name=nil, locals=attrs)
+      source_path = _cookbook_.find(:templates, source_name, _render_formats_)
+
+      if target_name.nil?
+        target_name = _guess_template_name_(source_path)
+      end
+
+      capture_path(target_name) { write render(source_path, locals) }
+    end
+
     def capture_path(target_name, content=nil)
       target = _package_.tempfile(target_name)
 
@@ -277,6 +287,10 @@ module Linecook
 
     def _guess_target_name_(source_name)
       File.basename(source_name)
+    end
+
+    def _guess_template_name_(source_path)
+      _guess_target_name_(source_path).chomp(File.extname(source_path))
     end
 
     def _guess_recipe_name_(source_name)
