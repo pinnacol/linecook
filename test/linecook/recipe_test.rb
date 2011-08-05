@@ -286,6 +286,12 @@ echo 'x y z'
     assert_equal 'got milk',  recipe.render(path, :obj => 'milk')
   end
 
+  def test_render_renders_template_with_attrs_by_default
+    path = prepare 'template.erb', 'got <%= obj %>'
+    recipe.attrs[:obj] = 'milk'
+    assert_equal 'got milk',  recipe.render(path)
+  end
+
   def test_render_finds_recipes_via_cookbook
     prepare 'templates/template.erb', 'got <%= obj %>'
     cookbook.add method_dir

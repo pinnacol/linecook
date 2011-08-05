@@ -147,7 +147,7 @@ module Linecook
       target_path target_name
     end
 
-    def render(source_name, locals={})
+    def render(source_name, locals=attrs)
       source_path = _cookbook_.find(:templates, source_name, _render_formats_)
       Tilt.new(source_path).render(Object.new, locals)
     end
