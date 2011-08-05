@@ -130,6 +130,11 @@ class CookbookTest < Test::Unit::TestCase
     assert_equal nil, cookbook._find_(:type, 'file.txt', ['.rb'])
   end
 
+  def test__find__returns_nil_for_nil_type_or_filename
+    assert_equal nil, cookbook._find_(nil, 'file')
+    assert_equal nil, cookbook._find_(:type, nil)
+  end
+
   #
   # find test
   #
@@ -179,5 +184,15 @@ class CookbookTest < Test::Unit::TestCase
   def test_find_error_reflects_not_trying_extnames_on_files_with_an_extname
     err = assert_raises(RuntimeError) { cookbook.find(:type, 'file.txt', ['.rb']) }
     assert_equal 'could not find file: "file.txt"', err.message
+  end
+
+  def test_find_error_reflects_nil_type
+    err = assert_raises(RuntimeError) { cookbook.find(nil, 'file.txt', ['.rb']) }
+    assert_equal 'could not find file: "file.txt" (nil type specified)', err.message
+  end
+
+  def test_find_error_reflects_nil_filename
+    err = assert_raises(RuntimeError) { cookbook.find(:type, nil, ['.rb']) }
+    assert_equal 'could not find file: nil', err.message
   end
 end

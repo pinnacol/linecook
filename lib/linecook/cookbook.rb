@@ -51,6 +51,10 @@ module Linecook
 
     # Same as find but returns nil if no file can be found.
     def _find_(type, filename, extnames=nil)
+      if type.nil? || filename.nil?
+        return nil
+      end
+
       if absolute?(filename)
         return File.exists?(filename) ? filename : nil
       end
@@ -73,7 +77,12 @@ module Linecook
     # directly.  Raises an error if the file cannot be found.
     def find(type, source_name, extnames=nil)
       _find_(type, source_name, extnames) or begin
-        if absolute?(source_name)
+        case
+        when type.nil?
+          raise "could not find file: #{source_name.inspect} (nil type specified)"
+        when source_name.nil?
+          raise "could not find file: #{source_name.inspect}"
+        when absolute?(source_name)
           raise "no such file: #{source_name.inspect}"
         else
           try_string = try_extnames?(source_name, extnames) ? " (tried #{extnames.join(', ')})" : nil
