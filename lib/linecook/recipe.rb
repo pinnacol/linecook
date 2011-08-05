@@ -1,8 +1,9 @@
 require 'stringio'
-require 'linecook/utils'
-require 'linecook/proxy'
-require 'linecook/package'
+require 'linecook/attributes'
 require 'linecook/cookbook'
+require 'linecook/package'
+require 'linecook/proxy'
+require 'linecook/utils'
 
 module Linecook
   # Recipe is the context in which recipes are evaluated (literally).  Recipe

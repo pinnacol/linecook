@@ -324,6 +324,45 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal 'value', content('recipe/run')
   end
 
+  def test_compile_can_specify_attributes_directories
+    prepare 'attributes/example.yml', %{
+      key: value
+    }
+    recipe_path  = prepare 'recipe.rb', %{
+      attributes 'example'
+      write attrs['key']
+    }
+
+    assert_script %{
+      $ linecook compile -A '#{path('attributes')}' '#{recipe_path}'
+      #{path('recipe')}
+    }
+
+    assert_equal 'value', content('recipe/run')
+  end
+
+  def test_compile_can_specify_attributes_directories_as_a_path
+    prepare 'one/a.yml', %{
+      a: one
+    }
+    prepare 'two/b.yml', %{
+      b: two
+    }
+    recipe_path  = prepare 'recipe.rb', %{
+      attributes 'a'
+      attributes 'b'
+      write attrs['a']
+      write attrs['b']
+    }
+
+    assert_script %{
+      $ linecook compile -A '#{path('one')}:#{path('two')}' '#{recipe_path}'
+      #{path('recipe')}
+    }
+
+    assert_equal 'onetwo', content('recipe/run')
+  end
+
   #
   # compile_helper test
   #

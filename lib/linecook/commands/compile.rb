@@ -26,12 +26,13 @@ module Linecook
         end
       end
 
-      config :package_file, nil    # -P FILE : specify a package file
-      config :helpers, []          # -H DIRECTORY : compile helpers
-      config :output_dir, '.'      # -o DIRECTORY : specify the output dir
-      config :script_name, 'run'   # -s NAME : specify the script name
-      config :executable, false    # -x : make the script executable
-      config :force, false         # -f : overwrite existing
+      config :attributes_path, [], :delimiter => ':' # -A PATH : specify attributes dirs
+      config :package_file, nil                      # -P FILE : specify a package file
+      config :helpers, []                            # -H DIRECTORY : compile helpers
+      config :output_dir, '.'                        # -o DIRECTORY : specify the output dir
+      config :script_name, 'run'                     # -s NAME : specify the script name
+      config :executable, false                      # -x : make the script executable
+      config :force, false                           # -f : overwrite existing
 
       def output_dir=(input)
         @output_dir = File.expand_path(input)
@@ -61,7 +62,7 @@ module Linecook
             package.on_export(script_name, :mode => 0744)
           end
           
-          cookbook = Cookbook.new
+          cookbook = Cookbook.new(:attributes => attributes_path)
 
           recipe = Recipe.new(package, cookbook, script)
           recipe.instance_eval File.read(recipe_path), recipe_path
