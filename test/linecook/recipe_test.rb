@@ -299,6 +299,21 @@ echo 'x y z'
   end
 
   #
+  # capture_path test
+  #
+
+  def test_capture_path_captures_block_content_at_target_name
+    target_path = recipe.capture_path('target/name') { recipe.target << 'content' }
+    assert_equal 'target/name', target_path
+    assert_equal 'content', package.content('target/name')
+  end
+
+  def test_capture_path_allows_specification_of_string_content
+    assert_equal 'target/name', recipe.capture_path('target/name', 'content')
+    assert_equal 'content', package.content('target/name')
+  end
+
+  #
   # capture test
   #
 

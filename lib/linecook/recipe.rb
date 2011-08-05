@@ -130,11 +130,23 @@ module Linecook
 
       source_path = _cookbook_.find(:recipes, source_name, ['.rb'])
       target = Tempfile.new File.basename(source_name)
+      _package_.add(target_name, target)
+
       recipe = Recipe.new(_package_, _cookbook_, target)
       recipe.instance_eval File.read(source_path), source_path
-      target.close
 
+      target.close
+      target_path target_name
+    end
+
+    def capture_path(target_name, content=nil)
+      target = Tempfile.new File.basename(target_name)
       _package_.add(target_name, target)
+
+      target << content if content
+      _capture_(target) { yield } if block_given?
+
+      target.close
       target_path target_name
     end
 
