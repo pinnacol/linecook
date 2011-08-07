@@ -11,7 +11,7 @@ class LinecookTest < Test::Unit::TestCase
   end
 
   def parse_script(script, options={})
-    super.each {|triplet| triplet[0] = "2>&1 #{triplet[0]}" }
+    super.each {|triplet| triplet[0] = "2>&1 #{triplet[0].sub('linecook', LINECOOK_EXE)}" }
   end
 
   def test_linecook_prints_version_and_website
@@ -519,5 +519,61 @@ class LinecookTest < Test::Unit::TestCase
       $ linecook compile_helper Example '#{source_file}' # [1]
       invalid source file: "#{source_file}" (unsupported section format ".json")
     }
+  end
+
+  #
+  # run test
+  #
+
+  def relative_dir
+    method_dir[(user_dir.length + 1)..-1]
+  end
+
+  def test_run_runs_package_on_host_given_by_package_dir
+    path = prepare('abox/run', 'echo "on $(hostname)"')
+    FileUtils.chmod(0744, path)
+
+    Dir.chdir(user_dir) do
+      assert_script %{
+        $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}'
+        on abox-ubuntu
+      }
+    end
+  end
+
+  def test_run_exits_with_status_1_for_failed_script
+    path = prepare('abox/run', 'exit 8')
+    FileUtils.chmod(0744, path)
+
+    Dir.chdir(user_dir) do
+      assert_script %Q{
+        $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' # [1] ...
+      }
+    end
+  end
+  
+  def test_run_exits_with_status_1_for_missing_run_script
+    prepare_dir('abox')
+
+    Dir.chdir(user_dir) do
+      assert_script %Q{
+        $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' # [1] ...
+      }
+    end
+  end
+
+  def test_run_runs_each_package
+    ['abox', 'bbox'].each do |box|
+      path = prepare("#{box}/run", 'echo "on $(hostname)"')
+      FileUtils.chmod(0744, path)
+    end
+    
+    Dir.chdir(user_dir) do
+      assert_script %Q{
+        $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' '#{path('bbox')}'
+        on abox-ubuntu
+        on bbox-ubuntu
+      }
+    end
   end
 end
