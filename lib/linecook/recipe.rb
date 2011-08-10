@@ -115,14 +115,14 @@ module Linecook
       source_path = _cookbook_.find(:files, source_name)
       target_name ||= _guess_target_name_(source_name)
       
-      _package_.add target_name, source_path
+      _package_.register target_name, source_path
       target_path target_name
     end
 
     def recipe_path(source_name, target_name=nil)
       source_path = _cookbook_.find(:recipes, source_name, ['.rb'])
       target_name ||= _guess_recipe_name_(source_path)
-      target = _package_.tempfile(target_name)
+      target = _package_.add(target_name)
 
       recipe = Recipe.new(_package_, _cookbook_, target)
       recipe.instance_eval File.read(source_path), source_path
@@ -139,7 +139,7 @@ module Linecook
     end
 
     def capture_path(target_name, content=nil)
-      target = _package_.tempfile(target_name)
+      target = _package_.add(target_name)
 
       target << content if content
       _capture_(target) { yield } if block_given?

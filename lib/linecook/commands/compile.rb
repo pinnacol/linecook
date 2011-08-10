@@ -66,7 +66,7 @@ module Linecook
             :templates => templates_path
           }, *cookbook_path)
 
-          script = package.tempfile(script_name, :mode => script_mode)
+          script = package.add(script_name, :mode => script_mode)
           recipe = Recipe.new(package, cookbook, script)
           recipe.instance_eval File.read(recipe_path), recipe_path
 
