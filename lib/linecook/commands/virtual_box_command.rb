@@ -1,12 +1,14 @@
 require 'linecook/command'
+require 'linecook/command_utils'
 
 module Linecook
   module Commands
     class VirtualBoxCommand < Command
+      include CommandUtils
+
       config :ssh_config_file, 'config/ssh', {   # -F FILE : the ssh config file
         :writer => :ssh_config_file= 
       }
-      config :quiet, false                       # silence output
       config :names, false                       # use vm names
 
       # Matches a host declaration in a ssh config file. After the match:
@@ -79,17 +81,6 @@ module Linecook
 
         vm_names.uniq.each do |vm_name|
           yield(vm_name)
-        end
-      end
-
-      def sh(cmd)
-        puts "$ #{cmd}" unless quiet
-        system(cmd)
-      end
-
-      def sh!(cmd)
-        unless sh(cmd)
-          raise CommandError, "non-zero exit status: #{$?.exitstatus}"
         end
       end
 

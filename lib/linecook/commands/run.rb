@@ -1,10 +1,13 @@
 require 'linecook/command'
+require 'linecook/command_utils'
 
 module Linecook
   module Commands
 
     # :startdoc::desc run packages
     class Run < Command
+      include CommandUtils
+
       RUN_SCRIPT = File.expand_path('../../../../bin/linecook_run', __FILE__)
       SCP_SCRIPT = File.expand_path('../../../../bin/linecook_scp', __FILE__)
 
@@ -12,18 +15,6 @@ module Linecook
       config :remote_scripts, ['run']       # -S : the remote script(s)
       config :ssh_config_file, 'config/ssh' # -F : the ssh config file
       config :scp, true                     # do not transfer package
-      config :quiet, false                  # -q : silence output
-
-      def sh(cmd)
-        puts "$ #{cmd}" unless quiet
-        system(cmd)
-      end
-
-      def sh!(cmd)
-        unless sh(cmd)
-          raise CommandError, "non-zero exit status: #{$?.exitstatus}"
-        end
-      end
 
       def full_path_to_remote_dir
         (remote_dir[0] == ?/ ? remote_dir : "$(pwd)/#{remote_dir}").chomp('/')
