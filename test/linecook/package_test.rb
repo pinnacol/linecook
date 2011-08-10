@@ -36,15 +36,9 @@ class PackageTest < Test::Unit::TestCase
   # register test
   #
 
-  def test_register_registers_source_path_to_target_path
+  def test_register_registers_source_to_target_path
     package.register('target/path', 'source/path')
     assert_equal File.expand_path('source/path'), package.registry['target/path']
-  end
-
-  def test_register_resolves_sources_to_path_before_register
-    source = Tempfile.new('source')
-    package.register('target/path', source)
-    assert_equal source.path, package.registry['target/path']
   end
 
   def test_register_raises_error_for_target_path_registered_to_a_different_source
@@ -57,6 +51,12 @@ class PackageTest < Test::Unit::TestCase
   def test_register_does_not_raise_error_for_double_register_of_same_source_and_target_path
     package.register('target/path', 'source/a')
     assert_nothing_raised { package.register('target/path', 'source/a') }
+  end
+
+  def test_register_checks_resolved_source_paths_to_determine_target_path_conflict
+    source = Tempfile.new('source')
+    package.register('target/path', source.path)
+    assert_nothing_raised { package.register('target/path', source) }
   end
 
   def test_register_accepts_export_options
@@ -93,12 +93,7 @@ class PackageTest < Test::Unit::TestCase
     tempfile = package.add('target/path')
     assert_equal Tempfile, tempfile.class
     assert_equal false, tempfile.closed?
-    assert_equal tempfile.path, package.registry['target/path']
-  end
-
-  def test_add_adds_tempfile_to_package_sources
-    tempfile = package.add('target/path')
-    assert_equal [tempfile], package.sources
+    assert_equal tempfile.path, package.source_path('target/path')
   end
 
   def test_added_tempfiles_are_marked_for_move_by_default
@@ -155,9 +150,23 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'content', package.content('target/path')
   end
 
+  def test_content_flushes_source_if_applicable
+    source = Tempfile.new 'source'
+    package.register 'target/path', source
+    source << 'content'
+    assert_equal 'content', package.content('target/path')
+  end
+
   def test_content_returns_the_specified_length_and_offset
     source_path = prepare('source', 'content')
     package.register 'target/path', source_path
+    assert_equal 'nte', package.content('target/path', 3, 2)
+  end
+
+  def test_content_returns_the_specified_length_and_offset_for_source
+    source = Tempfile.new 'source'
+    package.register 'target/path', source
+    source << 'content'
     assert_equal 'nte', package.content('target/path', 3, 2)
   end
 
@@ -194,23 +203,9 @@ class PackageTest < Test::Unit::TestCase
   # close test
   #
 
-  def test_close_closes_all_open_tempfiles
+  def test_close_closes_open_sources_in_registry
     a = package.add('a')
     b = package.add('b')
-    a.close
-
-    assert a.closed?
-    assert !b.closed?
-
-    package.close
-
-    assert a.closed?
-    assert b.closed?
-  end
-
-  def test_close_closes_all_open_callbacks
-    a = package.callback('a')
-    b = package.callback('b')
     a.close
 
     assert a.closed?
