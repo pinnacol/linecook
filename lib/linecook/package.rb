@@ -34,13 +34,15 @@ module Linecook
     # source does not respond to path, then the source should be the pathname.
     # Returns the expanded source path.
     def resolve_source_path(source)
-      return nil if source.nil?
-
-      source_path = source.respond_to?(:path) ? source.path : source
-      unless source_path.kind_of?(String)
-        raise "could not resolve source to a path: #{source.inspect}"
+      if source.nil?
+        return nil
       end
-      File.expand_path(source_path)
+
+      unless source_path?(source)
+        source = source.path
+      end
+
+      File.expand_path(source)
     end
 
     # Registers the source to the target_path.  The source is first resolved
@@ -51,8 +53,8 @@ module Linecook
           raise "already registered: #{target_path.inspect} (#{current.inspect})"
         end
       end
-      
-      if source.kind_of?(String)
+
+      if source_path?(source)
         source = File.expand_path(source)
       end
 
@@ -112,12 +114,16 @@ module Linecook
     def content(target_path, length=nil, offset=nil)
       source = registry[target_path]
 
-      if source.respond_to?(:flush) && source.respond_to?(:closed?)
+      if source.nil?
+        return nil
+      end
+
+      unless source_path?(source)
         source.flush unless source.closed?
       end
 
       source_path = resolve_source_path(source)
-      source_path ? File.read(source_path, length, offset) : nil
+      File.read(source_path, length, offset)
     end
 
     def callback(name)
@@ -144,7 +150,7 @@ module Linecook
     # Closes all sources and callbacks and returns self.
     def close
       registry.each_value do |source|
-        if source.respond_to?(:close)
+        unless source_path?(source)
           source.close unless source.closed?
         end
       end
@@ -197,6 +203,14 @@ module Linecook
       end
 
       registry
+    end
+
+    private
+
+    # helper to determine if a source is indeed the path to a source file (ie
+    # a String) or if it must be treated as some type of IO.
+    def source_path?(source) # :nodoc:
+      source.kind_of?(String)
     end
   end
 end
