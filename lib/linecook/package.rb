@@ -78,6 +78,27 @@ module Linecook
       end
     end
 
+    # Returns the source path registered to target path, or nil if the target
+    # path is not registered.
+    def source_path(target_path)
+      registry[target_path]
+    end
+
+    # Returns an array of target paths that register the source.  The source
+    # is resolved to a source path using resolve_source_path.
+    def target_paths(source)
+      source_path = resolve_source_path(source)
+
+      target_paths = []
+      registry.each_pair do |target_path, current|
+        if current == source_path
+          target_paths << target_path
+        end
+      end
+
+      target_paths
+    end
+
     # Returns the content for a target, as registered in self.  Returns nil if
     # the target is not registered.
     def content(target_path, length=nil, offset=nil)

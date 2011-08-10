@@ -96,6 +96,31 @@ class PackageTest < Test::Unit::TestCase
   end
 
   #
+  # source_path test
+  #
+
+  def test_source_path_returns_the_source_path_registered_to_the_target_path
+    source_path = path('source/path')
+    package.add('target/path', source_path)
+    assert_equal source_path, package.source_path('target/path') 
+  end
+
+  def test_source_path_returns_nil_if_nothing_is_registered_to_target_path
+    assert_equal nil, package.source_path('target/path')
+  end
+
+  #
+  # target_paths test
+  #
+
+  def test_target_paths_returns_all_target_paths_that_register_the_source
+    source_path = path('source/path')
+    package.add('target/a', source_path)
+    package.add('target/b', source_path)
+    assert_equal ['target/a', 'target/b'], package.target_paths(source_path)
+  end
+
+  #
   # content test
   #
 
