@@ -6,8 +6,8 @@ module Linecook
     # The package environment
     attr_reader :env
 
-    # A registry of (target_path, source) pairs recording what files are
-    # included in the package.
+    # A registry of (target_path, source) pairs recording what is included in
+    # the package.
     attr_reader :registry
 
     # A hash of the default export options.  These are merged with the export
@@ -29,10 +29,9 @@ module Linecook
       @callbacks = {}
     end
 
-    # Resolves a source (ex a StringIO or Tempfile) to a source path by
-    # calling `source.path`, which should return a String pathname. If the
-    # source does not respond to path, then the source should be the pathname.
-    # Returns the expanded source path.
+    # Resolves a source (ex a String, StringIO, or Tempfile) to a source path.
+    # Non-String sources are converted to sources by calling`source.path`.
+    # Returns the expanded source path, or nil if the source is nil.
     def resolve_source_path(source)
       if source.nil?
         return nil
@@ -45,8 +44,8 @@ module Linecook
       File.expand_path(source)
     end
 
-    # Registers the source to the target_path.  The source is first resolved
-    # to a source path using resolve_source_path.
+    # Registers the source to the target_path.  Raises an error if a different
+    # source is already registerd to the target_path.
     def register(target_path, source, options={})
       if current = source_path(target_path)
         unless current == resolve_source_path(source)
@@ -64,9 +63,7 @@ module Linecook
       source
     end
 
-    # Removes all target paths that reference a source in the registry.  The
-    # source is resolved to a source path using resolve_source_path in the
-    # same way as add.
+    # Removes all target paths that reference a source in the registry.
     def unregister(source)
       source_path = resolve_source_path(source)
       registry.delete_if do |target_path, current|
@@ -74,16 +71,16 @@ module Linecook
       end
     end
 
-    # Generates a tempfile for the target path and registers it to self. As
-    # with register, the target_name will be incremented as needed.  Returns
-    # the open tempfile.
+    # Generates a tempfile for the target path and registers it to self.
+    # Returns the open tempfile.
     def add(target_path, options={})
       source  = Tempfile.new File.basename(target_path)
       options = {:move => true}.merge(options)
       register target_path, source, options
     end
 
-    # Removes a target path from the registry.
+    # Removes a target path from the registry.  Returns the source if one was
+    # registered.
     def rm(target_path)
       registry.delete(target_path)
     end
@@ -94,8 +91,7 @@ module Linecook
       resolve_source_path registry[target_path]
     end
 
-    # Returns an array of target paths that register the source.  The source
-    # is resolved to a source path using resolve_source_path.
+    # Returns an array of target paths that register the source.
     def target_paths(source)
       source_path = resolve_source_path(source)
 
@@ -147,7 +143,7 @@ module Linecook
       target_path
     end
 
-    # Closes all sources and callbacks and returns self.
+    # Closes all open sources in the registry and returns self.
     def close
       registry.each_value do |source|
         unless source_path?(source)
