@@ -110,6 +110,23 @@ module Linecook
       callbacks[name] ||= StringIO.new
     end
 
+    # Increments target_path until an unregistered path is found and returns
+    # the result.
+    def next_target_path(target_path='file')
+      count = 0
+      registry.each_key do |current|
+        if current.index(target_path) == 0
+          count += 1
+        end
+      end
+
+      if count > 0
+        target_path = "#{target_path}.#{count}"
+      end
+
+      target_path
+    end
+
     # Generates a tempfile for the target path and adds it to self. As
     # with register, the target_name will be incremented as needed.  Returns
     # the open tempfile.

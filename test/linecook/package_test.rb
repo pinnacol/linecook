@@ -152,6 +152,20 @@ class PackageTest < Test::Unit::TestCase
   end
 
   #
+  # next_target_path test
+  #
+
+  def test_next_target_path_increments_target_name_if_already_registered
+    assert_equal 'target/path',   package.next_target_path('target/path')
+
+    package.add('target/path', 'source')
+    assert_equal 'target/path.1', package.next_target_path('target/path')
+
+    package.add('target/path.1', 'source')
+    assert_equal 'target/path.2', package.next_target_path('target/path')
+  end
+
+  #
   # tempfile test
   #
 
