@@ -4,7 +4,7 @@ module Linecook
   module CommandUtils
     include Configurable
 
-    config :quiet, false  # -q : silence output
+    config :quiet, false  # -q, --quiet : silence output
 
     def sh(cmd)
       puts "$ #{cmd}" unless quiet
