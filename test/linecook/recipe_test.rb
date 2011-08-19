@@ -527,6 +527,18 @@ a
   end
 
   #
+  # _compile_ test
+  #
+
+  def test__compile__evals_recipe_in_the_context_of_self
+    prepare 'recipes/recipe.rb', 'write "content"'
+    cookbook.add method_dir
+
+    assert_equal recipe, recipe._compile_('recipe')
+    assert_equal 'content', recipe._result_
+  end
+
+  #
   # _result_ test
   #
 

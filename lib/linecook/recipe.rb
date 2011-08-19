@@ -301,6 +301,12 @@ module Linecook
       _cookbook_.find(:recipes, source_name, ['.rb'])
     end
 
+    def _compile_(recipe_name)
+      source_path = _recipe_souce_path_(recipe_name)
+      instance_eval File.read(source_path), source_path
+      self
+    end
+
     # Returns the contents of target.
     def _result_
       target.flush
