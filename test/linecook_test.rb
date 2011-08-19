@@ -46,29 +46,166 @@ class LinecookTest < Test::Unit::TestCase
   # compile test
   #
 
-  def test_compile_builds_the_recipe_in_a_dir_under_pwd_named_like_the_recipe
+  def test_compile_builds_the_recipe_in_a_file_under_pwd_named_like_the_recipe
     recipe_path = prepare 'path/to/recipe.rb', %{
       write 'echo hello world'
     }
 
     assert_script %{
       $ linecook compile '#{recipe_path}'
+    }
+
+    assert_equal "echo hello world", content('path/to/recipe')
+  end
+
+  def test_compile_builds_multiple_recipes
+    a = prepare 'path/to/a.rb', %{
+      capture_path('run') do
+        write 'echo hello a'
+      end
+    }
+    b = prepare 'b.rb', %{
+      capture_path('run') do
+        write 'echo hello b'
+      end
+    }
+
+    assert_script %{
+      $ linecook compile '#{a}' '#{b}'
+    }
+
+    assert_equal "echo hello a", content('path/to/a')
+    assert_equal "echo hello b", content('path/to/b')
+  end
+
+  def test_compile_allows_specification_of_output_dir
+    recipe_path = prepare 'recipe.rb', %{
+      write 'echo hello world'
+    }
+
+    assert_script %{
+      $ linecook compile -o dir '#{recipe_path}'
+    }
+
+    assert_equal "echo hello world", content('dir/recipe')
+  end
+
+  def test_compile_raises_error_if_script_exists
+    recipe_path = prepare 'recipe.rb', %{
+      write 'new'
+    }
+    prepare 'recipe', 'current'
+
+    assert_script %{
+      $ linecook compile '#{recipe_path}' 2>&1 # [1]
+      already exists: "#{path('recipe')}"
+    }
+
+    assert_equal 'current', content('recipe')
+  end
+
+  def test_compile_overwrites_existing_script_on_force
+    recipe_path = prepare 'recipe.rb', %{
+      capture_path 'run', 'new'
+    }
+    prepare 'recipe', 'current'
+
+    assert_script %{
+      $ linecook compile -f '#{recipe_path}'
+    }
+
+    assert_equal 'new', content('recipe')
+  end
+
+  def test_compile_allows_specification_of_load_paths
+    prepare 'lib/echo.rb', %q{
+      module Echo
+        def upper_echo(str)
+          write "echo #{str.upcase}"
+        end
+      end
+    }
+
+    recipe_path = prepare 'recipe.rb', %{
+      require 'echo'
+      extend Echo
+      upper_echo 'hello world'
+    }
+
+    assert_script %{
+      $ linecook compile -Ilib '#{recipe_path}'
+    }
+
+    assert_equal 'echo HELLO WORLD', content('recipe')
+  end
+
+  def test_compile_allows_specification_of_requires
+    echo_path = prepare 'lib/echo.rb', %q{
+      module Echo
+        def upper_echo(str)
+          write "echo #{str.upcase}"
+        end
+      end
+    }
+
+    recipe_path = prepare 'recipe.rb', %{
+      extend Echo
+      upper_echo 'hello world'
+    }
+
+    assert_script %{
+      $ linecook compile -r'#{echo_path}' '#{recipe_path}'
+    }
+
+    assert_equal 'echo HELLO WORLD', content('recipe')
+  end
+
+  def test_compile_compiles_helpers_if_specified
+    prepare 'helpers/example/upper_echo.rb', %q{
+      (str)
+      ---
+      write "echo #{str.upcase}"
+    }
+
+    recipe_path = prepare 'recipe.rb', %{
+      helper 'example'
+      upper_echo 'hello world'
+    }
+
+    assert_script %{
+      $ linecook compile -L helpers '#{recipe_path}'
+    }
+
+    assert_equal 'echo hello world', content('recipe')
+  end
+
+  #
+  # package test
+  #
+
+  def test_package_builds_the_recipe_in_a_dir_under_pwd_named_like_the_recipe_basename
+    recipe_path = prepare 'path/to/recipe.rb', %{
+      capture_path 'run', 'echo hello world'
+    }
+
+    assert_script %{
+      $ linecook package '#{recipe_path}'
       #{path('recipe')}
     }
 
     assert_equal "echo hello world", content('recipe/run')
   end
 
-  def test_compile_builds_multiple_recipes
+  def test_package_builds_multiple_recipes
     a = prepare 'path/to/a.rb', %{
-      write 'echo hello a'
+      capture_path 'run', 'echo hello a'
     }
     b = prepare 'b.rb', %{
-      write 'echo hello b'
+      capture_path 'run', 'echo hello b'
     }
 
     assert_script %{
-      $ linecook compile '#{a}' '#{b}'
+      $ linecook package '#{a}' '#{b}'
       #{path('a')}
       #{path('b')}
     }
@@ -77,76 +214,52 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal "echo hello b", content('b/run')
   end
 
-  def test_compile_allows_specification_of_an_alternate_output_dir
+  def test_package_allows_specification_of_an_alternate_output_dir
     recipe_path = prepare 'recipe.rb', %{
-      write 'echo hello world'
+      capture_path 'run', 'echo hello world'
     }
 
     assert_script %{
-      $ linecook compile -opackage '#{recipe_path}'
+      $ linecook package -o '#{path('package')}' '#{recipe_path}'
       #{path('package/recipe')}
     }
 
     assert_equal "echo hello world", content('package/recipe/run')
   end
 
-  def test_compile_raises_error_if_package_dir_exists
+  def test_package_raises_error_if_package_dir_exists
     recipe_path = prepare 'path/to/recipe.rb', %{
-      write 'new'
+      capture_path 'run', 'new'
     }
     prepare 'recipe/run', 'current'
 
     assert_script %{
-      $ linecook compile '#{recipe_path}' 2>&1 # [1]
+      $ linecook package '#{recipe_path}' 2>&1 # [1]
       already exists: "#{path('recipe')}"
     }
-  
+
     assert_equal 'current', content('recipe/run')
   end
 
-  def test_compile_overwrites_package_dir_on_force
+  def test_package_overwrites_package_dir_on_force
     recipe_path = prepare 'path/to/recipe.rb', %{
-      write 'new'
+      capture_path 'run', 'new'
     }
     prepare 'recipe/run', 'current'
 
     assert_script %{
-      $ linecook compile -f '#{recipe_path}'
+      $ linecook package -f '#{recipe_path}'
       #{path('recipe')}
     }
-  
+
     assert_equal 'new', content('recipe/run')
   end
 
-  def test_compile_allows_specification_of_an_alternate_script_name
-    recipe_path = prepare 'recipe.rb', %{
-      write 'echo hello world'
-    }
-
-    assert_script %{
-      $ linecook compile -stest '#{recipe_path}'
-      #{path('recipe')}
-    }
-
-    assert_equal 'echo hello world', content('recipe/test')
-  end
-
-  def test_compile_allows_script_to_be_made_executable
-    recipe_path = prepare 'recipe.rb', %{
-      writeln 'echo hello world'
-    }
-
-    assert_script %{
-      $ "$(linecook compile -x '#{recipe_path}')"/run
-      hello world
-    }
-  end
-
-  def test_compile_allows_specification_of_load_paths
+  def test_package_allows_specification_of_load_paths
     prepare 'lib/echo.rb', %q{
       module Echo
-        def echo(str)
-          write "echo #{str}"
+        def upper_echo(str)
+          write "echo #{str.upcase}"
         end
       end
     }
@@ -154,162 +267,67 @@ class LinecookTest < Test::Unit::TestCase
     recipe_path = prepare 'recipe.rb', %{
       require 'echo'
       extend Echo
-      echo 'hello world'
+      capture_path 'run' do
+        upper_echo 'hello world'
+      end
     }
 
     assert_script %{
-      $ linecook compile -Ilib '#{recipe_path}'
+      $ linecook package -Ilib '#{recipe_path}'
       #{path('recipe')}
     }
 
-    assert_equal 'echo hello world', content('recipe/run')
+    assert_equal 'echo HELLO WORLD', content('recipe/run')
   end
 
-  def test_compile_allows_specification_of_requires
+  def test_package_allows_specification_of_requires
     echo_path = prepare 'lib/echo.rb', %q{
       module Echo
-        def echo(str)
-          write "echo #{str}"
+        def upper_echo(str)
+          write "echo #{str.upcase}"
         end
       end
     }
 
     recipe_path = prepare 'recipe.rb', %{
       extend Echo
-      echo 'hello world'
-    }
-
-    assert_script %{
-      $ linecook compile -r'#{echo_path}' '#{recipe_path}'
-      #{path('recipe')}
-    }
-
-    assert_equal 'echo hello world', content('recipe/run')
-  end
-
-  def test_compile_compiles_helpers_if_specified
-    prepare('helpers/example/echo.rb', %q{
-      (str)
-      ---
-      write "echo #{str}"
-    })
-
-    recipe_path = prepare 'recipe.rb', %{
-      helper 'example'
-      echo 'hello world'
-    }
-
-    assert_script %{
-      $ linecook compile -H helpers '#{recipe_path}'
-      #{path('recipe')}
-    }
-
-    assert_equal 'echo hello world', content('recipe/run')
-  end
-
-  def test_compiled_helpers_allow_method_chaining
-    prepare 'helpers/example/cat.erb', %{
-      cat
-    }
-
-    prepare 'helpers/example/heredoc.erb', %{
-      ()
-      _rstrip_ if _chain_?
-      --
-       <<DOC
-      <% yield %>
-      DOC
-    }
-
-    recipe_path = prepare 'recipe.rb', %{
-      helper 'example'
-      cat.heredoc do
-        writeln 'a'
-        writeln 'b'
-        writeln 'c'
+      capture_path 'run' do
+        upper_echo 'hello world'
       end
     }
 
     assert_script %{
-      $ linecook compile -H helpers '#{recipe_path}'
+      $ linecook package -r'#{echo_path}' '#{recipe_path}'
       #{path('recipe')}
     }
 
-    assert_str_equal %{
-      cat <<DOC
-      a
-      b
-      c
-      DOC
-    }, content('recipe/run')
+    assert_equal 'echo HELLO WORLD', content('recipe/run')
   end
 
-  def test_compiled_helpers_allow_capture
-    prepare 'helpers/example/echo.erb', %q{
+  def test_package_compiles_helpers_if_specified
+    prepare 'helpers/example/upper_echo.rb', %q{
       (str)
-      --
-      echo <%= str %>
+      ---
+      write "echo #{str.upcase}"
     }
 
-    recipe_path = prepare 'recipe.rb', %q{
+    recipe_path = prepare 'recipe.rb', %{
       helper 'example'
-      write _echo('xyz').upcase
+      capture_path 'run' do
+        upper_echo 'hello world'
+      end
     }
 
     assert_script %{
-      $ linecook compile -H helpers '#{recipe_path}'
+      $ linecook package -L helpers '#{recipe_path}'
       #{path('recipe')}
     }
 
-    assert_equal "ECHO XYZ", content('recipe/run')
+    assert_equal 'echo hello world', content('recipe/run')
   end
 
-  def test_compile_copies_added_files_to_package_dir
-    file_path = prepare 'file.txt', 'content'
-    recipe_path = prepare 'recipe.rb', %{
-      _package_.register 'pkgfile.txt', '#{file_path}'
-    }
-
-    assert_script %{
-      $ linecook compile '#{recipe_path}'
-      #{path('recipe')}
-    }
-
-    assert_equal "content", content('file.txt')
-    assert_equal "content", content('recipe/pkgfile.txt')
-  end
-
-  def test_compile_moves_files_marked_for_move
-    file_path = prepare 'file.txt', 'content'
-    recipe_path = prepare 'recipe.rb', %{
-      _package_.register 'pkgfile.txt', '#{file_path}'
-      _package_.on_export 'pkgfile.txt', :move => true
-    }
-
-    assert_script %{
-      $ linecook compile '#{recipe_path}'
-      #{path('recipe')}
-    }
-
-    assert_equal false, File.exists?(file_path)
-    assert_equal "content", content('recipe/pkgfile.txt')
-  end
-
-  def test_compile_need_not_generate_a_script
-    recipe_path = prepare 'recipe.rb', %{
-      _package_.unregister target
-    }
-
-    assert_script %{
-      $ linecook compile '#{recipe_path}'
-      #{path('recipe')}
-    }
-
-    assert_equal [], Dir.glob(path('recipe/*'))
-  end
-
-  def test_compile_can_specify_a_package_file_defining_recipe_attrs
-    package_file = prepare 'package.yml', %{
+  def test_package_guesses_a_package_file
+    package_file = prepare 'recipe.yml', %{
       key: value
     }
     recipe_path  = prepare 'recipe.rb', %{
@@ -317,99 +335,30 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_script %{
-      $ linecook compile -P '#{package_file}' '#{recipe_path}'
+      $ linecook package '#{recipe_path}'
       #{path('recipe')}
     }
 
     assert_equal 'value', content('recipe/run')
   end
 
-  def test_compile_can_specify_attributes_directories
-    prepare 'attributes/example.yml', %{
+  def test_package_allows_specification_of_an_alternate_input_dir
+    prepare 'packages/recipe.yml', %{
       key: value
     }
     recipe_path  = prepare 'recipe.rb', %{
-      attributes 'example'
       write attrs['key']
     }
 
     assert_script %{
-      $ linecook compile -A '#{path('attributes')}' '#{recipe_path}'
+      $ linecook package -i '#{path('package')}' '#{recipe_path}'
       #{path('recipe')}
     }
 
     assert_equal 'value', content('recipe/run')
   end
 
-  def test_compile_can_specify_attributes_directories_as_a_path
-    prepare 'one/a.yml', %{
-      a: one
-    }
-    prepare 'two/b.yml', %{
-      b: two
-    }
-    recipe_path  = prepare 'recipe.rb', %{
-      attributes 'a'
-      attributes 'b'
-      write attrs['a']
-      write attrs['b']
-    }
-
-    assert_script %{
-      $ linecook compile -A '#{path('one')}:#{path('two')}' '#{recipe_path}'
-      #{path('recipe')}
-    }
-
-    assert_equal 'onetwo', content('recipe/run')
-  end
-
-  def test_compile_can_specify_file_directories
-    prepare 'files/example.txt', 'content'
-    recipe_path = prepare 'recipe.rb', %{
-      write file_path('example.txt')
-    }
-
-    assert_script %{
-      $ linecook compile -F '#{path('files')}' '#{recipe_path}'
-      #{path('recipe')}
-    }
-
-    assert_equal 'example.txt', content('recipe/run')
-    assert_equal 'content', content('recipe/example.txt')
-  end
-
-  def test_compile_can_specify_template_directories
-    prepare 'templates/example.erb', 'got <%= obj %>'
-    recipe_path = prepare 'recipe.rb', %{
-      write render('example', :obj => 'milk')
-    }
-
-    assert_script %{
-      $ linecook compile -T '#{path('templates')}' '#{recipe_path}'
-      #{path('recipe')}
-    }
-
-    assert_equal 'got milk', content('recipe/run')
-  end
-
-  def test_compile_can_specify_recipe_directories
-    prepare 'recipes/example.rb', %{
-      write 'content'
-    }
-    recipe_path = prepare 'recipe.rb', %{
-      write recipe_path('example')
-    }
-
-    assert_script %{
-      $ linecook compile -R '#{path('recipes')}' '#{recipe_path}'
-      #{path('recipe')}
-    }
-
-    assert_equal 'example', content('recipe/run')
-    assert_equal 'content', content('recipe/example')
-  end
-
-  def test_compile_can_specify_cookbook_directories
+  def test_package_can_specify_cookbook_directories
     prepare 'attributes/example.yml', 'obj: milk'
     prepare 'templates/example.erb', 'got <%= obj %>'
     recipe_path = prepare 'recipe.rb', %{
@@ -418,7 +367,7 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_script %{
-      $ linecook compile -C '#{method_dir}' '#{recipe_path}'
+      $ linecook package -C '#{method_dir}' '#{recipe_path}'
       #{path('recipe')}
     }
 
@@ -551,7 +500,7 @@ class LinecookTest < Test::Unit::TestCase
       }
     end
   end
-  
+
   def test_run_exits_with_status_1_for_missing_run_script
     prepare_dir('abox')
 
@@ -567,7 +516,7 @@ class LinecookTest < Test::Unit::TestCase
       path = prepare("#{box}/run", 'echo "on $(hostname)"')
       FileUtils.chmod(0744, path)
     end
-    
+
     Dir.chdir(user_dir) do
       assert_script %Q{
         $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' '#{path('bbox')}'
