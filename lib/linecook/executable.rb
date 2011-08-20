@@ -1,5 +1,5 @@
 require 'linecook/command_set'
-require 'linecook/commands/compile'
+require 'linecook/commands/package'
 require 'linecook/commands/start'
 require 'linecook/commands/stop'
 require 'linecook/commands/state'
@@ -12,6 +12,7 @@ module Linecook
     class << self
       def commands
         {
+          'package'        => Linecook::Commands::Package,
           'compile'        => Linecook::Commands::Compile,
           'compile_helper' => Linecook::Commands::CompileHelper,
           'start'          => Linecook::Commands::Start,

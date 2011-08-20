@@ -60,14 +60,10 @@ class LinecookTest < Test::Unit::TestCase
 
   def test_compile_builds_multiple_recipes
     a = prepare 'path/to/a.rb', %{
-      capture_path('run') do
-        write 'echo hello a'
-      end
+      write 'echo hello a'
     }
     b = prepare 'b.rb', %{
-      capture_path('run') do
-        write 'echo hello b'
-      end
+      write 'echo hello b'
     }
 
     assert_script %{
@@ -75,7 +71,7 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_equal "echo hello a", content('path/to/a')
-    assert_equal "echo hello b", content('path/to/b')
+    assert_equal "echo hello b", content('b')
   end
 
   def test_compile_allows_specification_of_output_dir
@@ -176,7 +172,7 @@ class LinecookTest < Test::Unit::TestCase
       $ linecook compile -L helpers '#{recipe_path}'
     }
 
-    assert_equal 'echo hello world', content('recipe')
+    assert_equal 'echo HELLO WORLD', content('recipe')
   end
 
   #
@@ -323,7 +319,7 @@ class LinecookTest < Test::Unit::TestCase
       #{path('recipe')}
     }
 
-    assert_equal 'echo hello world', content('recipe/run')
+    assert_equal 'echo HELLO WORLD', content('recipe/run')
   end
 
   def test_package_guesses_a_package_file
@@ -331,7 +327,7 @@ class LinecookTest < Test::Unit::TestCase
       key: value
     }
     recipe_path  = prepare 'recipe.rb', %{
-      write attrs['key']
+      capture_path 'run', attrs['key']
     }
 
     assert_script %{
@@ -347,7 +343,7 @@ class LinecookTest < Test::Unit::TestCase
       key: value
     }
     recipe_path  = prepare 'recipe.rb', %{
-      write attrs['key']
+      capture_path 'run', attrs['key']
     }
 
     assert_script %{
@@ -363,7 +359,7 @@ class LinecookTest < Test::Unit::TestCase
     prepare 'templates/example.erb', 'got <%= obj %>'
     recipe_path = prepare 'recipe.rb', %{
       attributes 'example'
-      write render('example', attrs)
+      capture_path 'run', render('example', attrs)
     }
 
     assert_script %{
@@ -394,12 +390,11 @@ class LinecookTest < Test::Unit::TestCase
       $ linecook compile_helper Example '#{source_file}'
       #{path('lib/example.rb')}
       $ linecook compile -Ilib '#{recipe_path}'
-      #{path('recipe')}
     }
 
     assert_str_equal %{
       echo abc
-    }, content('recipe/run')
+    }, content('recipe')
   end
 
   def test_compile_helper_searches_for_source_files_by_const_path_under_search_dirs
@@ -423,13 +418,12 @@ class LinecookTest < Test::Unit::TestCase
       $ linecook compile_helper Example -s '#{path('a')}' -s '#{path('b')}'
       #{path('lib/example.rb')}
       $ linecook compile -Ilib '#{recipe_path}'
-      #{path('recipe')}
     }
 
     assert_str_equal %{
       echo a abc
       echo b xyz
-    }, content('recipe/run')
+    }, content('recipe')
   end
 
   def test_compile_helper_has_sensible_error_for_no_sources_specified

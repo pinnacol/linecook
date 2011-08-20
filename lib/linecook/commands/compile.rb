@@ -1,12 +1,12 @@
 require 'fileutils'
 require 'linecook/recipe'
 require 'linecook/commands/compile_helper'
-require 'tempfile'
 require 'yaml'
+require 'csv'
 
 module Linecook
   module Commands
-    # ::desc compile recipes, helpers, packages
+    # ::desc compile recipes
     class Compile < Command
       class << self
         def parse(argv=ARGV)
@@ -26,88 +26,90 @@ module Linecook
         end
       end
 
-      config :attributes_path, [], :delimiter => ':' # -A PATH : attributes dirs
-      config :files_path, [], :delimiter => ':'      # -F PATH : file dirs
-      config :recipes_path, [], :delimiter => ':'    # -R PATH : recipe dirs
-      config :templates_path, [], :delimiter => ':'  # -T PATH : templates dirs
       config :cookbook_path, [], :delimiter => ':'   # -C PATH : cookbook dirs
-      config :package_file, nil                      # -P FILE : a package file
-      config :helpers, []                            # -H DIRECTORY : compile helpers
-      config :output_dir, '.'                        # -o DIRECTORY : the output dir
-      config :script_name, 'run'                     # -s NAME : the script name
-      config :executable, false                      # -x : make the script executable
+      config :helpers, []                            # -H NAME : use these helpers
+      config :helper_dirs, []                        # -L DIRECTORY : compile helpers
+      config :package_file, nil                      # -P PATH : package file
+      config :input_dir, '.'                         # -i DIRECTORY : the base dir
+      config :output_dir, '.'                        # -o DIRECTORY : the export dir
       config :force, false                           # -f : overwrite existing
+
+      def input_dir=(input)
+        @input_dir = File.expand_path(input)
+      end
 
       def output_dir=(input)
         @output_dir = File.expand_path(input)
       end
 
       def process(*recipes)
-        helpers.each do |helpers_dir|
-          compile_helpers(helpers_dir)
+        helper_dirs.each do |helper_dir|
+          compile_helpers(helper_dir)
         end
 
-        recipes.collect do |recipe_path|
-          basename    = File.basename(recipe_path).chomp(File.extname(recipe_path))
-          package_dir = File.join(output_dir, basename)
+        package  = Linecook::Package.new(load_env(package_file))
+        cookbook = Linecook::Cookbook.new(*cookbook_path)
 
-          if File.exists?(package_dir)
-            unless force
-              raise CommandError, "already exists: #{package_dir.inspect}"
+        recipes.each do |recipe_name|
+          if recipe_name == '-'
+            recipe = Recipe.new(package, cookbook, $stdout)
+            recipe.helper *helpers
+            
+            lineno = 0
+            while line = gets
+              recipe.instance_eval line, 'stdin', lineno
+              lineno += 1
             end
-            FileUtils.rm_r(package_dir)
+          else
+            recipe_path = cookbook.find(:recipes, recipe_name)
+
+            target = package.add target_path(recipe_path)
+            recipe = Recipe.new(package, cookbook, target)
+            recipe.helper *helpers
+            recipe._compile_ recipe_path
           end
-
-          package = Package.new(load_env(package_file))
-          cookbook = Cookbook.new({
-            :attributes => attributes_path,
-            :files => files_path,
-            :recipes => recipes_path,
-            :templates => templates_path
-          }, *cookbook_path)
-
-          script = package.add(script_name, :mode => script_mode)
-          recipe = Recipe.new(package, cookbook, script)
-          recipe.instance_eval File.read(recipe_path), recipe_path
-
-          package.export(package_dir)
-          puts package_dir
-          package_dir
         end
+
+        package.export(output_dir)
       end
 
-      def script_mode
-        executable ? 0744 : nil
+      def target_path(recipe_path)
+        if recipe_path.index(input_dir) == 0
+          base = recipe_path[input_dir.length + 1, recipe_path.length - input_dir.length]
+          base.chomp(File.extname(recipe_path))
+        else
+          File.basename(recipe_path).chomp(File.extname(recipe_path))
+        end
       end
 
       def load_env(package_file)
         package_file ? YAML.load_file(package_file) : {}
       end
 
-      def glob_helpers(helpers_dir)
+      def glob_helpers(helper_dir)
         sources = {}
         helpers = []
 
-        Dir.glob("#{helpers_dir}/*/**/*").each do |source_file|
+        Dir.glob("#{helper_dir}/*/**/*").each do |source_file|
           next if File.directory?(source_file)
           (sources[File.dirname(source_file)] ||= []) << source_file
         end
 
         sources.each_pair do |dir, source_files|
-          name = dir[(helpers_dir.length + 1)..-1]
+          name = dir[(helper_dir.length + 1)..-1]
           helpers << [name, source_files]
         end
 
         helpers.sort_by {|name, source_files| name }
       end
 
-      def compile_helpers(helpers_dir)
+      def compile_helpers(helper_dir)
         compiler = CompileHelper.new(
           :force => force,
           :quiet => true
         )
 
-        helpers = glob_helpers(helpers_dir)
+        helpers = glob_helpers(helper_dir)
         helpers.each do |(name, sources)|
           compiler.process(name, *sources)
         end
