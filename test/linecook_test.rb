@@ -185,34 +185,34 @@ class LinecookTest < Test::Unit::TestCase
   end
 
   #
-  # package test
+  # build test
   #
 
-  def test_package_documentation
+  def test_build_documentation
     assert_script %{
       $ echo "capture_path('run', 'echo ' + attrs['msg'])" > '#{path('recipe.rb')}'
       $ echo "msg: hello world" > '#{path('recipe.yml')}'
-      $ linecook package '#{path('recipe.rb')}'
+      $ linecook build '#{path('recipe.rb')}'
       #{path('recipe')}
       $ sh '#{path('recipe/run')}'
       hello world
     }
   end
 
-  def test_package_builds_the_recipe_in_a_dir_under_pwd_named_like_the_recipe_basename
+  def test_build_builds_the_recipe_in_a_dir_under_pwd_named_like_the_recipe_basename
     recipe_path = prepare 'path/to/recipe.rb', %{
       capture_path 'run', 'echo hello world'
     }
 
     assert_script %{
-      $ linecook package '#{recipe_path}'
+      $ linecook build '#{recipe_path}'
       #{path('recipe')}
     }
 
     assert_equal "echo hello world", content('recipe/run')
   end
 
-  def test_package_builds_multiple_recipes
+  def test_build_builds_multiple_recipes
     a = prepare 'path/to/a.rb', %{
       capture_path 'run', 'echo hello a'
     }
@@ -221,7 +221,7 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_script %{
-      $ linecook package '#{a}' '#{b}'
+      $ linecook build '#{a}' '#{b}'
       #{path('a')}
       #{path('b')}
     }
@@ -230,48 +230,48 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal "echo hello b", content('b/run')
   end
 
-  def test_package_allows_specification_of_an_alternate_output_dir
+  def test_build_allows_specification_of_an_alternate_output_dir
     recipe_path = prepare 'recipe.rb', %{
       capture_path 'run', 'echo hello world'
     }
 
     assert_script %{
-      $ linecook package -o '#{path('package')}' '#{recipe_path}'
+      $ linecook build -o '#{path('package')}' '#{recipe_path}'
       #{path('package/recipe')}
     }
 
     assert_equal "echo hello world", content('package/recipe/run')
   end
 
-  def test_package_raises_error_if_package_dir_exists
+  def test_build_raises_error_if_package_dir_exists
     recipe_path = prepare 'path/to/recipe.rb', %{
       capture_path 'run', 'current'
     }
     prepare 'recipe/run', 'previous'
 
     assert_script %{
-      $ linecook package '#{recipe_path}' 2>&1 # [1]
+      $ linecook build '#{recipe_path}' 2>&1 # [1]
       already exists: "#{path('recipe')}"
     }
 
     assert_equal 'previous', content('recipe/run')
   end
 
-  def test_package_overwrites_package_dir_on_force
+  def test_build_overwrites_package_dir_on_force
     recipe_path = prepare 'path/to/recipe.rb', %{
       capture_path 'run', 'current'
     }
     prepare 'recipe/run', 'previous'
 
     assert_script %{
-      $ linecook package -f '#{recipe_path}'
+      $ linecook build -f '#{recipe_path}'
       #{path('recipe')}
     }
 
     assert_equal 'current', content('recipe/run')
   end
 
-  def test_package_allows_specification_of_load_paths
+  def test_build_allows_specification_of_load_paths
     prepare 'lib/echo.rb', %q{
       module Echo
         def upper_echo(str)
@@ -289,14 +289,14 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_script %{
-      $ linecook package -Ilib '#{recipe_path}'
+      $ linecook build -Ilib '#{recipe_path}'
       #{path('recipe')}
     }
 
     assert_equal 'echo HELLO WORLD', content('recipe/run')
   end
 
-  def test_package_allows_specification_of_requires
+  def test_build_allows_specification_of_requires
     echo_path = prepare 'lib/echo.rb', %q{
       module Echo
         def upper_echo(str)
@@ -313,14 +313,14 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_script %{
-      $ linecook package -r'#{echo_path}' '#{recipe_path}'
+      $ linecook build -r'#{echo_path}' '#{recipe_path}'
       #{path('recipe')}
     }
 
     assert_equal 'echo HELLO WORLD', content('recipe/run')
   end
 
-  def test_package_compiles_helpers_if_specified
+  def test_build_compiles_helpers_if_specified
     prepare 'helpers/example/upper_echo.rb', %q{
       (str)
       ---
@@ -335,14 +335,14 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_script %{
-      $ linecook package -L helpers '#{recipe_path}'
+      $ linecook build -L helpers '#{recipe_path}'
       #{path('recipe')}
     }
 
     assert_equal 'echo HELLO WORLD', content('recipe/run')
   end
 
-  def test_package_guesses_a_package_file
+  def test_build_guesses_a_package_file
     package_file = prepare 'recipe.yml', %{
       key: value
     }
@@ -351,14 +351,14 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_script %{
-      $ linecook package '#{recipe_path}'
+      $ linecook build '#{recipe_path}'
       #{path('recipe')}
     }
 
     assert_equal 'value', content('recipe/run')
   end
 
-  def test_package_allows_specification_of_an_alternate_input_dir
+  def test_build_allows_specification_of_an_alternate_input_dir
     prepare 'packages/recipe.yml', %{
       key: value
     }
@@ -367,14 +367,14 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_script %{
-      $ linecook package -i '#{path('package')}' '#{recipe_path}'
+      $ linecook build -i '#{path('package')}' '#{recipe_path}'
       #{path('recipe')}
     }
 
     assert_equal 'value', content('recipe/run')
   end
 
-  def test_package_can_specify_cookbook_directories
+  def test_build_can_specify_cookbook_directories
     prepare 'attributes/example.yml', 'obj: milk'
     prepare 'templates/example.erb', 'got <%= obj %>'
     recipe_path = prepare 'recipe.rb', %{
@@ -383,7 +383,7 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_script %{
-      $ linecook package -C '#{method_dir}' '#{recipe_path}'
+      $ linecook build -C '#{method_dir}' '#{recipe_path}'
       #{path('recipe')}
     }
 

@@ -4,7 +4,7 @@ module Linecook
   module Commands
     # ::desc package recipes
     #
-    # Compiles a list of 'package' recipes into a list of packages.  Packages
+    # Builds a list of 'package' recipes into a list of packages.  Packages
     # are exported to the working directory based on the basename of the
     # recipe. Recipes are not added to the package by default (unlike compile)
     # but they are automatically configured with a package file with the same
@@ -12,7 +12,7 @@ module Linecook
     #
     #   $ echo "capture_path('run', 'echo ' + attrs['msg'])" > recipe.rb 
     #   $ echo "msg: hello world" > recipe.yml
-    #   $ linecook package recipe.rb
+    #   $ linecook build recipe.rb
     #   /path/to/pwd/recipe
     #   $ sh recipe/run
     #   hello world
@@ -32,7 +32,7 @@ module Linecook
     # inputs.  In that way a CSV file can serve as a manifest for the packages
     # created by this command.
     #
-    class Package < Compile
+    class Build < Compile
       config :input_dir, '.'                         # -i DIRECTORY : package config dir
       config :output_dir, '.'                        # -o DIRECTORY : base export dir
       undef_config :package_file
