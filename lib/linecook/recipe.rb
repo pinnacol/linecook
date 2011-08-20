@@ -96,9 +96,12 @@ module Linecook
     end
 
     # Looks up and extends self with the specified helper.
-    def helper(helper_name)
-      require Utils.underscore(helper_name)
-      extend Utils.constantize(helper_name)
+    def helper(*helper_names)
+      helper_names.each do |helper_name|
+        require Utils.underscore(helper_name)
+        extend Utils.constantize(helper_name)
+      end
+      self
     end
 
     # Returns the path to the target as used at runtime (vs compile time). 
@@ -112,7 +115,7 @@ module Linecook
     # package under the target_name, and returns the target_path for the
     # result.
     def file_path(source_name, target_name=nil)
-      source_path = _file_souce_path_(source_name)
+      source_path = _file_source_path_(source_name)
       target_name ||= _guess_target_name_(source_name)
       
       _package_.register target_name, source_path
@@ -120,7 +123,7 @@ module Linecook
     end
 
     def recipe_path(source_name, target_name=nil)
-      source_path = _recipe_souce_path_(source_name)
+      source_path = _recipe_source_path_(source_name)
       target_name ||= _guess_recipe_name_(source_path)
       target = _package_.add(target_name)
 
@@ -132,7 +135,7 @@ module Linecook
     end
 
     def template_path(source_name, target_name=nil, locals=attrs)
-      source_path = _template_souce_path_(source_name)
+      source_path = _template_source_path_(source_name)
       target_name ||= _guess_template_name_(source_path)
 
       capture_path(target_name) { write render(source_path, locals) }
@@ -149,7 +152,7 @@ module Linecook
     end
 
     def render(source_name, locals=attrs)
-      source_path = _template_souce_path_(source_name)
+      source_path = _template_source_path_(source_name)
       Tilt.new(source_path).render(Object.new, locals)
     end
 
@@ -289,20 +292,20 @@ module Linecook
       _guess_target_name_(source_path).chomp('.rb')
     end
 
-    def _file_souce_path_(source_name)
+    def _file_source_path_(source_name)
       _cookbook_.find(:files, source_name)
     end
 
-    def _template_souce_path_(source_name)
+    def _template_source_path_(source_name)
       _cookbook_.find(:templates, source_name, ['.erb'])
     end
 
-    def _recipe_souce_path_(source_name)
+    def _recipe_source_path_(source_name)
       _cookbook_.find(:recipes, source_name, ['.rb'])
     end
 
     def _compile_(recipe_name)
-      source_path = _recipe_souce_path_(recipe_name)
+      source_path = _recipe_source_path_(recipe_name)
       instance_eval File.read(source_path), source_path
       self
     end
