@@ -11,7 +11,7 @@ class LinecookTest < Test::Unit::TestCase
   end
 
   def parse_script(script, options={})
-    super.each {|triplet| triplet[0] = "2>&1 #{triplet[0].sub('linecook', LINECOOK_EXE)}" }
+    super.each {|triplet| triplet[0] = "2>&1 #{triplet[0].gsub(/^linecook/, LINECOOK_EXE)}" }
   end
 
   def test_linecook_prints_version_and_website
@@ -45,6 +45,15 @@ class LinecookTest < Test::Unit::TestCase
   #
   # compile test
   #
+
+  def test_compile_documentation
+    assert_script %{
+      $ echo "write 'echo hello world'" > '#{path('recipe.rb')}'
+      $ linecook compile '#{path('recipe.rb')}'
+      $ sh '#{path('recipe')}'
+      hello world
+    }
+  end
 
   def test_compile_builds_the_recipe_in_a_file_under_pwd_named_like_the_recipe
     recipe_path = prepare 'path/to/recipe.rb', %{
@@ -178,6 +187,17 @@ class LinecookTest < Test::Unit::TestCase
   #
   # package test
   #
+
+  def test_package_documentation
+    assert_script %{
+      $ echo "capture_path('run', 'echo ' + attrs['msg'])" > '#{path('recipe.rb')}'
+      $ echo "msg: hello world" > '#{path('recipe.yml')}'
+      $ linecook package '#{path('recipe.rb')}'
+      #{path('recipe')}
+      $ sh '#{path('recipe/run')}'
+      hello world
+    }
+  end
 
   def test_package_builds_the_recipe_in_a_dir_under_pwd_named_like_the_recipe_basename
     recipe_path = prepare 'path/to/recipe.rb', %{

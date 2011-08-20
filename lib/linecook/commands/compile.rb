@@ -7,6 +7,22 @@ require 'csv'
 module Linecook
   module Commands
     # ::desc compile recipes
+    #
+    # Compiles a list of recipes into a single package and exports the result
+    # to the working directory (pwd).  The recipes are added to the package at
+    # their path relative to pwd minus their extname, making this type of use
+    # possible:
+    #
+    #   $ echo "write 'echo hello world'" > recipe.rb 
+    #   $ linecook compile recipe.rb
+    #   $ sh recipe
+    #   hello world
+    #
+    # The base dir for determining package paths and the export dir can both
+    # be set with options.  Providing '-' as a recipe will cause stdin to be
+    # treated as a recipe and the output printed to stdout; any files added to
+    # the package will be also be exported to pwd.
+    #
     class Compile < Command
       class << self
         def parse(argv=ARGV)
