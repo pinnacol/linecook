@@ -298,4 +298,38 @@ class PackageTest < Test::Unit::TestCase
     assert a.closed?
     assert_equal 'content', content('export/dir/a')
   end
+
+  def test_export_allows_export_into_existing_directory
+    prepare 'dir/a', 'a'
+    package.add('b') << 'b'
+
+    package.export path('dir')
+    assert_equal 'a', content('dir/a')
+    assert_equal 'b', content('dir/b')
+  end
+
+  def test_export_raises_error_for_existing_file
+    prepare 'dir/a', 'current'
+    package.add('a') << 'new'
+
+    err = assert_raises(RuntimeError) { package.export path('dir') }
+    assert_equal "already exists: #{path('dir/a').inspect}", err.message
+    assert_equal 'current', content('dir/a')
+  end
+
+  def test_export_overwrites_existing_files_on_force
+    prepare 'dir/a', 'current'
+    package.add('a', :force => true) << 'new'
+
+    package.export path('dir')
+    assert_equal 'new', content('dir/a')
+  end
+
+  def test_export_overwrites_existing_directories_on_force
+    prepare_dir 'dir/a'
+    package.add('a', :force => true) << 'new'
+
+    package.export path('dir')
+    assert_equal 'new', content('dir/a')
+  end
 end

@@ -181,6 +181,14 @@ module Linecook
         options     = export_options(target_path)
 
         if source_path != export_path
+          if File.exists?(export_path)
+            if options[:force]
+              FileUtils.rm_rf(export_path)
+            else
+              raise "already exists: #{export_path.inspect}"
+            end
+          end
+
           export_dir = File.dirname(export_path)
           FileUtils.mkdir_p(export_dir)
 
