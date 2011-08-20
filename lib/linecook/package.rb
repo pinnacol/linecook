@@ -182,8 +182,10 @@ module Linecook
 
         if source_path != export_path
           if File.exists?(export_path)
-            if options[:force]
-              FileUtils.rm_rf(export_path)
+            if block_given?
+              unless yield(source_path, export_path)
+                next
+              end
             else
               raise "already exists: #{export_path.inspect}"
             end

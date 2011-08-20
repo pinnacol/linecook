@@ -309,27 +309,36 @@ class PackageTest < Test::Unit::TestCase
   end
 
   def test_export_raises_error_for_existing_file
-    prepare 'dir/a', 'current'
-    package.add('a') << 'new'
+    previous = prepare 'dir/file', 'previous'
+    current  = package.add('file')
+    current << 'current'
 
     err = assert_raises(RuntimeError) { package.export path('dir') }
-    assert_equal "already exists: #{path('dir/a').inspect}", err.message
-    assert_equal 'current', content('dir/a')
+    assert_equal "already exists: #{path('dir/file').inspect}", err.message
+    assert_equal 'previous', content('dir/file')
   end
 
-  def test_export_overwrites_existing_files_on_force
-    prepare 'dir/a', 'current'
-    package.add('a', :force => true) << 'new'
+  def test_export_continues_export_if_block_returns_true_for_existing_file
+    previous = prepare 'dir/file', 'previous'
+    current  = package.add('file')
+    current << 'current'
 
-    package.export path('dir')
-    assert_equal 'new', content('dir/a')
+    package.export path('dir') do |src, dest|
+      true
+    end
+
+    assert_equal 'current', content('dir/file')
   end
 
-  def test_export_overwrites_existing_directories_on_force
-    prepare_dir 'dir/a'
-    package.add('a', :force => true) << 'new'
+  def test_export_skips_if_block_returns_false_for_existing_file
+    previous = prepare 'dir/file', 'previous'
+    current  = package.add('file')
+    current << 'current'
 
-    package.export path('dir')
-    assert_equal 'new', content('dir/a')
+    package.export path('dir') do |src, dest|
+      false
+    end
+
+    assert_equal 'previous', content('dir/file')
   end
 end
