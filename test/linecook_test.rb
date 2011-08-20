@@ -88,29 +88,29 @@ class LinecookTest < Test::Unit::TestCase
 
   def test_compile_raises_error_if_script_exists
     recipe_path = prepare 'recipe.rb', %{
-      write 'new'
+      write 'current'
     }
-    prepare 'recipe', 'current'
+    prepare 'recipe', 'previous'
 
     assert_script %{
       $ linecook compile '#{recipe_path}' 2>&1 # [1]
       already exists: "#{path('recipe')}"
     }
 
-    assert_equal 'current', content('recipe')
+    assert_equal 'previous', content('recipe')
   end
 
   def test_compile_overwrites_existing_script_on_force
     recipe_path = prepare 'recipe.rb', %{
-      capture_path 'run', 'new'
+      write 'current'
     }
-    prepare 'recipe', 'current'
+    prepare 'recipe', 'previous'
 
     assert_script %{
       $ linecook compile -f '#{recipe_path}'
     }
 
-    assert_equal 'new', content('recipe')
+    assert_equal 'current', content('recipe')
   end
 
   def test_compile_allows_specification_of_load_paths
@@ -225,30 +225,30 @@ class LinecookTest < Test::Unit::TestCase
 
   def test_package_raises_error_if_package_dir_exists
     recipe_path = prepare 'path/to/recipe.rb', %{
-      capture_path 'run', 'new'
+      capture_path 'run', 'current'
     }
-    prepare 'recipe/run', 'current'
+    prepare 'recipe/run', 'previous'
 
     assert_script %{
       $ linecook package '#{recipe_path}' 2>&1 # [1]
       already exists: "#{path('recipe')}"
     }
 
-    assert_equal 'current', content('recipe/run')
+    assert_equal 'previous', content('recipe/run')
   end
 
   def test_package_overwrites_package_dir_on_force
     recipe_path = prepare 'path/to/recipe.rb', %{
-      capture_path 'run', 'new'
+      capture_path 'run', 'current'
     }
-    prepare 'recipe/run', 'current'
+    prepare 'recipe/run', 'previous'
 
     assert_script %{
       $ linecook package -f '#{recipe_path}'
       #{path('recipe')}
     }
 
-    assert_equal 'new', content('recipe/run')
+    assert_equal 'current', content('recipe/run')
   end
 
   def test_package_allows_specification_of_load_paths

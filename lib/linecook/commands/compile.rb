@@ -70,7 +70,14 @@ module Linecook
           end
         end
 
-        package.export(output_dir)
+        package.export(output_dir) do |src, dest|
+          unless force
+            raise CommandError, "already exists: #{dest.inspect}"
+          end
+
+          FileUtils.rm_rf(dest)
+          true
+        end
       end
 
       def target_path(recipe_path)
