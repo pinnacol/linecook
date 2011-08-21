@@ -9,20 +9,16 @@ module Linecook
     # ::desc compile recipes
     #
     # Compiles a list of recipes into a single package and exports the result
-    # to the working directory (pwd).  The recipes are added to the package at
-    # their path relative to pwd minus their extname, making this type of use
-    # possible:
+    # to the working directory.  The recipes are added to the package at their
+    # relative path, minus their extname.  For example:
     #
     #   $ echo "write 'echo hello world'" > recipe.rb 
     #   $ linecook compile recipe.rb
     #   $ sh recipe
     #   hello world
     #
-    # The base dir for determining package paths and the export dir can both
-    # be set with options.  Providing '-' as a recipe will cause stdin to be
-    # treated as a recipe and the output printed to stdout; any files added to
-    # the package will be also be exported to pwd.
-    #
+    # Providing '-' as a recipe will cause stdin to be compiled as a recipe to
+    # stdout.
     class Compile < Command
       class << self
         def parse(argv=ARGV)
@@ -42,8 +38,8 @@ module Linecook
         end
       end
 
-      config :cookbook_path, [], :delimiter => ':'     # -C PATH : cookbook dirs
-      config :helpers, []                              # -H NAME : use these helpers
+      config :cookbook_path, [], :delimiter => ':'     # -C PATH : cookbook path
+      config :helpers, []                              # -H NAME : default helpers
       config :helper_dirs, []                          # -L DIRECTORY : compile helpers
       config :package_file, nil                        # -P PATH : package config file
       config :input_dir, '.', :writer => :input_dir=   # -i DIRECTORY : the input dir

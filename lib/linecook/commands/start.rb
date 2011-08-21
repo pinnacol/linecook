@@ -9,9 +9,9 @@ module Linecook
     # if provided. By default all virtual machines configured in config/ssh
     # will be reset and started in this way.
     class Start < VirtualBoxCommand
-      config :type, 'headless'       # vm type (headless|gui)
-      config :snapshot, ''           # start snapshot
-      config :socket, false
+      config :type, 'headless'          # vm type (headless|gui)
+      config :snapshot, ''              # start snapshot
+      config :use_master_socket, false  # -m, --master-socket : use a master socket
       
       def process(*hosts)
         vm_names = resolve_vm_names(hosts)
@@ -26,7 +26,7 @@ module Linecook
           end
           
           start(vm_name, type)
-          start_ssh_socket(vm_name) if socket
+          start_ssh_socket(vm_name) if use_master_socket
         end
       end
     end

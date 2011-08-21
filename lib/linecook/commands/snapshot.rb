@@ -20,13 +20,13 @@ module Linecook
     #
     # To reset:
     #
-    #   liencook snapshot --reset CURRENT
+    #   linecook snapshot --reset CURRENT
     #
     # After which there will only be a single 'CURRENT' snapshot, which
     # corresponds to the original snapshot.
     #
     class Snapshot < VirtualBoxCommand
-      config :reset, false    # reset a snapshot
+      config :reset, false    # -r, --reset : reset a snapshot
       
       def process(snapshot, *hosts)
         vm_names = resolve_vm_names(hosts)

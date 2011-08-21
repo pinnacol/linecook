@@ -9,7 +9,7 @@ module Linecook
     # all virtual machines configured in config/ssh will print their state.
     #
     class State < VirtualBoxCommand
-      config :hosts, false       # print state by host
+      config :hosts, false       # -s, --hosts : print state by host
       
       def state(vm_name)
         `VBoxManage showvminfo #{vm_name}` =~ /^State:\s+(.*)$/ ? $1 : 'unknown'

@@ -2,15 +2,15 @@ require 'linecook/commands/compile'
 
 module Linecook
   module Commands
-    # ::desc package recipes
+    # ::desc build packages
     #
     # Builds a list of 'package' recipes into packages.  Packages are exported
     # to a directory named like the recipe. Build prints the package dir for
     # each recipe to stdout.
     #
     # Recipes are not added to the package by default (unlike compile) but
-    # they are automatically configured with a package file named like the
-    # recipe, if it exists.  For example:
+    # they are automatically configured with a package file corresponding to
+    # the recipe, if it exists.  For example:
     #
     #   $ echo "capture_path('run', 'echo ' + attrs['msg'])" > recipe.rb 
     #   $ echo "msg: hello world" > recipe.yml
@@ -19,20 +19,19 @@ module Linecook
     #   $ sh recipe/run
     #   hello world
     #
-    # An input directory containing the package files, and an output directory
-    # for the packages may be specified with options.
+    # The input directory containing the package files and the output
+    # directory for the packages may be specified with options.
     #
     # == Package Specs
     #
     # Package specs can be provided instead of recipes.  Specs are
-    # comma-separated strings specifying, in order,
-    # 'package_file,recipe_file,export_dir' and allow full control over the
-    # building of packages.
+    # comma-separated strings like 'package_file,recipe_file,export_dir' that
+    # allow full control over the building of packages.
     #
     # Non-absolute file paths may be provided, in which case the package file
-    # is resolved relative to the package config dir, the recipe is looked up
-    # by the package cookbook, and the export dir is resolved relative to the
-    # export dir. For example:
+    # is resolved relative to the input dir, the recipe is looked up along the
+    # cookbook path, and the export dir is resolved relative to the output
+    # dir. For example:
     #
     #   $ echo "capture_path('run', 'echo ' + attrs['msg'])" > recipe.rb 
     #   $ echo "msg: hello world" > input.yml
@@ -43,7 +42,7 @@ module Linecook
     #
     # Providing '-' as an input will cause stdin to be read for additional
     # inputs.  In that way a CSV file can serve as a manifest for the packages
-    # created by this command.
+    # built by this command.
     #
     class Build < Compile
       undef_config :package_file

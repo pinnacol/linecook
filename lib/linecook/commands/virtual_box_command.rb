@@ -9,7 +9,7 @@ module Linecook
       config :ssh_config_file, 'config/ssh', {   # -F FILE : the ssh config file
         :writer => :ssh_config_file= 
       }
-      config :names, false                       # use vm names
+      config :names, false                       # -n, --names : use vm names
 
       # Matches a host declaration in a ssh config file. After the match:
       #

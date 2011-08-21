@@ -6,7 +6,7 @@ require 'erb'
 module Linecook
   module Commands
 
-    # :startdoc::desc generates a helper module
+    # :startdoc::desc compile helper modules
     #
     # Compiles a helper module from a set of source files.  Each source file
     # becomes a method in the module, named after the source file itself.
