@@ -33,9 +33,23 @@ module Linecook
     # created by this command.
     #
     class Build < Compile
-      config :input_dir, '.'                         # -i DIRECTORY : package config dir
-      config :output_dir, '.'                        # -o DIRECTORY : base export dir
+      pwd = Dir.pwd
+      config :input_dir, pwd                     # -i DIRECTORY : package config dir
+      config :output_dir, pwd                    # -o DIRECTORY : base export dir
       undef_config :package_file
+
+      def input_dir=(input)
+        @package_finder = nil
+        super(input)
+      end
+
+      def package_finder
+        @package_finder ||= Cookbook.new(:package_file => [input_dir])
+      end
+
+      def package_file(package_name)
+        package_finder._find_(:package_file, package_name, ['.yml'])
+      end
 
       def process(*recipes)
         helper_dirs.each do |helpers_dir|
@@ -51,9 +65,8 @@ module Linecook
             FileUtils.rm_r(export_dir)
           end
 
-          package_file = find(input_dir, package_name)
-          package  = Linecook::Package.new(load_env(package_file))
-          cookbook = Linecook::Cookbook.new(*cookbook_path)
+          package  = Package.new(load_env(package_file(package_name)))
+          cookbook = Cookbook.new(*cookbook_path)
           
           recipe   = Recipe.new(package, cookbook)
           recipe.helper *helpers
@@ -61,14 +74,6 @@ module Linecook
 
           package.export(export_dir)
           puts export_dir
-        end
-      end
-
-      def find(input_dir, package_name)
-        if File.exists?(package_name)
-          package_name
-        else
-          File.expand_path(package_name, input_dir)
         end
       end
 
@@ -96,38 +101,14 @@ module Linecook
 
         case fields.length
         when 1  # short form
-          base = fields.at(0)
-          [guess_package_name(base), guess_recipe_name(base), guess_export_name(base)]
+          recipe_path = fields.at(0)
+          export_name = File.basename(recipe_path).chomp(File.extname(recipe_path))
+          ["#{export_name}.yml", recipe_path, export_name]
         when 3  # long form
           fields
         else
           raise "invalid spec: #{spec.inspect}"
         end
-      end
-
-      def guess_package_name(base)
-        extname = File.extname(base)
-        case extname
-        when '.yml' then base
-        else "#{base.chomp(extname)}.yml"
-        end
-      end
-      
-      def guess_recipe_name(base)
-        extname = File.extname(base)
-        case extname
-        when '.rb' then base
-        else "#{base.chomp(extname)}.rb"
-        end
-      end
-      
-      def guess_export_name(base)
-        extname = File.extname(base)
-        File.basename(base).chomp(extname)
-      end
-
-      def load_env(package_file)
-        package_file && File.exists?(package_file) ? YAML.load_file(package_file) : {}
       end
     end
   end

@@ -380,7 +380,7 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_script %{
-      $ linecook build -i '#{path('package')}' '#{recipe_path}'
+      $ linecook build -i '#{path('packages')}' '#{recipe_path}'
       #{path('recipe')}
     }
 

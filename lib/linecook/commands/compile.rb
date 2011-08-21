@@ -42,12 +42,13 @@ module Linecook
         end
       end
 
+      pwd = Dir.pwd
       config :cookbook_path, [], :delimiter => ':'   # -C PATH : cookbook dirs
       config :helpers, []                            # -H NAME : use these helpers
       config :helper_dirs, []                        # -L DIRECTORY : compile helpers
       config :package_file, nil                      # -P PATH : package file
-      config :input_dir, '.'                         # -i DIRECTORY : the base dir
-      config :output_dir, '.'                        # -o DIRECTORY : the export dir
+      config :input_dir, pwd                         # -i DIRECTORY : the base dir
+      config :output_dir, pwd                        # -o DIRECTORY : the export dir
       config :force, false                           # -f : overwrite existing
 
       def input_dir=(input)
@@ -73,8 +74,9 @@ module Linecook
             recipe.instance_eval $stdin.read, 'stdin'
           else
             recipe_path = cookbook.find(:recipes, recipe_name)
+            target_path = basepath(recipe_path, input_dir)
+            target = package.add target_path
 
-            target = package.add target_path(recipe_path)
             recipe = Recipe.new(package, cookbook, target)
             recipe.helper *helpers
             recipe._compile_ recipe_path
@@ -91,17 +93,18 @@ module Linecook
         end
       end
 
-      def target_path(recipe_path)
-        if recipe_path.index(input_dir) == 0
-          base = recipe_path[input_dir.length + 1, recipe_path.length - input_dir.length]
-          base.chomp(File.extname(recipe_path))
+      def basepath(path, dir=nil)
+        extname = File.extname(path)
+        if dir && path.index(dir) == 0 && path != dir
+          path[dir.length + 1, path.length - dir.length].chomp(extname)
         else
-          File.basename(recipe_path).chomp(File.extname(recipe_path))
+          File.basename(path).chomp(extname)
         end
       end
 
       def load_env(package_file)
-        package_file ? YAML.load_file(package_file) : {}
+        env = package_file && File.exists?(package_file) ? YAML.load_file(package_file) : nil
+        env.nil? ? {} : env
       end
 
       def glob_helpers(helper_dir)
