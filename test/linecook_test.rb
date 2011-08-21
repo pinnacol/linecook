@@ -55,7 +55,7 @@ class LinecookTest < Test::Unit::TestCase
     }
   end
 
-  def test_compile_builds_the_recipe_in_a_file_under_pwd_named_like_the_recipe
+  def test_compile_compiles_the_recipe_in_a_file_named_like_the_relative_path_to_the_recipe
     recipe_path = prepare 'path/to/recipe.rb', %{
       write 'echo hello world'
     }
@@ -67,8 +67,19 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal "echo hello world", content('path/to/recipe')
   end
 
-  def test_compile_builds_multiple_recipes
-    a = prepare 'path/to/a.rb', %{
+  def test_compile_compiles_non_relative_recipes_by_basename
+    tempfile = Tempfile.new('recipe.rb')
+    tempfile << "write 'echo hello world'"
+
+    assert_script %{
+      $ linecook compile '#{tempfile.path}'
+    }
+
+    assert_equal "echo hello world", content("recipe")
+  end
+
+  def test_compile_compiles_multiple_recipes
+    a = prepare 'a.rb', %{
       write 'echo hello a'
     }
     b = prepare 'b.rb', %{
@@ -79,7 +90,7 @@ class LinecookTest < Test::Unit::TestCase
       $ linecook compile '#{a}' '#{b}'
     }
 
-    assert_equal "echo hello a", content('path/to/a')
+    assert_equal "echo hello a", content('a')
     assert_equal "echo hello b", content('b')
   end
 
@@ -94,6 +105,18 @@ class LinecookTest < Test::Unit::TestCase
       $ linecook compile - < '#{recipe_path}'
       echo hello world
     }
+  end
+
+  def test_compile_allows_specification_of_input_dir
+    recipe_path = prepare 'path/to/recipe.rb', %{
+      write 'echo hello world'
+    }
+
+    assert_script %{
+      $ linecook compile -i '#{path('path/to')}' '#{recipe_path}'
+    }
+
+    assert_equal "echo hello world", content('recipe')
   end
 
   def test_compile_allows_specification_of_output_dir
@@ -178,6 +201,25 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal 'echo HELLO WORLD', content('recipe')
   end
 
+  def test_compile_allows_specification_of_a_shared_package_file
+    package_file = prepare 'recipe.yml', %{
+      key: value
+    }
+    a = prepare 'a.rb', %{
+      write "a #{attrs['key']}"
+    }
+    b = prepare 'b.rb', %{
+      write "b #{attrs['key']}"
+    }
+
+    assert_script %{
+      $ linecook compile -p '#{package_file}' '#{a}' '#{b}'
+    }
+
+    assert_equal 'a value', content('a')
+    assert_equal 'b value', content('b')
+  end
+
   def test_compile_compiles_helpers_if_specified
     prepare 'helpers/example/upper_echo.rb', %q{
       (str)
@@ -210,23 +252,44 @@ class LinecookTest < Test::Unit::TestCase
       $ sh '#{path('recipe/run')}'
       hello world
     }
+    assert_script %{
+      $ echo "capture_path('run', 'echo ' + attrs['msg'])" > '#{path('recipe.rb')}'
+      $ echo "msg: hello world" > '#{path('input.yml')}'
+      $ linecook build '#{path('input.yml')}','#{path('recipe.rb')}','#{path('output')}'
+      #{path('output')}
+      $ sh '#{path('output')}/run'
+      hello world
+    }
   end
 
-  def test_build_builds_the_recipe_in_a_dir_under_pwd_named_like_the_recipe_basename
+  def test_build_builds_the_recipe_in_a_dir_named_like_the_relative_path_to_the_recipe
     recipe_path = prepare 'path/to/recipe.rb', %{
       capture_path 'run', 'echo hello world'
     }
 
     assert_script %{
       $ linecook build '#{recipe_path}'
-      #{path('recipe')}
+      #{path('path/to/recipe')}
     }
 
-    assert_equal "echo hello world", content('recipe/run')
+    assert_equal "echo hello world", content('path/to/recipe/run')
+  end
+
+  def test_build_builds_non_relative_recipes_by_basename
+    tempfile = Tempfile.new('recipe')
+    tempfile << "capture_path 'run', 'echo hello world'"
+    name = File.basename(tempfile.path)
+
+    assert_script %{
+      $ linecook build '#{tempfile.path}'
+      #{path(name)}
+    }
+
+    assert_equal "echo hello world", content("#{name}/run")
   end
 
   def test_build_builds_multiple_recipes
-    a = prepare 'path/to/a.rb', %{
+    a = prepare 'a.rb', %{
       capture_path 'run', 'echo hello a'
     }
     b = prepare 'b.rb', %{
@@ -241,6 +304,19 @@ class LinecookTest < Test::Unit::TestCase
 
     assert_equal "echo hello a", content('a/run')
     assert_equal "echo hello b", content('b/run')
+  end
+
+  def test_build_allows_specification_of_an_alternate_input_dir
+    recipe_path = prepare 'path/to/recipe.rb', %{
+      capture_path 'run', 'echo hello world'
+    }
+
+    assert_script %{
+      $ linecook build -i '#{path('path/to')}' '#{recipe_path}'
+      #{path('recipe')}
+    }
+
+    assert_equal "echo hello world", content('recipe/run')
   end
 
   def test_build_allows_specification_of_an_alternate_output_dir
@@ -355,11 +431,11 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal 'echo HELLO WORLD', content('recipe/run')
   end
 
-  def test_build_guesses_a_package_file
-    package_file = prepare 'recipe.yml', %{
+  def test_build_guesses_a_package_config_file_based_on_relative_path_to_recipe
+    package_file = prepare 'path/to/recipe.yml', %{
       key: value
     }
-    recipe_path  = prepare 'recipe.rb', %{
+    recipe_path  = prepare 'path/to/recipe.rb', %{
       capture_path 'run', attrs['key']
     }
 
@@ -371,7 +447,23 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal 'value', content('recipe/run')
   end
 
-  def test_build_allows_specification_of_an_alternate_input_dir
+  def test_build_guesses_package_config_file_using_base_name_for_non_relative_recipe_paths
+    prepare 'packages/recipe.yml', %{
+      key: value
+    }
+    tempfile = Tempfile.new('recipe')
+    tempfile << "capture_path 'run', attrs['key']"
+    name = File.basename(tempfile.path)
+
+    assert_script %{
+      $ linecook build '#{tempfile.path}'
+      #{path(name)}
+    }
+
+    assert_equal "value", content("#{name}/run")
+  end
+
+  def test_build_allows_specification_of_an_alternate_package_config_dir
     prepare 'packages/recipe.yml', %{
       key: value
     }
@@ -380,7 +472,7 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_script %{
-      $ linecook build -i '#{path('packages')}' '#{recipe_path}'
+      $ linecook build -k '#{path('packages')}' '#{recipe_path}'
       #{path('recipe')}
     }
 
@@ -420,7 +512,7 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_script %{
-      $ linecook compile_helper Example '#{source_file}'
+      $ linecook compile-helper Example '#{source_file}'
       #{path('lib/example.rb')}
       $ linecook compile -Ilib '#{recipe_path}'
     }
@@ -448,7 +540,7 @@ class LinecookTest < Test::Unit::TestCase
     }
 
     assert_script %{
-      $ linecook compile_helper Example -s '#{path('a')}' -s '#{path('b')}'
+      $ linecook compile-helper Example -s '#{path('a')}' -s '#{path('b')}'
       #{path('lib/example.rb')}
       $ linecook compile -Ilib '#{recipe_path}'
     }
@@ -461,14 +553,14 @@ class LinecookTest < Test::Unit::TestCase
 
   def test_compile_helper_has_sensible_error_for_no_sources_specified
     assert_script %{
-      $ linecook compile_helper Example # [1]
+      $ linecook compile-helper Example # [1]
       no sources specified
     }
   end
 
   def test_compile_helper_has_sensible_error_for_invalid_constant_name
     assert_script %{
-      $ linecook compile_helper _Example # [1]
+      $ linecook compile-helper _Example # [1]
       invalid constant name: "_Example"
     }
   end
@@ -476,7 +568,7 @@ class LinecookTest < Test::Unit::TestCase
   def test_compile_helper_has_sensible_error_for_invalid_source_file_names
     source_file = prepare('-.rb', '')
     assert_script %{
-      $ linecook compile_helper Example '#{source_file}' # [1]
+      $ linecook compile-helper Example '#{source_file}' # [1]
       invalid source file: "#{source_file}" (invalid method name "-")
     }
   end
@@ -484,7 +576,7 @@ class LinecookTest < Test::Unit::TestCase
   def test_compile_helper_has_sensible_error_for_invalid_formats
     source_file = prepare('source_file.json', '')
     assert_script %{
-      $ linecook compile_helper Example '#{source_file}' # [1]
+      $ linecook compile-helper Example '#{source_file}' # [1]
       invalid source file: "#{source_file}" (unsupported format ".json")
     }
   end
@@ -492,7 +584,7 @@ class LinecookTest < Test::Unit::TestCase
   def test_compile_helper_has_sensible_error_for_invalid_section_formats
     source_file = prepare('_section_file.json', '')
     assert_script %{
-      $ linecook compile_helper Example '#{source_file}' # [1]
+      $ linecook compile-helper Example '#{source_file}' # [1]
       invalid source file: "#{source_file}" (unsupported section format ".json")
     }
   end
