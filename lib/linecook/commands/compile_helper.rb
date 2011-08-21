@@ -8,22 +8,18 @@ module Linecook
 
     # :startdoc::desc generates a helper module
     #
-    # Generates the specified helper module from a set of source files.  Each
-    # source file becomes a method in the module, named after the source file
-    # itself.
+    # Compiles a helper module from a set of source files.  Each source file
+    # becomes a method in the module, named after the source file itself.
     #
-    # The helper module will be generated under the output directory, by
-    # default 'lib', in a file corresponding to const_name (which can also be
-    # a constant path). For example these are equivalent and produce the
+    # The helper module will be generated under the output directory in a file
+    # corresponding to const_name (which can also be a constant path). Input
+    # directories may be specified to automatically search for source files
+    # based on constant path.  These are all are equivalent and produce the
     # Const::Name module in 'lib/const/name.rb':
     #
-    #   $ linecook compile_helper Const::Name helpers/const/name/*
-    #   $ linecook compile_helper const/name helpers/const/name/*
-    #
-    # To have compile_helper search for source files under a specific
-    # directory, use the -s option:
-    #
-    #   $ linecook compile_helper const/name -s helpers
+    #   $ linecook compile-helper Const::Name helpers/const/name/*
+    #   $ linecook compile-helper const/name helpers/const/name/*
+    #   $ linecook compile-helper const/name -i helpers
     #
     # == Source Files
     #
@@ -35,8 +31,7 @@ module Linecook
     #   .erb         file defines an ERB template (compiled to ruby code)
     #
     # Source files can specify documenation and a method signature using a
-    # standard header separated from the body by a double-dash.  For example
-    # this:
+    # header separated from the body by a double-dash, like this:
     #
     #   [echo.erb]
     #   Echo arguments out to the target.
@@ -44,7 +39,7 @@ module Linecook
     #   --
     #   echo <%= args.join(' ') %>
     #
-    # Is translated into something like:
+    # Which produces something like:
     #
     #   # Echo arguments out to the target.
     #   def echo(*args)
@@ -53,7 +48,7 @@ module Linecook
     #
     # A second 'capture' method is also generated to return the result without
     # writing it to the target.  The latter method is prefixed by an
-    # underscore like:
+    # underscore like this:
     #
     #   # Return the output of echo, without writing to the target
     #   def _echo(*args)
@@ -96,14 +91,13 @@ module Linecook
     #   .rb          file defines ruby (directly inserted)
     #   .rdoc        file defines RDoc (lines commented out, then inserted)
     #
-    # Note that section files prevent the easy definition of methods beginning
-    # with an underscore; this is intentional and prevents collisions with
-    # capture methods.
+    # Note that section files prevent methods beginning with an underscore;
+    # this is intentional and prevents collisions with capture methods.
     class CompileHelper < Command
-      config :output_dir, 'lib'   # -o : the output directory
-      config :search_dirs, []     # -s : search for helpers
-      config :force, false        # -f : force creation
-      config :quiet, false        # -q : print nothing
+      config :output_dir, 'lib'   # -o DIRECTORY : the output directory
+      config :search_dirs, []     # -i DIRECTORY : the input directory
+      config :force, false        # -f, --force : force creation
+      config :quiet, false        # -q, --quiet : print nothing
 
       include Utils
 
