@@ -11,22 +11,24 @@ begin
   Linecook::Executable.run do |callpath, command_class, options|
     options.on '-h', '--help', 'print this help' do
       puts "usage: #{callpath.unshift('linecook').join(' ')} #{command_class.signature}"
-      puts
       if command_class.respond_to?(:command_list)
+        puts
         puts "commands:"
         command_class.command_list.each do |name, command|
-          puts "  %-16s   %s" % [name, command.desc]
+          puts "    %-30s   %s" % [name, command.desc]
         end
         puts
+      else
+        puts command_class.help
       end
       puts "options:"
-      puts options.to_s.gsub(/^  /, '').gsub(/\s{16}/, '') # hack to fix spacing
+      puts options.to_s # hack to fix spacing
 
       exit
     end
     
     if command_class == Linecook::Executable
-      options.on("-v", "--version", "print version") do |v|
+      options.on('-v', '--version', 'print version') do |v|
         puts "linecook version #{Linecook::VERSION} -- #{Linecook::WEBSITE}"
         exit
       end
