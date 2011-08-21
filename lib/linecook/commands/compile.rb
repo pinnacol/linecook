@@ -63,19 +63,14 @@ module Linecook
           compile_helpers(helper_dir)
         end
 
-        package  = Linecook::Package.new(load_env(package_file))
-        cookbook = Linecook::Cookbook.new(*cookbook_path)
+        package  = Package.new(load_env(package_file))
+        cookbook = Cookbook.new(*cookbook_path)
 
         recipes.each do |recipe_name|
           if recipe_name == '-'
             recipe = Recipe.new(package, cookbook, $stdout)
             recipe.helper *helpers
-            
-            lineno = 0
-            while line = gets
-              recipe.instance_eval line, 'stdin', lineno
-              lineno += 1
-            end
+            recipe.instance_eval $stdin.read, 'stdin'
           else
             recipe_path = cookbook.find(:recipes, recipe_name)
 

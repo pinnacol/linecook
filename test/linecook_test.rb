@@ -83,6 +83,19 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal "echo hello b", content('b')
   end
 
+  def test_compile_stdin_to_stdout_on_dash
+    recipe_path = prepare 'path/to/recipe.rb', %{
+      writeln %{
+        echo hello world
+      }.strip
+    }
+
+    assert_script %{
+      $ linecook compile - < '#{recipe_path}'
+      echo hello world
+    }
+  end
+
   def test_compile_allows_specification_of_output_dir
     recipe_path = prepare 'recipe.rb', %{
       write 'echo hello world'
