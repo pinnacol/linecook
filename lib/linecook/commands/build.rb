@@ -4,11 +4,13 @@ module Linecook
   module Commands
     # ::desc package recipes
     #
-    # Builds a list of 'package' recipes into a list of packages.  Packages
-    # are exported to the working directory based on the basename of the
-    # recipe. Recipes are not added to the package by default (unlike compile)
-    # but they are automatically configured with a package file with the same
-    # basename, if it exists.  This type of workflow is possible:
+    # Builds a list of 'package' recipes into packages.  Packages are exported
+    # to a directory named like the recipe. Build prints the package dir for
+    # each recipe to stdout.
+    #
+    # Recipes are not added to the package by default (unlike compile) but
+    # they are automatically configured with a package file named like the
+    # recipe, if it exists.  For example:
     #
     #   $ echo "capture_path('run', 'echo ' + attrs['msg'])" > recipe.rb 
     #   $ echo "msg: hello world" > recipe.yml
@@ -17,25 +19,33 @@ module Linecook
     #   $ sh recipe/run
     #   hello world
     #
-    # The base export dir and package config dir can both be set with options.
-    # The final package dir for each recipe is printed to stdout, as shown
-    # above.
+    # An input directory containing the package files, and an output directory
+    # for the packages may be specified with options.
     #
-    # If more control over the mapping of recipes to packages is needed, then
-    # provide a comma-separated string specifying
-    # 'package_file,recipe_file,export_dir'. Non-absolute file paths may be
-    # provided, in which case the package file is resolved relative to the
-    # package config dir, the recipe is looked up by the cookbook, and the
-    # export dir is resolved relative to the export dir.
+    # == Package Specs
+    #
+    # Package specs can be provided instead of recipes.  Specs are
+    # comma-separated strings specifying, in order,
+    # 'package_file,recipe_file,export_dir' and allow full control over the
+    # building of packages.
+    #
+    # Non-absolute file paths may be provided, in which case the package file
+    # is resolved relative to the package config dir, the recipe is looked up
+    # by the package cookbook, and the export dir is resolved relative to the
+    # export dir. For example:
+    #
+    #   $ echo "capture_path('run', 'echo ' + attrs['msg'])" > recipe.rb 
+    #   $ echo "msg: hello world" > input.yml
+    #   $ linecook build input.yml,recipe.rb,output
+    #   /path/to/pwd/output
+    #   $ sh output/run
+    #   hello world
     #
     # Providing '-' as an input will cause stdin to be read for additional
     # inputs.  In that way a CSV file can serve as a manifest for the packages
     # created by this command.
     #
     class Build < Compile
-      pwd = Dir.pwd
-      config :input_dir, pwd                     # -i DIRECTORY : package config dir
-      config :output_dir, pwd                    # -o DIRECTORY : base export dir
       undef_config :package_file
 
       def input_dir=(input)
@@ -102,7 +112,7 @@ module Linecook
         case fields.length
         when 1  # short form
           recipe_path = fields.at(0)
-          export_name = File.basename(recipe_path).chomp(File.extname(recipe_path))
+          export_name = File.basename(recipe_path).chomp('.rb')
           ["#{export_name}.yml", recipe_path, export_name]
         when 3  # long form
           fields

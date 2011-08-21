@@ -6,6 +6,7 @@ module Linecook
       def parse(argv=ARGV)
         parser = configs.to_parser(:add_defaults => false)
         yield(parser) if block_given?
+        parser.sort_opts!
         parser.parse!(argv)
 
         new(parser.config)
@@ -23,8 +24,7 @@ module Linecook
 
       # Returns a help string that formats the desc documentation.
       def help
-        lines = desc.kind_of?(Lazydoc::Comment) ? desc.wrap(77, 2, nil) : []
-        lines.collect! {|line| "  #{line}"}
+        lines = desc.kind_of?(Lazydoc::Comment) ? desc.wrap(78, 2, nil) : []
 
         unless lines.empty?
           line = '-' * 80

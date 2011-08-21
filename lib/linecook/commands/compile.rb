@@ -42,14 +42,13 @@ module Linecook
         end
       end
 
-      pwd = Dir.pwd
-      config :cookbook_path, [], :delimiter => ':'   # -C PATH : cookbook dirs
-      config :helpers, []                            # -H NAME : use these helpers
-      config :helper_dirs, []                        # -L DIRECTORY : compile helpers
-      config :package_file, nil                      # -P PATH : package file
-      config :input_dir, pwd                         # -i DIRECTORY : the base dir
-      config :output_dir, pwd                        # -o DIRECTORY : the export dir
-      config :force, false                           # -f : overwrite existing
+      config :cookbook_path, [], :delimiter => ':'     # -C PATH : cookbook dirs
+      config :helpers, []                              # -H NAME : use these helpers
+      config :helper_dirs, []                          # -L DIRECTORY : compile helpers
+      config :package_file, nil                        # -P PATH : package config file
+      config :input_dir, '.', :writer => :input_dir=   # -i DIRECTORY : the input dir
+      config :output_dir, '.', :writer => :output_dir= # -o DIRECTORY : the output dir
+      config :force, false                             # -f, --force : overwrite existing
 
       def input_dir=(input)
         @input_dir = File.expand_path(input)
@@ -74,7 +73,7 @@ module Linecook
             recipe.instance_eval $stdin.read, 'stdin'
           else
             recipe_path = cookbook.find(:recipes, recipe_name)
-            target_path = basepath(recipe_path, input_dir)
+            target_path = relative_path(input_dir, recipe_path).chomp('.rb')
             target = package.add target_path
 
             recipe = Recipe.new(package, cookbook, target)
@@ -93,12 +92,11 @@ module Linecook
         end
       end
 
-      def basepath(path, dir=nil)
-        extname = File.extname(path)
-        if dir && path.index(dir) == 0 && path != dir
-          path[dir.length + 1, path.length - dir.length].chomp(extname)
+      def relative_path(dir, path)
+        if path.index(dir) == 0 && path != dir
+          path[dir.length + 1, path.length - dir.length]
         else
-          File.basename(path).chomp(extname)
+          File.basename(path)
         end
       end
 

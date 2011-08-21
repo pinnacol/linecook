@@ -14,7 +14,7 @@ module Linecook
         {
           'build'          => Linecook::Commands::Build,
           'compile'        => Linecook::Commands::Compile,
-          'compile_helper' => Linecook::Commands::CompileHelper,
+          'compile-helper' => Linecook::Commands::CompileHelper,
           'start'          => Linecook::Commands::Start,
           'stop'           => Linecook::Commands::Stop,
           'state'          => Linecook::Commands::State,

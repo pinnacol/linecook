@@ -22,7 +22,7 @@ begin
         puts command_class.help
       end
       puts "options:"
-      puts options.to_s # hack to fix spacing
+      puts options.to_s
 
       exit
     end
