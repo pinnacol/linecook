@@ -41,6 +41,12 @@ class PackageTest < Test::Unit::TestCase
     assert_equal File.expand_path('source/path'), package.registry['target/path']
   end
 
+  def test_register_accepts_nil_source_paths
+    package.register('target/dir', nil)
+    assert_equal nil, package.registry['target/dir']
+    assert_equal true, package.registry.has_key?('target/dir')
+  end
+
   def test_register_raises_error_for_target_path_registered_to_a_different_source
     package.register('target/path', 'source/a')
 
@@ -104,6 +110,21 @@ class PackageTest < Test::Unit::TestCase
   def test_add_accepts_export_options
     package.add('target/path', :mode => 0640)
     assert_equal 0640, package.export_options('target/path')[:mode]
+  end
+
+  #
+  # add_dir test
+  #
+
+  def test_add_dir_registers_a_directory_in_registry_at_the_specified_target_path
+    assert_equal nil, package.add_dir('target/dir')
+    assert_equal nil, package.source_path('target/dir')
+    assert_equal true, package.registry.has_key?('target/dir')
+  end
+
+  def test_add_dir_accepts_export_options
+    package.add_dir('target/dir', :mode => 0640)
+    assert_equal 0640, package.export_options('target/dir')[:mode]
   end
 
   #
@@ -251,6 +272,21 @@ class PackageTest < Test::Unit::TestCase
 
     assert_equal false, File.exists?(source_path)
     assert_equal 'content', File.read(path('export/dir/target/path'))
+  end
+
+  def test_export_makes_directories_for_targets_with_nil_source
+    package.registry['target/path'] = nil
+    package.export path('export/dir')
+
+    assert_equal true, File.directory?(path('export/dir/target/path'))
+  end
+
+  def test_export_exports_directories_and_nested_files_without_issue
+    package.add_dir('dir')
+    package.add('dir/file.txt') << 'content'
+    package.export path('export')
+
+    assert_equal 'content', File.read(path('export/dir/file.txt'))
   end
 
   def test_export_sets_the_mode_for_the_target_as_specified_in_export_options

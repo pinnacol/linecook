@@ -53,7 +53,7 @@ module Linecook
         end
       end
 
-      if source_path?(source)
+      if !source.nil? && source_path?(source)
         source = File.expand_path(source)
       end
 
@@ -77,6 +77,11 @@ module Linecook
       source  = Tempfile.new File.basename(target_path)
       options = {:move => true}.merge(options)
       register target_path, source, options
+    end
+
+    # Registers the target_path as a dir.  Returns nil.
+    def add_dir(target_path, options={})
+      register target_path, nil, options
     end
 
     # Removes a target path from the registry.  Returns the source if one was
@@ -146,7 +151,7 @@ module Linecook
     # Closes all open sources in the registry and returns self.
     def close
       registry.each_value do |source|
-        unless source_path?(source)
+        unless source.nil? || source_path?(source)
           source.close unless source.closed?
         end
       end
@@ -175,7 +180,8 @@ module Linecook
     def export(dir)
       close
 
-      registry.each_pair do |target_path, source|
+      registry.keys.sort.each do |target_path|
+        source      = registry[target_path]
         export_path = File.join(dir, target_path)
         source_path = resolve_source_path(source)
         options     = export_options(target_path)
@@ -191,13 +197,17 @@ module Linecook
             end
           end
 
-          export_dir = File.dirname(export_path)
-          FileUtils.mkdir_p(export_dir)
-
-          if options[:move]
-            FileUtils.mv(source_path, export_path)
+          if source.nil?
+            FileUtils.mkdir_p(export_path)
           else
-            FileUtils.cp(source_path, export_path)
+            export_dir = File.dirname(export_path)
+            FileUtils.mkdir_p(export_dir)
+
+            if options[:move]
+              FileUtils.mv(source_path, export_path)
+            else
+              FileUtils.cp(source_path, export_path)
+            end
           end
         end
 
