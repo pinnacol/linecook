@@ -111,21 +111,34 @@ module Linecook
       target_name
     end
 
-    # Finds the source file corresponding to the source_name, adds it to the
-    # package under the target_name, and returns the target_path for the
-    # result.
-    def file_path(source_name, target_name=nil)
+    # Finds a source path, adds it to the package, and returns a target path.
+    # Options specify export options, and the following:
+    #
+    #   key            value
+    #   :target_name   The name of the file in the package (default guessed
+    #                  by _guess_target_name_)
+    #
+    # See _file_source_path_ for how source_name is resolved to a source path.
+    def file_path(source_name, options={})
       source_path = _file_source_path_(source_name)
-      target_name ||= _guess_target_name_(source_name)
-      
-      _package_.register target_name, source_path
+      target_name = options.delete(:target_name) || _guess_target_name_(source_path)
+
+      _package_.register target_name, source_path, options
       target_path target_name
     end
 
-    def recipe_path(source_name, target_name=nil)
+    # Finds a recipe, compiles it, adds it to the package, and returns a
+    # target path. Options specify export options, and the following:
+    #
+    #   key            value
+    #   :target_name   The name of the recipe result in the package (default
+    #                  guessed by _guess_recipe_name_)
+    #
+    # See _recipe_source_path_ for how source_name is resolved to a recipe.
+    def recipe_path(source_name, options={})
       source_path = _recipe_source_path_(source_name)
-      target_name ||= _guess_recipe_name_(source_path)
-      target = _package_.add(target_name)
+      target_name = options.delete(:target_name) || _guess_recipe_name_(source_path)
+      target = _package_.add(target_name, options)
 
       recipe = Recipe.new(_package_, _cookbook_, target)
       recipe.instance_eval File.read(source_path), source_path
@@ -134,17 +147,29 @@ module Linecook
       target_path target_name
     end
 
-    def template_path(source_name, target_name=nil, locals=attrs)
+    # Finds a template, compiles it, adds it to the package, and returns a
+    # target path. Options specify export options, and the following:
+    #
+    #   key            value
+    #   :target_name   The name of the template result in the package (default
+    #                  guessed by _guess_template_name_)
+    #   :locals        The locals for the template (default attrs)
+    #
+    # See _template_source_path_ for how source_name is resolved to a
+    # template.
+    def template_path(source_name, options={})
       source_path = _template_source_path_(source_name)
-      target_name ||= _guess_template_name_(source_path)
+      target_name = options.delete(:target_name) || _guess_template_name_(source_path)
+      locals = options.delete(:locals) || attrs
 
-      capture_path(target_name) { write render(source_path, locals) }
+      capture_path(target_name, options) { write render(source_path, locals) }
     end
 
-    def capture_path(target_name, content=nil)
-      target = _package_.add(target_name)
+    # Captures output to target for a block and adds the result to _package_
+    # at target_name.  Options specify export options.
+    def capture_path(target_name, options={})
+      target = _package_.add(target_name, options)
 
-      target << content if content
       _capture_(target) { yield } if block_given?
 
       target.close unless target.closed?

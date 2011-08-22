@@ -1,5 +1,3 @@
-capture_path 'run' do
+capture_path 'run', :mode => 0744 do
   writeln "echo #{attrs['letters'].join(' ')}"
 end
-
-_package_.on_export 'run', :mode => 0744

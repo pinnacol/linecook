@@ -229,9 +229,15 @@ echo 'x y z'
     assert_equal 'content', package.content('file.txt')
   end
 
+  def test_file_path_allows_specification_of_export_options
+    path = prepare 'file.txt', 'content'
+    assert_equal 'file.txt', recipe.file_path(path, :mode => 0600)
+    assert_equal 0600, package.export_options('file.txt')[:mode]
+  end
+
   def test_file_path_allows_specification_of_target_name
     path = prepare 'file.txt', 'content'
-    assert_equal 'target/name', recipe.file_path(path, 'target/name')
+    assert_equal 'target/name', recipe.file_path(path, :target_name => 'target/name')
     assert_equal 'content', package.content('target/name')
   end
 
@@ -258,9 +264,15 @@ echo 'x y z'
     assert_equal 'content', package.content('recipe')
   end
 
+  def test_recipe_path_allows_specification_of_export_options
+    path = prepare 'recipe.rb', 'write "content"'
+    assert_equal 'recipe', recipe.recipe_path(path, :mode => 0600)
+    assert_equal 0600, package.export_options('recipe')[:mode]
+  end
+
   def test_recipe_path_allows_specification_of_target_name
     path = prepare 'recipe.rb', 'write "content"'
-    assert_equal 'target/name', recipe.recipe_path(path, 'target/name')
+    assert_equal 'target/name', recipe.recipe_path(path, :target_name => 'target/name')
     assert_equal 'content', package.content('target/name')
   end
 
@@ -281,10 +293,28 @@ echo 'x y z'
   # template_path test
   #
 
-  def test_template_path_renders_source_template_to_package_at_target_path
+  def test_template_path_renders_source_template_to_package
     path = prepare 'file.txt.erb', 'got <%= obj %>'
     recipe.attrs[:obj] = 'milk'
     assert_equal 'file.txt', recipe.template_path(path)
+    assert_equal 'got milk', package.content('file.txt')
+  end
+
+  def test_template_path_allows_specification_of_export_options
+    path = prepare 'file.txt.erb', 'got <%= "milk" %>'
+    assert_equal 'file.txt', recipe.template_path(path, :mode => 0600)
+    assert_equal 0600, package.export_options('file.txt')[:mode]
+  end
+
+  def test_template_path_allows_specification_of_target_name
+    path = prepare 'file.txt.erb', 'got <%= "milk" %>'
+    assert_equal 'target/name', recipe.template_path(path, :target_name => 'target/name')
+    assert_equal 'got milk', package.content('target/name')
+  end
+
+  def test_template_path_allows_specification_of_locals
+    path = prepare 'file.txt.erb', 'got <%= obj %>'
+    assert_equal 'file.txt', recipe.template_path(path, :locals => {'obj' => 'milk'})
     assert_equal 'got milk', package.content('file.txt')
   end
 
@@ -325,9 +355,9 @@ echo 'x y z'
     assert_equal 'content', package.content('target/name')
   end
 
-  def test_capture_path_allows_specification_of_string_content
-    assert_equal 'target/name', recipe.capture_path('target/name', 'content')
-    assert_equal 'content', package.content('target/name')
+  def test_capture_path_allows_specification_of_export_options
+    assert_equal 'target/name', recipe.capture_path('target/name', :mode => 0600)
+    assert_equal 0600, package.export_options('target/name')[:mode]
   end
 
   #

@@ -12,7 +12,7 @@ module Linecook
     # they are automatically configured with a package file corresponding to
     # the recipe, if it exists.  For example:
     #
-    #   $ echo "capture_path('run', 'echo ' + attrs['msg'])" > recipe.rb 
+    #   $ echo "capture_path('run') { write 'echo ' + attrs['msg'] }" > recipe.rb
     #   $ echo "msg: hello world" > recipe.yml
     #   $ linecook build recipe.rb
     #   /path/to/pwd/recipe
@@ -33,7 +33,7 @@ module Linecook
     # cookbook path, and the export dir is resolved relative to the output
     # dir. For example:
     #
-    #   $ echo "capture_path('run', 'echo ' + attrs['msg'])" > recipe.rb 
+    #   $ echo "capture_path('run') { write 'echo ' + attrs['msg'] }" > recipe.rb
     #   $ echo "msg: hello world" > input.yml
     #   $ linecook build input.yml,recipe.rb,output
     #   /path/to/pwd/output
