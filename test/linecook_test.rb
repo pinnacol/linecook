@@ -241,6 +241,78 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal 'echo HELLO WORLD', content('recipe')
   end
 
+  def test_compile_with_method_chaining
+    prepare 'helpers/example/cat.erb', %{
+      cat
+    }
+    prepare 'helpers/example/heredoc.erb', %{
+      ()
+      _rstrip_ if _chain_?
+      --
+       <<DOC
+      <% yield %>
+      DOC
+    }
+
+    recipe_path = prepare 'recipe.rb', %{
+      helper 'example'
+      cat.heredoc do
+        writeln 'a'
+        writeln 'b'
+        writeln 'c'
+      end
+    }
+
+    assert_script %{
+      $ linecook compile -L helpers '#{recipe_path}'
+    }
+
+    assert_str_equal %{
+      cat <<DOC
+      a
+      b
+      c
+      DOC
+    }, content('recipe')
+  end
+
+  def test_compile_with_capture_methods
+    prepare 'helpers/example/echo.erb', %q{
+      (str)
+      --
+      echo <%= str %>
+    }
+
+    recipe_path = prepare 'recipe.rb', %q{
+      helper 'example'
+      write _echo('xyz').upcase
+    }
+
+    assert_script %{
+      $ linecook compile -L helpers '#{recipe_path}'
+    }
+
+    assert_equal 'ECHO XYZ', content('recipe')
+  end
+
+  def test_compile_with_callbacks
+    a = prepare 'a.rb', %q{
+      callback 'cb' do
+        write 'content'
+      end
+    }
+    b = prepare 'b.rb', %q{
+      write_callback 'cb'
+    }
+
+    assert_script %{
+      $ linecook compile '#{a}' '#{b}'
+    }
+
+    assert_equal '', content('a')
+    assert_equal 'content', content('b')
+  end
+
   #
   # build test
   #
