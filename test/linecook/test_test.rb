@@ -172,8 +172,6 @@ class TestTest < Test::Unit::TestCase
     end
   end
 
-
-
   #
   # test scenarios
   #
@@ -210,7 +208,10 @@ class TestTest < Test::Unit::TestCase
       prepare "recipes/#{box}.rb", %{
         $:.unshift '#{path('lib')}'
         helper 'project_test_helper'
-        echo 'run', '#{box}', *attrs['letters']
+        capture_path 'run' do
+          echo '#{box}', *attrs['letters']
+        end
+        _package_.on_export 'run', :mode => 0744
       }
 
       prepare "packages/#{box}.yml", %{
@@ -218,13 +219,13 @@ class TestTest < Test::Unit::TestCase
       }
     end
 
-    stdout, msg = compile_project
+    stdout, msg = build_project
     assert_equal 0, $?.exitstatus, msg
 
     stdout, msg = run_project
     assert_str_equal %q{
-      run abox a b c
-      run bbox a b c
+      abox a b c
+      bbox a b c
     }, stdout, msg
     assert_equal 0, $?.exitstatus, msg
   end
@@ -232,12 +233,12 @@ class TestTest < Test::Unit::TestCase
   cleanup_paths 'log', 'packages/abox'
 
   def test_a_static_project
-    stdout, msg = compile_project
+    stdout, msg = build_project
     assert_equal 0, $?.exitstatus, msg
 
     stdout, msg = run_project
     assert_str_equal %q{
-      run a b c
+      a b c
     }, stdout, msg
     assert_equal 0, $?.exitstatus, msg
   end

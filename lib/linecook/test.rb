@@ -121,51 +121,39 @@ module Linecook
       recipe
     end
 
-    # def build_package(host=self.host)
-    #   package_dir = path("packages/#{host}")
-    #
-    #   package.build
-    #   package.export package_dir
-    #
-    #   package_dir
-    # end
-
-    def run_package(options={}, host=self.host)
-      options['remote_script'] ||= runlist.join(',')
-
+    def export_package(host=self.host)
       package_dir = path("packages/#{host}")
       package.export package_dir
-
-      run_project options, package_dir
+      package_dir
     end
 
-    def compile_project(options={})
+    def run_package(options={}, host=self.host)
+      options['S'] ||= runlist.join(',')
+      run_project options, export_package(host)
+    end
+
+    def build_project(options={})
       options = {
-        'H' => 'helpers',
+        'L' => 'helpers',
         'C' => method_dir,
-        'o' => path('packages'),
-        'x' => true
+        'i' => path('packages'),
+        'o' => path('packages')
       }.merge(options)
 
-      Dir.chdir(method_dir) do
-        glob('recipes/*.rb').each do |recipe|
-          name = File.basename(recipe).chomp('.rb')
-          options['P'] = path("packages/#{name}.yml")
-          linecook('compile', options, recipe)
-        end
+      Dir.chdir method_dir do
+        linecook('build', options, *glob('recipes/*.rb'))
       end
     end
 
-    # # pick up user dir as a gem... bundler!
     def run_project(options={}, *package_dirs)
       if package_dirs.empty?
         package_dirs = glob('packages/*').select {|path| File.directory?(path) }
       end
 
       options = {
-        'ssh_config_file' => ssh_config_file,
-        'remote_dir'      => remote_dir,
-        'quiet'           => true
+        'F' => ssh_config_file,
+        'D' => remote_dir,
+        'q' => true
       }.merge(options)
 
       linecook('run', options, *package_dirs)
