@@ -74,7 +74,7 @@ end
 
 desc "start each vm at CURRENT"
 task :start => :bundle do
-  sh 'bundle exec linecook start --socket --snapshot CURRENT'
+  sh 'bundle exec linecook start --master-socket --snapshot CURRENT'
 end
 
 desc "snapshot each vm to a new CURRENT"
@@ -86,7 +86,7 @@ desc "reset each vm to BASE"
 task :reset_base => :bundle do
   sh 'bundle exec linecook snapshot --reset BASE'
   sh 'bundle exec linecook snapshot CURRENT'
-  sh 'bundle exec linecook start --socket --snapshot CURRENT'
+  sh 'bundle exec linecook start --master-socket --snapshot CURRENT'
 end
 
 desc "stop each vm"
