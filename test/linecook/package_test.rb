@@ -221,6 +221,22 @@ class PackageTest < Test::Unit::TestCase
   end
 
   #
+  # next_variable_name test
+  #
+
+  def test_next_variable_name_increments_and_returns_context
+    assert_equal 'a0', package.next_variable_name('a')
+    assert_equal 'a1', package.next_variable_name('a')
+    assert_equal 'b0', package.next_variable_name('b')
+  end
+
+  def test_next_variable_name_converts_context_to_a_string
+    assert_equal 'a0', package.next_variable_name('a')
+    assert_equal 'a1', package.next_variable_name(:a)
+    assert_equal 'a2', package.next_variable_name('a')
+  end
+
+  #
   # close test
   #
 
