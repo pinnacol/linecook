@@ -1,0 +1,13 @@
+Executes a command and checks the output status. Quotes all non-option args
+that aren't already quoted. Accepts a trailing hash which will be transformed
+into command line options.
+
+(command, *args)
+  if _chain_?
+    _rewrite_(trailer)
+    write ' | '
+  end
+--
+<%= command_str(command, *args) %>
+
+<% check_status %>

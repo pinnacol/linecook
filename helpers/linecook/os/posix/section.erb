@@ -1,0 +1,9 @@
+Write a comment to delimit sections.  The comment takes the format:
+
+  #### name ###
+
+(name="")
+  n = (78 - name.length)/2
+  str = "-" * n
+--
+#<%= str %><%= name %><%= str %><%= "-" if name.length % 2 == 1 %>

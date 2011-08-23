@@ -1,0 +1,10 @@
+Cause the shell to exit.
+{[Spec]}[http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_21]
+
+(status=nil)
+--
+<% if status.nil? %>
+exit
+<% else %>
+exit <%= status %>
+<% end %>

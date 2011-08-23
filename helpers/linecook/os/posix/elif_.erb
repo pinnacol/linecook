@@ -1,0 +1,12 @@
+Chains to if_ to make an else-if statement.
+
+(expression)
+  unless match = _rewrite_(/(\s+)(fi\s*)/)
+    raise "elif_ used outside of if_ statement"
+  end
+--
+<%= match[1] %>
+elif <%= expression %>
+then
+<% indent { yield } %>
+<%= match[2] %>

@@ -1,0 +1,23 @@
+Makes a heredoc statement surrounding the contents of the block.  Options:
+
+  delimiter   the delimiter used, by default HEREDOC_n where n increments
+  outdent     add '-' before the delimiter
+  quote       quotes the delimiter
+
+(options={})
+  tail = _chain_? ? _rewrite_(trailer) {|m| write ' '; m[1].lstrip } : nil
+  
+  unless options.kind_of?(Hash)
+    options = {:delimiter => options}
+  end
+  
+  delimiter = options[:delimiter] || begin
+    @heredoc_count ||= -1
+    "HEREDOC_#{@heredoc_count += 1}"
+  end
+--
+<<<%= options[:outdent] ? '-' : ' '%><%= options[:quote] ? "\"#{delimiter}\"" : delimiter %><% outdent(" # :#{delimiter}:") do %>
+<% yield %>
+<%= delimiter %><% end %>
+
+<%= tail %>

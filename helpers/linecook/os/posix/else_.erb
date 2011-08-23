@@ -1,0 +1,11 @@
+Chains to if_ or unless_ to make an else statement.
+
+()
+  unless match = _rewrite_(/(\s+)(fi\s*)/)
+    raise "else_ used outside of if_ statement"
+  end
+--
+<%= match[1] %>
+else
+<% indent { yield } %>
+<%= match[2] %>
