@@ -102,6 +102,11 @@ def current_ruby
   `ruby -v`.split[0,2].join('-')
 end
 
+desc "Build helpers"
+task :helpers do
+  sh "bundle exec linecook compile -L helpers"
+end
+
 desc 'Run the tests assuming the vm is running'
 task :quicktest => :bundle do
   tests = Dir.glob('test/**/*_test.rb')
