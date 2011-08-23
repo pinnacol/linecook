@@ -94,7 +94,7 @@ module Linecook
       @runlist ||= []
     end
 
-    def setup_recipe(target_path=package.next_target_path, &block)
+    def setup_recipe(target_path=package.next_target_path('recipe'), &block)
       target = package.add(target_path, :mode => 0744)
       recipe = Recipe.new(package, cookbook, target)
       helpers.each {|helper| recipe.extend helper }
