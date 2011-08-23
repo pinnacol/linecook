@@ -208,10 +208,7 @@ class TestTest < Test::Unit::TestCase
       prepare "recipes/#{box}.rb", %{
         $:.unshift '#{path('lib')}'
         helper 'project_test_helper'
-        capture_path 'run' do
-          echo '#{box}', *attrs['letters']
-        end
-        _package_.on_export 'run', :mode => 0744
+        echo '#{box}', *attrs['letters']
       }
 
       prepare "packages/#{box}.yml", %{

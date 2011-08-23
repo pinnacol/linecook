@@ -8,15 +8,15 @@ module Linecook
     # to a directory named like the recipe. Build prints the package dir for
     # each recipe to stdout.
     #
-    # Recipes are not added to the package by default (unlike compile) but
-    # they are automatically configured with a package file corresponding to
-    # the recipe, if it exists.  For example:
+    # Recipes are added to the package as the 'run' executable and they are
+    # automatically configured with a package file corresponding to the
+    # recipe, if it exists.  For example:
     #
-    #   $ echo "capture_path('run') { write 'echo ' + attrs['msg'] }" > recipe.rb
+    #   $ echo "write 'echo ' + attrs['msg']" > recipe.rb
     #   $ echo "msg: hello world" > recipe.yml
     #   $ linecook build recipe.rb
     #   /path/to/pwd/recipe
-    #   $ sh recipe/run
+    #   $ /path/to/pwd/recipe/run
     #   hello world
     #
     # The input directory containing the package files and the output
@@ -33,11 +33,11 @@ module Linecook
     # cookbook path, and the export dir is resolved relative to the output
     # dir. For example:
     #
-    #   $ echo "capture_path('run') { write 'echo ' + attrs['msg'] }" > recipe.rb
+    #   $ echo "write 'echo ' + attrs['msg']" > recipe.rb
     #   $ echo "msg: hello world" > input.yml
     #   $ linecook build input.yml,recipe.rb,output
     #   /path/to/pwd/output
-    #   $ sh output/run
+    #   $ /path/to/pwd/output/run
     #   hello world
     #
     # Providing '-' as an input will cause stdin to be read for additional
@@ -77,7 +77,8 @@ module Linecook
           package  = Package.new(load_env(package_file(package_name)))
           cookbook = Cookbook.new(*cookbook_path)
 
-          recipe   = Recipe.new(package, cookbook)
+          target   = package.add('run', :mode => 0744)
+          recipe   = Recipe.new(package, cookbook, target)
           recipe._compile_ recipe_name
 
           package.export(export_dir)

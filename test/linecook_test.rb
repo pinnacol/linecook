@@ -319,26 +319,26 @@ class LinecookTest < Test::Unit::TestCase
 
   def test_build_documentation
     assert_script %{
-      $ echo "capture_path('run') { write 'echo ' + attrs['msg'] }" > '#{path('recipe.rb')}'
+      $ echo "write 'echo ' + attrs['msg']" > '#{path('recipe.rb')}'
       $ echo "msg: hello world" > '#{path('recipe.yml')}'
       $ linecook build '#{path('recipe.rb')}'
       #{path('recipe')}
-      $ sh '#{path('recipe/run')}'
+      $ '#{path('recipe/run')}'
       hello world
     }
     assert_script %{
-      $ echo "capture_path('run') { write 'echo ' + attrs['msg'] }" > '#{path('recipe.rb')}'
+      $ echo "write 'echo ' + attrs['msg']" > '#{path('recipe.rb')}'
       $ echo "msg: hello world" > '#{path('input.yml')}'
       $ linecook build '#{path('input.yml')}','#{path('recipe.rb')}','#{path('output')}'
       #{path('output')}
-      $ sh '#{path('output')}/run'
+      $ '#{path('output')}/run'
       hello world
     }
   end
 
   def test_build_builds_the_recipe_in_a_dir_named_like_the_recipe_basename
     recipe_path = prepare 'path/to/recipe.rb', %{
-      capture_path('run') { write 'echo hello world' }
+      write 'echo hello world'
     }
 
     assert_script %{
@@ -351,10 +351,10 @@ class LinecookTest < Test::Unit::TestCase
 
   def test_build_builds_multiple_recipes
     a = prepare 'a.rb', %{
-      capture_path('run') { write 'echo hello a' }
+      write 'echo hello a'
     }
     b = prepare 'b.rb', %{
-      capture_path('run') { write 'echo hello b' }
+      write 'echo hello b'
     }
 
     assert_script %{
@@ -372,7 +372,7 @@ class LinecookTest < Test::Unit::TestCase
       key: value
     }
     recipe_path  = prepare 'path/to/recipe.rb', %{
-      capture_path('run') { write attrs['key'] }
+      write attrs['key']
     }
 
     assert_script %{
@@ -388,7 +388,7 @@ class LinecookTest < Test::Unit::TestCase
       key: value
     }
     recipe_path  = prepare 'recipe.rb', %{
-      capture_path('run') { write attrs['key'] }
+      write attrs['key']
     }
 
     assert_script %{
@@ -401,7 +401,7 @@ class LinecookTest < Test::Unit::TestCase
 
   def test_build_allows_specification_of_an_alternate_output_dir
     recipe_path = prepare 'recipe.rb', %{
-      capture_path('run') { write 'echo hello world' }
+      write 'echo hello world'
     }
 
     assert_script %{
@@ -414,7 +414,7 @@ class LinecookTest < Test::Unit::TestCase
 
   def test_build_raises_error_if_package_dir_exists
     recipe_path = prepare 'recipe.rb', %{
-      capture_path('run') { write 'current' }
+      write 'current'
     }
     prepare 'recipe/run', 'previous'
 
@@ -428,7 +428,7 @@ class LinecookTest < Test::Unit::TestCase
 
   def test_build_overwrites_package_dir_on_force
     recipe_path = prepare 'path/to/recipe.rb', %{
-      capture_path('run') { write 'current' }
+      write 'current'
     }
     prepare 'recipe/run', 'previous'
 
@@ -452,9 +452,7 @@ class LinecookTest < Test::Unit::TestCase
     recipe_path = prepare 'recipe.rb', %{
       require 'echo'
       extend Echo
-      capture_path 'run' do
-        upper_echo 'hello world'
-      end
+      upper_echo 'hello world'
     }
 
     assert_script %{
@@ -476,9 +474,7 @@ class LinecookTest < Test::Unit::TestCase
 
     recipe_path = prepare 'recipe.rb', %{
       extend Echo
-      capture_path 'run' do
-        upper_echo 'hello world'
-      end
+      upper_echo 'hello world'
     }
 
     assert_script %{
@@ -498,9 +494,7 @@ class LinecookTest < Test::Unit::TestCase
 
     recipe_path = prepare 'recipe.rb', %{
       helper 'example'
-      capture_path 'run' do
-        upper_echo 'hello world'
-      end
+      upper_echo 'hello world'
     }
 
     assert_script %{
@@ -516,7 +510,7 @@ class LinecookTest < Test::Unit::TestCase
     prepare 'templates/example.erb', 'got <%= obj %>'
     recipe_path = prepare 'recipe.rb', %{
       attributes 'example'
-      capture_path('run') { write render('example', attrs) }
+      write render('example', attrs)
     }
 
     assert_script %{
