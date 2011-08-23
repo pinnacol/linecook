@@ -104,7 +104,7 @@ end
 
 desc "Build helpers"
 task :helpers do
-  sh "bundle exec linecook compile -L helpers"
+  sh "bundle exec linecook compile -L helpers -f"
 end
 
 desc 'Run the tests assuming the vm is running'
