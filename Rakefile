@@ -10,14 +10,14 @@ end
 
 desc 'Prints the gemspec manifest.'
 task :manifest do
-  # collect files from the gemspec, labeling 
+  # collect files from the gemspec, labeling
   # with true or false corresponding to the
   # file existing or not
   files = gemspec.files.inject({}) do |files, file|
     files[File.expand_path(file)] = [File.exists?(file), file]
     files
   end
-  
+
   # gather non-rdoc/pkg files for the project
   # and add to the files list if they are not
   # included already (marking by the absence
@@ -25,13 +25,13 @@ task :manifest do
   Dir.glob('**/*').each do |file|
     next if file =~ /^(rdoc|pkg|coverage|scripts|design|demo|helpers|config|test|vendor|vm)/ || File.directory?(file)
     next if File.extname(file) == '.rbc'
-    
+
     path = File.expand_path(file)
     files[path] = ['', file] unless files.has_key?(path)
   end
-  
+
   # sort and output the results
-  files.values.sort_by {|exists, file| file }.each do |entry| 
+  files.values.sort_by {|exists, file| file }.each do |entry|
     puts '%-5s %s' % entry
   end
 end
@@ -46,7 +46,7 @@ task :rdoc do
   files =  spec.files.select {|file| File.extname(file) == '.rb' }
   files += spec.extra_rdoc_files
   options = spec.rdoc_options.join(' ')
-  
+
   Dir.chdir File.expand_path('..', __FILE__) do
     FileUtils.rm_r 'rdoc'
     sh "rdoc -o rdoc #{options} '#{files.join("' '")}'"
@@ -60,7 +60,7 @@ end
 desc 'Bundle dependencies'
 task :bundle do
   output = `bundle check 2>&1`
-  
+
   unless $?.to_i == 0
     puts output
     sh "bundle install 2>&1"
@@ -111,8 +111,9 @@ desc 'Run the tests assuming the vm is running'
 task :quicktest => :bundle do
   tests = Dir.glob('test/**/*_test.rb')
   tests.delete_if {|test| test =~ /_test\/test_/ }
-  
+
   puts "Using #{current_ruby}"
+
   if ENV['RCOV'] == 'true'
     FileUtils.rm_rf File.expand_path('../coverage', __FILE__)
     sh('rcov', '-w', '--text-report', '--exclude', '^/', *tests)
@@ -121,11 +122,47 @@ task :quicktest => :bundle do
   end
 end
 
+desc 'Run the tests vs each vm in config/ssh'
+task :multitest do
+  require 'thread'
+
+  puts "Using: #{current_ruby}"
+
+  hosts = `bundle exec linecook state --hosts`.split("\n")
+  hosts.collect! {|line| line.split(':').at(0) }
+
+  log_dir = File.expand_path("../log/#{current_ruby}", __FILE__)
+  unless File.exists?(log_dir)
+    FileUtils.mkdir_p(log_dir)
+  end
+
+  threads = hosts.collect do |host|
+    Thread.new do
+      logfile = File.join(log_dir, host)
+      Thread.current["host"] = host
+      Thread.current["logfile"] = logfile
+
+      cmd = "LINECOOK_TEST_HOST=#{host} rake quicktest > '#{logfile}' 2>&1"
+      puts  "Multitest Host: #{host}"
+      system(cmd)
+
+      stdout  = File.read(logfile).split("\n")
+      time    = stdout.grep(/^Finished in/)
+      results = stdout.grep(/^\d+ tests/)
+      puts "Using Host: #{host}\n  #{time}\n  #{results}"
+    end
+  end
+
+  threads.each do |thread|
+    thread.join
+  end
+end
+
 desc 'Run the tests'
 task :test do
   begin
     Rake::Task["start"].invoke
-    Rake::Task["quicktest"].invoke
+    Rake::Task["multitest"].invoke
   ensure
     Rake::Task["stop"].execute(nil)
   end

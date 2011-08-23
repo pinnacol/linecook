@@ -3,3 +3,4 @@ rdoc/*
 .bundle
 .rvmrc
 Gemfile.lock
+/log
