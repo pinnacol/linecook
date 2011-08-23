@@ -1,0 +1,5 @@
+Returns true if the group exists as determined by checking /etc/group.
+
+(name)
+--
+grep "^<%= name %>:" /etc/group >/dev/null 2>&1
