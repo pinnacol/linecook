@@ -76,9 +76,8 @@ module Linecook
 
           package  = Package.new(load_env(package_file(package_name)))
           cookbook = Cookbook.new(*cookbook_path)
-          
+
           recipe   = Recipe.new(package, cookbook)
-          recipe.helper *helpers
           recipe._compile_ recipe_name
 
           package.export(export_dir)

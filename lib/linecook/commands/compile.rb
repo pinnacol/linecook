@@ -39,7 +39,6 @@ module Linecook
       end
 
       config :cookbook_path, [], :delimiter => ':'     # -C PATH : cookbook path
-      config :helpers, []                              # -H NAME : default helpers
       config :helper_dirs, []                          # -L DIRECTORY : compile helpers
       config :package_file, nil                        # -P PATH : package config file
       config :input_dir, '.', :writer => :input_dir=   # -i DIRECTORY : the input dir
@@ -65,7 +64,6 @@ module Linecook
         recipes.each do |recipe_name|
           if recipe_name == '-'
             recipe = Recipe.new(package, cookbook, $stdout)
-            recipe.helper *helpers
             recipe.instance_eval $stdin.read, 'stdin'
           else
             recipe_path = cookbook.find(:recipes, recipe_name)
@@ -73,7 +71,6 @@ module Linecook
             target = package.add target_path
 
             recipe = Recipe.new(package, cookbook, target)
-            recipe.helper *helpers
             recipe._compile_ recipe_path
           end
         end
