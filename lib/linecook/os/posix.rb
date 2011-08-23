@@ -21,14 +21,27 @@ module Linecook
       require 'linecook/os/posix/utilities'
       include Utilities
 
-      # Returns "$0", the program name.
-      def program_name
+      # Returns "$0", the current command name.
+      def command_name
         Variable.new(0)
+      end
+
+      # Returns the command directory (ie the directory containing $0).
+      def command_dir
+        "${0%/*}"
+      end
+
+      def set_package_dir(dir)
+        writeln "export LINECOOK_PACKAGE_DIR=#{quote(dir)}"
       end
 
       # Returns an expression that evaluates to the package dir.
       def package_dir
-        '.'
+        '${LINECOOK_PACKAGE_DIR:-$PWD}'
+      end
+
+      def target_path(target_name)
+        File.join(package_dir, target_name)
       end
 
       # Encloses the arg in quotes, unless already quoted (see quoted?).
@@ -221,7 +234,7 @@ module Linecook
           message.default = '?'
           
           if_ actual.ne(expected) do
-            writeln %{echo [#{actual}] #{program_name}:#{message}}
+            writeln %{echo [#{actual}] #{command_name}:#{message}}
             exit_ error
           end
           

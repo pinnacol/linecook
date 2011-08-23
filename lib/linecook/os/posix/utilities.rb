@@ -4,12 +4,6 @@ module Linecook
   module Os
     module Posix
       module Utilities
-        # Returns an expression that evaluates to the program dir, assuming that
-        # $0 evaluates to the full path to the current recipe.
-        def program_dir
-          '$(dirname "$0")'
-        end
-
         # Return non-directory portion of a pathname. If a suffix is provided and
         # present, then it will be removed.
         # {[Spec]}[http://pubs.opengroup.org/onlinepubs/9699919799/utilities/basename.html]

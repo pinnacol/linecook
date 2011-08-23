@@ -131,8 +131,7 @@ For preventing the children of poor people in Ireland...
 
   def test_chomd_chmods_a_file
     setup_recipe do
-      cd program_dir
-
+      cd "${0%/*}"
       touch 'file'
       chmod '644', 'file'
       writeln 'ls -la file'
@@ -213,7 +212,7 @@ For preventing the children of poor people in Ireland...
 
   def test_directory_check_checks_dir_exists_and_is_a_directory
     setup_recipe do
-      cd program_dir
+      cd "${0%/*}"
 
       writeln 'mkdir dir'
       writeln 'touch file'
@@ -248,7 +247,7 @@ For preventing the children of poor people in Ireland...
 
   def test_executable_check_checks_file_is_executable
     setup_recipe do
-      cd program_dir
+      cd "${0%/*}"
 
       writeln 'touch file'
       writeln 'chmod +x file'
@@ -269,7 +268,7 @@ For preventing the children of poor people in Ireland...
 
   def test_exists_check_checks_file_exists
     setup_recipe do
-      cd program_dir
+      cd "${0%/*}"
 
       writeln 'mkdir dir'
       writeln 'touch file'
@@ -308,7 +307,7 @@ For preventing the children of poor people in Ireland...
 
   def test_file_check_checks_file_exists_and_is_a_file
     setup_recipe do
-      cd program_dir
+      cd "${0%/*}"
 
       writeln 'mkdir dir'
       writeln 'touch file'
@@ -332,7 +331,7 @@ For preventing the children of poor people in Ireland...
 
   def test_has_content_check_checks_file_exists_and_has_content
     setup_recipe do
-      cd program_dir
+      cd "${0%/*}"
 
       writeln 'touch file'
       if_ _has_content?('file')  do echo 'fail'  end
@@ -352,7 +351,7 @@ For preventing the children of poor people in Ireland...
 
   def test_link_check_checks_link_exists_and_is_a_link
     setup_recipe do
-      cd program_dir
+      cd "${0%/*}"
 
       writeln 'mkdir dir'
       writeln 'touch file'
@@ -435,7 +434,7 @@ For preventing the children of poor people in Ireland...
 
   def test_readable_check_checks_file_is_readable
     setup_recipe do
-      cd program_dir
+      cd "${0%/*}"
 
       writeln 'touch file'
       writeln 'chmod +r file'
@@ -456,7 +455,7 @@ For preventing the children of poor people in Ireland...
 
   def test_rm_removes_a_file
     setup_recipe do
-      cd program_dir
+      cd "${0%/*}"
 
       touch 'file'
       rm 'file'
@@ -510,7 +509,7 @@ For preventing the children of poor people in Ireland...
 
   def test_touch_touches_a_file
     setup_recipe do
-      cd program_dir
+      cd "${0%/*}"
 
       if_ _exists?('file') do
         echo 'fail'
@@ -545,7 +544,7 @@ For preventing the children of poor people in Ireland...
 
   def test_writable_check_checks_file_is_writable
     setup_recipe do
-      cd program_dir
+      cd "${0%/*}"
 
       writeln 'touch file'
       writeln 'chmod +w file'

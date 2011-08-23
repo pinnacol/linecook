@@ -875,7 +875,7 @@ class PosixTest < Test::Unit::TestCase
 
   def test_while__read
     setup_recipe do
-      cd program_dir
+      cd "${0%/*}"
       cat.to('file').heredoc do
         writeln 'a b c'
         writeln 'x y z'

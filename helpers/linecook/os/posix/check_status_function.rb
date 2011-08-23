@@ -6,7 +6,7 @@ Defines the check status function.
     message.default = '?'
     
     if_ actual.ne(expected) do
-      writeln %{echo [#{actual}] #{program_name}:#{message}}
+      writeln %{echo [#{actual}] #{command_name}:#{message}}
       exit_ error
     end
     
