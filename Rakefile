@@ -1,4 +1,5 @@
 require 'bundler/gem_tasks'
+require 'bundler/setup'
 
 #
 # Gem specification
@@ -54,44 +55,29 @@ task :rdoc do
 end
 
 #
-# Dependency tasks
-#
-
-desc 'Bundle dependencies'
-task :bundle do
-  output = `bundle check 2>&1`
-
-  unless $?.to_i == 0
-    puts output
-    sh "bundle install 2>&1"
-    puts
-  end
-end
-
-#
 # VM Tasks
 #
 
 desc "start each vm at CURRENT"
-task :start => :bundle do
-  sh 'bundle exec linecook start --master-socket --snapshot CURRENT'
+task :start do
+  sh 'linecook start --master-socket --snapshot CURRENT'
 end
 
 desc "snapshot each vm to a new CURRENT"
-task :snapshot => :bundle do
-  sh 'bundle exec linecook snapshot CURRENT'
+task :snapshot do
+  sh 'linecook snapshot CURRENT'
 end
 
 desc "reset each vm to BASE"
-task :reset_base => :bundle do
-  sh 'bundle exec linecook snapshot --reset BASE'
-  sh 'bundle exec linecook snapshot CURRENT'
-  sh 'bundle exec linecook start --master-socket --snapshot CURRENT'
+task :reset_base do
+  sh 'linecook snapshot --reset BASE'
+  sh 'linecook snapshot CURRENT'
+  sh 'linecook start --master-socket --snapshot CURRENT'
 end
 
 desc "stop each vm"
-task :stop => :bundle do
-  sh 'bundle exec linecook stop'
+task :stop do
+  sh 'linecook stop'
 end
 
 #
@@ -104,11 +90,11 @@ end
 
 desc "Build helpers"
 task :helpers do
-  sh "bundle exec linecook compile -L helpers -f"
+  sh "linecook compile -L helpers -f"
 end
 
 desc 'Run the tests assuming the vm is running'
-task :quicktest => :bundle do
+task :quicktest do
   tests = Dir.glob('test/**/*_test.rb')
   tests.delete_if {|test| test =~ /_test\/test_/ }
 
@@ -128,7 +114,7 @@ task :multitest do
 
   puts "Using: #{current_ruby}"
 
-  hosts = `bundle exec linecook state --hosts`.split("\n")
+  hosts = `linecook state --hosts`.split("\n")
   hosts.collect! {|line| line.split(':').at(0) }
 
   log_dir = File.expand_path("../log/#{current_ruby}", __FILE__)
