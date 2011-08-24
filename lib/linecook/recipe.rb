@@ -98,8 +98,12 @@ module Linecook
     # Looks up and extends self with the specified helper.
     def helper(*helper_names)
       helper_names.each do |helper_name|
-        require Utils.underscore(helper_name)
-        extend Utils.constantize(helper_name)
+        module_name = Utils.camelize(helper_name)
+        constant = Utils.constantize(module_name) do
+          require Utils.underscore(helper_name)
+          Utils.constantize(module_name)
+        end
+        extend constant
       end
       self
     end
