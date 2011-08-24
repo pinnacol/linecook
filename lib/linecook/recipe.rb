@@ -70,12 +70,12 @@ module Linecook
     # Loads the specified attributes file and merges the results into attrs. A
     # block may be given to specify attrs as well; it will be evaluated in the
     # context of an Attributes instance.
-    def attributes(path=nil, &block)
+    def attributes(source_name=nil, &block)
       attributes = Attributes.new
 
-      unless path.nil?
-        if full_path = _cookbook_.find(:attributes, path, Attributes::EXTNAMES)
-          attributes.load_attrs(full_path)
+      unless source_name.nil?
+        if source_path = _attributes_source_path_(source_name)
+          attributes.load_attrs(source_path)
         end
       end
 
@@ -319,6 +319,10 @@ module Linecook
 
     def _guess_recipe_name_(source_path)
       _guess_target_name_(source_path).chomp('.rb')
+    end
+
+    def _attributes_source_path_(source_name)
+      _cookbook_.find(:attributes, source_name, Attributes::EXTNAMES)
     end
 
     def _file_source_path_(source_name)
