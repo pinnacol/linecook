@@ -41,11 +41,6 @@ class UtilsTest < Test::Unit::TestCase
     assert_equal ConstantNest::ConstName, constantize("Object::ConstantNest::ConstName")
   end
 
-  def test_constantize_starts_looking_for_the_constant_under_const
-    assert_equal ConstantNest::ConstName, constantize("ConstName", ConstantNest)
-    assert_equal ConstantNest::ConstName, constantize("::ConstName", ConstantNest)
-  end
-
   def test_constantize_raise_error_for_invalid_constant_names
     assert_raises(NameError) { constantize("") }
     assert_raises(NameError) { constantize("::") }
@@ -55,9 +50,6 @@ class UtilsTest < Test::Unit::TestCase
   def test_constantize_raises_error_if_constant_does_not_exist
     assert_raises(NameError) { constantize("Non::Existant") }
     assert_raises(NameError) { constantize("::Non::Existant") }
-    assert_raises(NameError) { constantize("ConstName", ConstName) }
-    assert_raises(NameError) { constantize("::ConstName", ConstName) }
-    assert_raises(NameError) { constantize("Object::ConstName", ConstName) }
   end
 
   def test_constantize_yields_current_const_and_missing_constant_names_to_the_block

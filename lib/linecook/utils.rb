@@ -27,47 +27,35 @@ module Linecook
       downcase
     end
 
-    # Looks up the specified constant under const. A block may be given to
-    # manually look up missing constants; the last existing const and any
-    # non-existant constant names are yielded to the block, which is expected
-    # to return the desired constant.  For instance:
+    # Looks up the specified constant. A block may be given to look up missing
+    # constants; the last existing const and any non-existant constant names
+    # are yielded to the block, which is expected to return the desired
+    # constant.  For instance:
     #
     #   module ConstName; end
     #   Constant.constantize('ConstName')                     # => ConstName
     #   Constant.constantize('Non::Existant') { ConstName }   # => ConstName
     #
     # Raises a NameError for invalid/missing constants.
-    def constantize(const_name, const=Object) # :yields: const, missing_const_names
+    def constantize(const_name) # :yields: const, missing_const_names
       unless  /\A(?:::)?([A-Z]\w*(?:::[A-Z]\w*)*)\z/ =~ const_name
         raise NameError, "#{const_name.inspect} is not a valid constant name!"
       end
 
+      const = Object
       constants = $1.split(/::/)
-      while !constants.empty?
-        unless const_is_defined?(const, constants[0])
-          if block_given? 
-            return yield(const, constants)
-          else
-            raise NameError.new("uninitialized constant #{const_name}", constants[0])
-          end
-        end
-        const = const.const_get(constants.shift)
-      end
-      const
-    end
 
-    # helper method.  Determines if the named constant is defined in const.
-    # The implementation has to be different for ruby 1.9 due to changes
-    # in the API.
-    case RUBY_VERSION
-    when /^1.9/
-      def const_is_defined?(const, const_name) # :nodoc:
-        const.const_defined?(const_name, false)
+      while name = constants.shift
+        begin
+          const = const.const_get(name)
+        rescue NameError
+          raise $! unless block_given?
+          constants.unshift(name)
+          return yield(const, constants)
+        end
       end
-    else
-      def const_is_defined?(const, const_name) # :nodoc:
-        const.const_defined?(const_name)
-      end
+
+      const
     end
   end
 end
