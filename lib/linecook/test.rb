@@ -4,22 +4,15 @@ require 'linecook/recipe'
 module Linecook
   module Test
     module ClassMethods
+
+      # Nil host ends up falling through to the default as configured
+      # in config/ssh
       def host
         @host ||= ENV['LINECOOK_TEST_HOST'] || name
       end
 
       def use_host(host)
         @host = host
-      end
-
-      def only_hosts(*patterns)
-        patterns.collect! do |pattern|
-          pattern.kind_of?(Regexp) ? pattern : /\A#{pattern}\z/
-        end
-
-        unless patterns.any? {|pattern| host =~ pattern }
-          skip_test "not for host (#{host})"
-        end
       end
     end
 
