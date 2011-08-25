@@ -60,10 +60,11 @@ module Linecook
 
         package  = Package.new(load_env(package_file))
         cookbook = Cookbook.new(*cookbook_path)
+        stdout   = StringIO.new
 
         recipes.each do |recipe_name|
           if recipe_name == '-'
-            recipe = Recipe.new(package, cookbook, $stdout)
+            recipe = Recipe.new(package, cookbook, stdout)
             recipe.instance_eval $stdin.read, 'stdin'
           else
             recipe_path = cookbook.find(:recipes, recipe_name)
@@ -83,6 +84,9 @@ module Linecook
           FileUtils.rm_rf(dest)
           true
         end
+
+        # print to $stdout after export to ensure files will be available
+        $stdout << stdout.string
       end
 
       def relative_path(dir, path)

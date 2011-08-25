@@ -313,6 +313,38 @@ class LinecookTest < Test::Unit::TestCase
     assert_equal 'content', content('b')
   end
 
+  def test_compile_to_stdout_with_method_chains
+    prepare 'helpers/example/cat.erb', %{
+      cat
+    }
+    prepare 'helpers/example/heredoc.erb', %{
+      ()
+      _rstrip_ if _chain_?
+      --
+       <<DOC
+      <% yield %>
+      DOC
+    }
+
+    recipe_path = prepare 'recipe.rb', %{
+      helper 'example'
+      cat.heredoc do
+        writeln 'a'
+        writeln 'b'
+        writeln 'c'
+      end
+    }
+
+    assert_script %{
+      $ linecook compile -L helpers - < '#{recipe_path}'
+      cat <<DOC
+      a
+      b
+      c
+      DOC
+    }
+  end
+
   #
   # build test
   #
