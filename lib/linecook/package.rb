@@ -59,6 +59,10 @@ module Linecook
 
       if !source.nil? && source_path?(source)
         source = File.expand_path(source)
+
+        if File.directory?(source)
+          options[:as] ||= :dir
+        end
       end
 
       registry[target_path] = source
@@ -85,6 +89,7 @@ module Linecook
 
     # Registers the target_path as a dir.  Returns nil.
     def add_dir(target_path, options={})
+      options[:as] = :dir
       register target_path, nil, options
     end
 
@@ -211,17 +216,13 @@ module Linecook
             end
           end
 
-          if source.nil?
-            FileUtils.mkdir_p(export_path)
-          else
-            export_dir = File.dirname(export_path)
-            FileUtils.mkdir_p(export_dir)
+          export_dir = File.dirname(export_path)
+          FileUtils.mkdir_p(export_dir)
 
-            if options[:move]
-              FileUtils.mv(source_path, export_path)
-            else
-              FileUtils.cp(source_path, export_path)
-            end
+          if options[:as] == :dir
+            export_dir(source_path, export_path, options)
+          else
+            export_file(source_path, export_path, options)
           end
         end
 
@@ -241,6 +242,30 @@ module Linecook
     # a String) or if it must be treated as some type of IO.
     def source_path?(source) # :nodoc:
       source.kind_of?(String)
+    end
+
+    def export_dir(source_path, export_path, options) # :nodoc:
+      if source_path.nil?
+        FileUtils.mkdir(export_path)
+      else
+        if options[:move]
+          FileUtils.mv(source_path, export_path)
+        else
+          FileUtils.cp_r(source_path, export_path)
+        end
+      end
+    end
+
+    def export_file(source_path, export_path, options) # :nodoc:
+      if source_path.nil?
+        FileUtils.touch(export_path)
+      else
+        if options[:move]
+          FileUtils.mv(source_path, export_path)
+        else
+          FileUtils.cp(source_path, export_path)
+        end
+      end
     end
   end
 end

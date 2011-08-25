@@ -70,6 +70,14 @@ class PackageTest < Test::Unit::TestCase
     assert_equal true, package.export_options('target/path')[:move]
   end
 
+  def test_register_guesses_directory_for_directory_source
+    source_path = prepare_dir('dir')
+
+    assert_equal source_path, package.register('target/dir', source_path)
+    assert_equal source_path, package.source_path('target/dir')
+    assert_equal :dir, package.export_options('target/dir')[:as]
+  end
+
   #
   # unregister test
   #
@@ -120,6 +128,7 @@ class PackageTest < Test::Unit::TestCase
     assert_equal nil, package.add_dir('target/dir')
     assert_equal nil, package.source_path('target/dir')
     assert_equal true, package.registry.has_key?('target/dir')
+    assert_equal :dir, package.export_options('target/dir')[:as]
   end
 
   def test_add_dir_accepts_export_options
@@ -290,19 +299,56 @@ class PackageTest < Test::Unit::TestCase
     assert_equal 'content', File.read(path('export/dir/target/path'))
   end
 
-  def test_export_makes_directories_for_targets_with_nil_source
-    package.registry['target/path'] = nil
+  def test_export_makes_empty_file_for_targets_with_nil_source
+    package.register('target/path', nil)
+    package.export path('export/dir')
+
+    assert_equal "", content('export/dir/target/path')
+  end
+
+  def test_export_makes_directories_for_targets_with_nil_source_and_marked_as_dir
+    package.register('target/path', nil, :as => :dir)
     package.export path('export/dir')
 
     assert_equal true, File.directory?(path('export/dir/target/path'))
   end
 
+  def test_export_recursively_copies_directories
+    prepare('source/dir/a', 'a')
+    prepare('source/dir/b/c', 'c')
+
+    package.register('target/path', path('source/dir'))
+    package.export path('export/dir')
+
+    assert_equal 'a', content('export/dir/target/path/a')
+    assert_equal 'c', content('export/dir/target/path/b/c')
+    assert_equal 'a', content('source/dir/a')
+    assert_equal 'c', content('source/dir/b/c')
+  end
+
+  def test_export_moves_directories_marked_for_move
+    prepare('source/dir/a', 'a')
+    prepare('source/dir/b/c', 'c')
+
+    package.register('target/path', path('source/dir'), :move => true)
+    package.export path('export/dir')
+
+    assert_equal 'a', content('export/dir/target/path/a')
+    assert_equal 'c', content('export/dir/target/path/b/c')
+    assert_equal false, File.exists?(path('source/dir'))
+  end
+
   def test_export_exports_directories_and_nested_files_without_issue
-    package.add_dir('dir')
+    prepare('source/dir/a', 'a')
+    prepare('source/dir/b/c', 'c')
+
+    package.register('dir', path('source/dir'))
     package.add('dir/file.txt') << 'content'
     package.export path('export')
 
     assert_equal 'content', File.read(path('export/dir/file.txt'))
+    assert_equal 'a', content('export/dir/a')
+    assert_equal 'c', content('export/dir/b/c')
   end
 
   def test_export_sets_the_mode_for_the_target_as_specified_in_export_options
