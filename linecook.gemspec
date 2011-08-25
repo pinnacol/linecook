@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
     History.rdoc
     README.rdoc
     License.txt
+    doc/vm_setup.rdoc
   }
 
   # add dependencies
@@ -31,9 +32,41 @@ Gem::Specification.new do |s|
   s.add_development_dependency('rake', '~> 0.9.2')
   s.add_development_dependency('bundler', '~> 1.0')
   s.add_development_dependency('rcov', '~> 0.9')
+  s.add_development_dependency('rdoc', '~> 3.9')
   s.add_development_dependency('shell_test', '~> 0.2.0')
 
-  s.files         = %w{}
+  s.files         = %w{
+    bin/linecook_run
+    bin/linecook_scp
+    lib/linecook.rb
+    lib/linecook/attributes.rb
+    lib/linecook/command.rb
+    lib/linecook/command_set.rb
+    lib/linecook/command_utils.rb
+    lib/linecook/commands/build.rb
+    lib/linecook/commands/compile.rb
+    lib/linecook/commands/compile_helper.rb
+    lib/linecook/commands/run.rb
+    lib/linecook/commands/snapshot.rb
+    lib/linecook/commands/ssh.rb
+    lib/linecook/commands/start.rb
+    lib/linecook/commands/state.rb
+    lib/linecook/commands/stop.rb
+    lib/linecook/commands/virtual_box_command.rb
+    lib/linecook/cookbook.rb
+    lib/linecook/executable.rb
+    lib/linecook/os/linux.rb
+    lib/linecook/os/linux/utilities.rb
+    lib/linecook/os/posix.rb
+    lib/linecook/os/posix/utilities.rb
+    lib/linecook/os/posix/variable.rb
+    lib/linecook/package.rb
+    lib/linecook/proxy.rb
+    lib/linecook/recipe.rb
+    lib/linecook/test.rb
+    lib/linecook/utils.rb
+    lib/linecook/version.rb
+  }
   s.test_files    = %w{}
   s.executables   = ['linecook']
   s.require_paths = ['lib']

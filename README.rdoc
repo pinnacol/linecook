@@ -21,9 +21,9 @@ Install dependencies using Bundler:
   gem install bundler
   bundle install
 
-Build a test VM using the {VM Setup}[link:doc/vm_setup.html] doc, and make a
-config/ssh file that can can connect to it using the default Host (ie Host *).
-If you didn't customize anything, then you can use 'config/ssh.example'
+Build a test VM using the {VM Setup}[rdoc-ref:doc/vm_setup.rdoc] doc, and make
+a config/ssh file that can can connect to it using the default Host (ie Host
+*). If you didn't customize anything, then you can use 'config/ssh.example'
 directly. When setup correctly this prints 'success' with any HOST:
 
   ssh -F config/ssh [HOST] -- 'echo success'
