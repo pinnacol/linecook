@@ -14,6 +14,26 @@ Linecook is available as a {gem}[http://rubygems.org/gems/linecook].
 
   $ gem install linecook
 
+== Development
+
+Install dependencies using Bundler:
+
+  gem install bundler
+  bundle install
+
+Build a test VM using the {VM Setup}[link:doc/vm_setup.html] doc, and make a
+config/ssh file that can can connect to it using the default Host (ie Host *).
+If you didn't customize anything, then you can use 'config/ssh.example'
+directly. When setup correctly this prints 'success' with any HOST:
+
+  ssh -F config/ssh [HOST] -- 'echo success'
+
+Now run the tests:
+
+  rake test
+
+Report issues and submit pull requests on {GitHub}[https://github.pinnacol.com/pinnacol/linecook].
+
 == Info 
 
 Developer:: {Simon Chiang}[http://github.com/thinkerbot]
