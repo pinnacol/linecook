@@ -688,18 +688,18 @@ class LinecookTest < Test::Unit::TestCase
     end
   end
 
-  def test_run_runs_each_package
-    ['abox', 'bbox'].each do |box|
-      path = prepare("#{box}/run", 'echo "on $(hostname)"')
-      FileUtils.chmod(0744, path)
-    end
-
-    Dir.chdir(user_dir) do
-      assert_script %Q{
-        $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' '#{path('bbox')}'
-        on abox-ubuntu
-        on bbox-ubuntu
-      }
-    end
-  end
+  # def test_run_runs_each_package
+  #   ['abox', 'bbox'].each do |box|
+  #     path = prepare("#{box}/run", 'echo "on $(hostname)"')
+  #     FileUtils.chmod(0744, path)
+  #   end
+  # 
+  #   Dir.chdir(user_dir) do
+  #     assert_script %Q{
+  #       $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' '#{path('bbox')}'
+  #       on abox-ubuntu
+  #       on bbox-ubuntu
+  #     }
+  #   end
+  # end
 end

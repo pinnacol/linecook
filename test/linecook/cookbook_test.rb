@@ -3,6 +3,8 @@ require 'linecook/cookbook'
 
 class CookbookTest < Test::Unit::TestCase
   include ShellTest::FileMethods
+  include FileMethodsShim
+
   Cookbook = Linecook::Cookbook
 
   attr_accessor :cookbook

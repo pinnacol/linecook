@@ -28,6 +28,7 @@ Gem::Specification.new do |s|
   s.add_dependency('config_parser', '~> 0.5.5')
   s.add_dependency('configurable', '~> 1.0')
   s.add_dependency('tilt', '~> 1.3')
+  s.add_development_dependency('rake', '~> 0.9.2')
   s.add_development_dependency('bundler', '~> 1.0')
   s.add_development_dependency('rcov', '~> 0.9')
   s.add_development_dependency('shell_test', '~> 0.2.0')

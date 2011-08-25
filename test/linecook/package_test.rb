@@ -5,6 +5,7 @@ require 'ostruct'
 
 class PackageTest < Test::Unit::TestCase
   include ShellTest
+  include FileMethodsShim
 
   Package = Linecook::Package
 

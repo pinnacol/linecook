@@ -128,7 +128,7 @@ task :multitest do
       Thread.current["host"] = host
       Thread.current["logfile"] = logfile
 
-      cmd = "LINECOOK_TEST_HOST=#{host} rake quicktest > '#{logfile}' 2>&1"
+      cmd = "rake quicktest LINECOOK_TEST_HOST=#{host} > '#{logfile}' 2>&1"
       puts  "Multitest Host: #{host}"
       system(cmd)
 

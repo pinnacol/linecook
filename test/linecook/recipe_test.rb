@@ -3,6 +3,7 @@ require 'linecook/recipe'
 
 class RecipeTest < Test::Unit::TestCase
   include ShellTest
+  include FileMethodsShim
 
   Recipe = Linecook::Recipe
   Package = Linecook::Recipe

@@ -3,12 +3,14 @@ require 'linecook/commands/compile_helper'
 
 class CompileHelperCommandTest < Test::Unit::TestCase
   include ShellTest
+  include FileMethodsShim
 
   CompileHelper = Linecook::Commands::CompileHelper
 
   attr_accessor :cmd
 
   def setup
+    super
     @cmd = CompileHelper.new
   end
 

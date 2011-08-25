@@ -22,3 +22,30 @@ end
 # warnings about a world writable directory being on PATH
 LINECOOK_PATH = File.expand_path('../../bin/linecook', __FILE__)
 LINECOOK_EXE  = "ruby '#{LINECOOK_PATH}'"
+
+# Updates ShellTest::FileMethods in the same way as Linecook::Test such that
+# multitesting is possible.  Include after ShellTest::FileMethods.
+module FileMethodsShim
+  def method_dir
+    @host_method_dir ||= begin
+      if test_host = ENV['LINECOOK_TEST_HOST']
+        File.join(super, test_host)
+      else
+        super
+      end
+    end
+  end
+end
+
+# Patch
+module ShellTest
+  module FileTestMethods
+    def prepare_dir(relative_path)
+      target_dir = path(relative_path)
+      unless File.directory?(target_dir)
+        FileUtils.mkdir_p(target_dir)
+      end
+      target_dir
+    end
+  end
+end
