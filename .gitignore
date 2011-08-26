@@ -4,3 +4,4 @@ rdoc/*
 .rvmrc
 Gemfile.lock
 /log
+packages/
