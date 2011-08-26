@@ -31,7 +31,7 @@ for package_dir in "$@"
 do
 host=$(basename -- "$package_dir")
 
-ssh -q -t -t -F "$ssh_config_file" "$host" -- "$remote_dir/$remote_script" 2>/dev/null </dev/null
+ssh -q -t -t -F "$ssh_config_file" "$host" -- "$remote_dir/$remote_script"
 
 status=$?
 if [ $status -ne 0 ]

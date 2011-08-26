@@ -661,7 +661,7 @@ class LinecookTest < Test::Unit::TestCase
 
     Dir.chdir(user_dir) do
       assert_script %{
-        $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}'
+        $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' 2>/dev/null <&-
         on abox-ubuntu
       }
     end
@@ -673,7 +673,7 @@ class LinecookTest < Test::Unit::TestCase
 
     Dir.chdir(user_dir) do
       assert_script %Q{
-        $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' # [1] ...
+        $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' 2>/dev/null <&- # [1] ...
       }
     end
   end
@@ -683,7 +683,7 @@ class LinecookTest < Test::Unit::TestCase
 
     Dir.chdir(user_dir) do
       assert_script %Q{
-        $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' # [1] ...
+        $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' 2>/dev/null <&- # [1] ...
       }
     end
   end

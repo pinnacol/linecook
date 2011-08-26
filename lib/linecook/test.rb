@@ -156,7 +156,7 @@ module Linecook
       stdout = prepare("log/#{cmd}.out")
       stderr = prepare("log/#{cmd}.err")
 
-      command = "#{linecook_cmd(cmd, options, *args)} 2> '#{stderr}' > '#{stdout}'"
+      command = "#{linecook_cmd(cmd, options, *args)} 2> '#{stderr}' > '#{stdout}' <&-"
       system(command)
 
       [File.read(stdout), "$ #{command}\n#{File.read(stderr)}"]
