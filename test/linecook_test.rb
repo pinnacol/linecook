@@ -688,6 +688,20 @@ class LinecookTest < Test::Unit::TestCase
     end
   end
 
+  def test_run_can_use_remote_dirs_that_are_evaluated_on_the_host
+    path = prepare('abox/run', %{
+      cd "${0%/*}"
+      [ "$(pwd)" = "/tmp/${HOME#/}" ]
+    })
+    FileUtils.chmod(0744, path)
+
+    Dir.chdir(user_dir) do
+      assert_script %Q{
+        $ linecook run -q -D '/tmp/${HOME#/}' '#{path('abox')}' 2>/dev/null <&-
+      }
+    end
+  end
+
   # def test_run_runs_each_package
   #   ['abox', 'bbox'].each do |box|
   #     path = prepare("#{box}/run", 'echo "on $(hostname)"')

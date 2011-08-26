@@ -28,6 +28,8 @@ for package_dir in "$@"
 do
 host=$(basename -- "$package_dir")
 
+# Note the subshell substitutions need to be escaped so that they will be
+# evaluated on the host -- ex: -R '$TMPDIR' (to get TMPDIR on the host)
 ssh -q -T -F "$ssh_config_file" "$host" -- <<SCRIPT
 rm -rf "$remote_dir"
 if [ "\$(dirname "$remote_dir")" != "" ]

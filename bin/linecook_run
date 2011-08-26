@@ -31,6 +31,9 @@ for package_dir in "$@"
 do
 host=$(basename -- "$package_dir")
 
+# -q    : prevents ssh output from mixing into script output
+# -t -t : force pseudo tty allocation so the script behaves as if the
+#         user manually ran it on the VM (as when debugging)
 ssh -q -t -t -F "$ssh_config_file" "$host" -- "$remote_dir/$remote_script"
 
 status=$?
