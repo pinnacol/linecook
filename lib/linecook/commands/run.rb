@@ -23,7 +23,7 @@ module Linecook
 
       config :remote_dir, 'linecook'        # -D : the remote package dir
       config :remote_scripts, ['run']       # -S : the remote script(s)
-      config :ssh_config_file, 'config/ssh' # -F : the ssh config file
+      config :ssh_config_file, nil          # -F : the ssh config file
       config :scp, true                     # transfer package or not
 
       def full_path_to_remote_dir
@@ -50,7 +50,9 @@ module Linecook
         options = []
 
         opts.each_pair do |key, value|
-          options << "-#{key} '#{value}'"
+          if value
+            options << "-#{key} '#{value}'"
+          end
         end
 
         options.sort.join(' ')

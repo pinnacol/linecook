@@ -658,7 +658,7 @@ class LinecookTest < Test::Unit::TestCase
   
     Dir.chdir(user_dir) do
       assert_script %{
-        $ linecook run -D '#{remote_dir}' '#{path(host)}' 2>/dev/null <&-
+        $ linecook run -F '#{ssh_config_file}' -D '#{remote_dir}' '#{path(host)}' 2>/dev/null <&-
         $ ssh -F '#{ssh_config_file}' '#{host}' -- cat '#{remote_dir}/mark.txt'
         #{mark}
       }
@@ -671,7 +671,7 @@ class LinecookTest < Test::Unit::TestCase
 
     Dir.chdir(user_dir) do
       assert_script %Q{
-        $ linecook run -D '#{remote_dir}' '#{path(host)}' 2>/dev/null <&- # [1] ...
+        $ linecook run -F '#{ssh_config_file}' -D '#{remote_dir}' '#{path(host)}' 2>/dev/null <&- # [1] ...
       }
     end
   end
@@ -681,7 +681,7 @@ class LinecookTest < Test::Unit::TestCase
 
     Dir.chdir(user_dir) do
       assert_script %Q{
-        $ linecook run -D '#{remote_dir}' '#{path(host)}' 2>/dev/null <&- # [1] ...
+        $ linecook run -F '#{ssh_config_file}' -D '#{remote_dir}' '#{path(host)}' 2>/dev/null <&- # [1] ...
       }
     end
   end
@@ -695,7 +695,7 @@ class LinecookTest < Test::Unit::TestCase
 
     Dir.chdir(user_dir) do
       assert_script %Q{
-        $ linecook run -D '/tmp/${HOME#/}' '#{path(host)}' 2>/dev/null <&-
+        $ linecook run -F '#{ssh_config_file}' -D '/tmp/${HOME#/}' '#{path(host)}' 2>/dev/null <&-
       }
     end
   end
