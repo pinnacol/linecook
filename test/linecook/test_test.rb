@@ -204,32 +204,16 @@ class TestTest < Test::Unit::TestCase
       io.puts "echo <%= args.join(' ')%>"
     end
 
-    ['abox', 'bbox'].each do |box|
-      prepare "recipes/#{box}.rb", %{
-        $:.unshift '#{path('lib')}'
-        helper 'project_test_helper'
-        echo '#{box}', *attrs['letters']
-      }
+    prepare "recipes/#{host}.rb", %{
+      $:.unshift '#{path('lib')}'
+      helper 'project_test_helper'
+      echo *attrs['letters']
+    }
 
-      prepare "packages/#{box}.yml", %{
-        letters: [a, b, c]
-      }
-    end
+    prepare "packages/#{host}.yml", %{
+      letters: [a, b, c]
+    }
 
-    stdout, msg = build_project
-    assert_equal 0, $?.exitstatus, msg
-
-    stdout, msg = run_project
-    assert_str_equal %q{
-      abox a b c
-      bbox a b c
-    }, stdout, msg
-    assert_equal 0, $?.exitstatus, msg
-  end
-
-  cleanup_paths 'log', 'packages/abox'
-
-  def test_a_static_project
     stdout, msg = build_project
     assert_equal 0, $?.exitstatus, msg
 
@@ -239,6 +223,4 @@ class TestTest < Test::Unit::TestCase
     }, stdout, msg
     assert_equal 0, $?.exitstatus, msg
   end
-
-  cleanup
 end

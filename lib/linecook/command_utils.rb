@@ -7,7 +7,7 @@ module Linecook
     config :quiet, false  # -q, --quiet : silence output
 
     def sh(cmd)
-      puts "$ #{cmd}" unless quiet
+      $stderr.puts "$ #{cmd}" unless quiet
       system(cmd)
     end
 

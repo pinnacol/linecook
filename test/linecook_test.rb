@@ -651,45 +651,43 @@ class LinecookTest < Test::Unit::TestCase
   # run test
   #
 
-  def relative_dir
-    method_dir[(user_dir.length + 1)..-1]
-  end
-
   def test_run_runs_package_on_host_given_by_package_dir
-    path = prepare('abox/run', 'echo "on $(hostname)"')
+    mark = rand(1000)
+    path = prepare("#{host}/run", "echo '#{mark}' > '#{remote_dir}/mark.txt'")
     FileUtils.chmod(0744, path)
-
+  
     Dir.chdir(user_dir) do
       assert_script %{
-        $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' 2>/dev/null <&-
-        on abox-ubuntu
+        $ linecook run -D '#{remote_dir}' '#{path(host)}' 2>/dev/null <&-
+        $ ssh -F '#{ssh_config_file}' '#{host}' -- cat '#{remote_dir}/mark.txt'
+        #{mark}
       }
     end
   end
 
   def test_run_exits_with_status_1_for_failed_script
-    path = prepare('abox/run', 'exit 8')
+    path = prepare("#{host}/run", 'exit 8')
     FileUtils.chmod(0744, path)
 
     Dir.chdir(user_dir) do
       assert_script %Q{
-        $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' 2>/dev/null <&- # [1] ...
+        $ linecook run -D '#{remote_dir}' '#{path(host)}' 2>/dev/null <&- # [1] ...
       }
     end
   end
 
   def test_run_exits_with_status_1_for_missing_run_script
-    prepare_dir('abox')
+    prepare_dir(host)
 
     Dir.chdir(user_dir) do
       assert_script %Q{
-        $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' 2>/dev/null <&- # [1] ...
+        $ linecook run -D '#{remote_dir}' '#{path(host)}' 2>/dev/null <&- # [1] ...
       }
     end
   end
 
   def test_run_can_use_remote_dirs_that_are_evaluated_on_the_host
-    path = prepare('abox/run', %{
+    path = prepare("#{host}/run", %{
       cd "${0%/*}"
       [ "$(pwd)" = "/tmp/${HOME#/}" ]
     })
@@ -697,23 +695,8 @@ class LinecookTest < Test::Unit::TestCase
 
     Dir.chdir(user_dir) do
       assert_script %Q{
-        $ linecook run -q -D '/tmp/${HOME#/}' '#{path('abox')}' 2>/dev/null <&-
+        $ linecook run -D '/tmp/${HOME#/}' '#{path(host)}' 2>/dev/null <&-
       }
     end
   end
-
-  # def test_run_runs_each_package
-  #   ['abox', 'bbox'].each do |box|
-  #     path = prepare("#{box}/run", 'echo "on $(hostname)"')
-  #     FileUtils.chmod(0744, path)
-  #   end
-  # 
-  #   Dir.chdir(user_dir) do
-  #     assert_script %Q{
-  #       $ linecook run -q -D 'vm/#{relative_dir}' '#{path('abox')}' '#{path('bbox')}'
-  #       on abox-ubuntu
-  #       on bbox-ubuntu
-  #     }
-  #   end
-  # end
 end
