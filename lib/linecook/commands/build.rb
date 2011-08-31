@@ -105,8 +105,7 @@ module Linecook
       end
 
       def parse_spec(spec)
-        fields = []
-        CSV.parse_row(spec, 0, fields)
+        fields = CSV.parse_line(spec)
 
         case fields.length
         when 1  # short form
