@@ -37,7 +37,8 @@ module FileMethodsShim
   end
 end
 
-# Patch
+# Patch - see issue:
+# https://github.com/thinkerbot/shell_test/issues/12
 module ShellTest
   module FileTestMethods
     def prepare_dir(relative_path)
