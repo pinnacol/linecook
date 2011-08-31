@@ -1,5 +1,6 @@
 require 'shell_test'
 require 'linecook/recipe'
+require 'pty'
 
 module Linecook
   module Test
@@ -120,9 +121,9 @@ module Linecook
       package_dir
     end
 
-    def run_package(options={}, host=self.host)
+    def run_package(options={}, host=self.host, &block)
       options['S'] ||= runlist.join(',')
-      run_project options, export_package(host)
+      run_project options, export_package(host), &block
     end
 
     def build_project(options={})
@@ -138,7 +139,7 @@ module Linecook
       end
     end
 
-    def run_project(options={}, *package_dirs)
+    def run_project(options={}, *package_dirs, &block)
       if package_dirs.empty?
         package_dirs = glob('packages/*').select {|path| File.directory?(path) }
       end
@@ -149,17 +150,40 @@ module Linecook
         'q' => true
       }.merge(options)
 
-      linecook('run', options, *package_dirs)
+      linecook('run', options, *package_dirs, &block)
     end
 
-    def linecook(cmd, options={}, *args)
-      stdout = prepare("log/#{cmd}.out")
-      stderr = prepare("log/#{cmd}.err")
+    def linecook(cmd, options={}, *args, &block)
+      command = linecook_cmd(cmd, options, *args)
+      output, status = pty(command, &block)
 
-      command = "#{linecook_cmd(cmd, options, *args)} 2> '#{stderr}' > '#{stdout}' <&-"
-      sh(command)
+      [output.to_s.gsub(/\r\n/, "\n"), "$ #{command}"]
+    end
 
-      [File.read(stdout), "$ #{command}\n#{File.read(stderr)}"]
+    def pty(command)
+      buffer  = ''
+      timeout = 2
+      PTY.spawn(command) do |r,w,pid|
+        while true
+          if !IO.select([r],nil,nil,timeout)
+            Process.kill(9, pid)
+            break
+          end
+
+          if r.eof?
+            break
+          end
+
+          # Use readpartial instead of read because it will not block if the
+          # length is not fully available.
+          #
+          # Use readpartial+select instead of read_nonblock to avoid polling
+          # in a tight loop.
+          buffer << r.readpartial(1024)
+        end
+        Process.wait(pid)
+      end
+      buffer
     end
 
     def linecook_cmd(cmd, options={}, *args)
