@@ -46,7 +46,6 @@ then
   echo "[$status] $remote_dir/$remote_script" >&2
   exit 1
 fi
-
 done
 
 ################################## (run) ###################################
