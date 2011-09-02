@@ -162,7 +162,7 @@ module Linecook
 
     def pty(command)
       buffer  = ''
-      timeout = 2
+      timeout = 5
       PTY.spawn(command) do |r,w,pid|
         while true
           if !IO.select([r],nil,nil,timeout)
