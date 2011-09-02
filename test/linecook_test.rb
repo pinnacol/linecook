@@ -43,6 +43,25 @@ class LinecookTest < Test::Unit::TestCase
   end
 
   #
+  # lincook scripts test
+  #
+
+  def test_linecook_scp_and_linecook_run_work_with_the_same_defaults
+    path = prepare "packages/#{host}/run", %{
+      #!/bin/sh
+      echo 'hello from #{host}'
+    }
+    FileUtils.chmod 0744, path
+
+    Dir.chdir user_dir
+    assert_script_match %{
+      $ #{LINECOOK_PATH}_scp -F '#{ssh_config_file}' '#{path("packages/#{host}")}'
+      $ #{LINECOOK_PATH}_run -F '#{ssh_config_file}' '#{path("packages/#{host}")}' <&-
+      hello from #{host}
+    }
+  end
+
+  #
   # compile test
   #
 

@@ -2,7 +2,7 @@
 ############################################################################
 
 ssh_config_file=${SSH_CONFIG_FILE:-~/.ssh/config}
-remote_dir=${REMOTE_DIR:-$(pwd)/linecook}
+remote_dir=${REMOTE_DIR:-\$(pwd)/linecook}
 remote_script=${REMOTE_SCRIPT:-run}
 
 usage="usage: %s [-F SSH_CONFIG_FILE] [-D REMOTE_DIR] [-S REMOTE_SCRIPT] [-h] PACKAGE_DIRS...\n"
