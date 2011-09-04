@@ -10,7 +10,9 @@ module Linecook
     #
     # Compiles a list of recipes into a single package and exports the result
     # to the working directory.  The recipes are added to the package at their
-    # relative path, minus their extname.  For example:
+    # relative path, minus their extname.
+    #
+    # For example:
     #
     #   $ echo "write 'echo hello world'" > recipe.rb 
     #   $ linecook compile recipe.rb
@@ -62,12 +64,12 @@ module Linecook
         cookbook = Cookbook.new(*cookbook_path)
         stdout   = StringIO.new
 
-        recipes.each do |recipe_name|
-          if recipe_name == '-'
+        recipes.each do |recipe_path|
+          if recipe_path == '-'
             recipe = Recipe.new(package, cookbook, stdout)
             recipe.instance_eval $stdin.read, 'stdin'
           else
-            recipe_path = cookbook.find(:recipes, recipe_name)
+            recipe_path = File.expand_path(recipe_path)
             target_path = relative_path(input_dir, recipe_path).chomp('.rb')
             target = package.add target_path
 

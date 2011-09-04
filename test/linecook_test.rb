@@ -67,9 +67,9 @@ class LinecookTest < Test::Unit::TestCase
 
   def test_compile_documentation
     assert_script %{
-      $ echo "write 'echo hello world'" > '#{path('recipe.rb')}'
-      $ linecook compile '#{path('recipe.rb')}'
-      $ sh '#{path('recipe')}'
+      $ echo "write 'echo hello world'" > recipe.rb
+      $ linecook compile recipe.rb
+      $ sh recipe
       hello world
     }
   end
@@ -370,19 +370,19 @@ class LinecookTest < Test::Unit::TestCase
 
   def test_build_documentation
     assert_script %{
-      $ echo "write 'echo ' + attrs['msg']" > '#{path('recipe.rb')}'
-      $ echo "msg: hello world" > '#{path('recipe.yml')}'
-      $ linecook build '#{path('recipe.rb')}'
+      $ echo "write 'echo ' + attrs['msg']" > recipe.rb
+      $ echo "msg: hello world" > recipe.yml
+      $ linecook build recipe.rb
       #{path('recipe')}
-      $ '#{path('recipe/run')}'
+      $ recipe/run
       hello world
     }
     assert_script %{
-      $ echo "write 'echo ' + attrs['msg']" > '#{path('recipe.rb')}'
-      $ echo "msg: hello world" > '#{path('input.yml')}'
-      $ linecook build '#{path('input.yml')}','#{path('recipe.rb')}','#{path('output')}'
+      $ echo "write 'echo ' + attrs['msg']" > recipe.rb
+      $ echo "msg: hello world" > input.yml
+      $ linecook build input.yml,recipe.rb,output
       #{path('output')}
-      $ '#{path('output')}/run'
+      $ output/run
       hello world
     }
   end

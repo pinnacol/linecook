@@ -10,7 +10,9 @@ module Linecook
     #
     # Recipes are added to the package as the 'run' executable and they are
     # automatically configured with a package file corresponding to the
-    # recipe, if it exists.  For example:
+    # recipe, if it exists.
+    #
+    # For example:
     #
     #   $ echo "write 'echo ' + attrs['msg']" > recipe.rb
     #   $ echo "msg: hello world" > recipe.yml
@@ -26,12 +28,9 @@ module Linecook
     #
     # Package specs can be provided instead of recipes.  Specs are
     # comma-separated strings like 'package_file,recipe_file,export_dir' that
-    # allow full control over the building of packages.
+    # allow full control over the building of packages. Package files
     #
-    # Non-absolute file paths may be provided, in which case the package file
-    # is resolved relative to the input dir, the recipe is looked up along the
-    # cookbook path, and the export dir is resolved relative to the output
-    # dir. For example:
+    # For example:
     #
     #   $ echo "write 'echo ' + attrs['msg']" > recipe.rb
     #   $ echo "msg: hello world" > input.yml
@@ -52,21 +51,13 @@ module Linecook
         super(input)
       end
 
-      def package_finder
-        @package_finder ||= Cookbook.new(:package_file => [input_dir])
-      end
-
-      def package_file(package_name)
-        package_finder._find_(:package_file, package_name, ['.yml'])
-      end
-
       def process(*recipes)
         helper_dirs.each do |helpers_dir|
           compile_helpers(helpers_dir)
         end
 
-        each_spec(recipes) do |package_name, recipe_name, export_name|
-          export_dir = File.expand_path(export_name, output_dir)
+        each_spec(recipes) do |package_file, recipe_file, export_dir|
+          export_dir = File.expand_path(export_dir, output_dir)
           if File.exists?(export_dir)
             unless force
               raise CommandError, "already exists: #{export_dir.inspect}"
@@ -74,12 +65,14 @@ module Linecook
             FileUtils.rm_r(export_dir)
           end
 
-          package  = Package.new(load_env(package_file(package_name)))
+          package_file = File.expand_path(package_file, input_dir)
+          package  = Package.new(load_env(package_file))
           cookbook = Cookbook.new(*cookbook_path)
 
+          recipe_file = File.expand_path(recipe_file)
           target   = package.add('run', :mode => 0744)
           recipe   = Recipe.new(package, cookbook, target)
-          recipe._compile_ recipe_name
+          recipe._compile_ recipe_file
 
           package.export(export_dir)
           puts export_dir
@@ -110,8 +103,8 @@ module Linecook
         case fields.length
         when 1  # short form
           recipe_path = fields.at(0)
-          export_name = File.basename(recipe_path).chomp('.rb')
-          ["#{export_name}.yml", recipe_path, export_name]
+          base_name = File.basename(recipe_path).chomp('.rb')
+          ["#{base_name}.yml", recipe_path, base_name]
         when 3  # long form
           fields
         else
